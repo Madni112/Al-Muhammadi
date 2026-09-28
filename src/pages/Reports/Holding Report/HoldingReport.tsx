@@ -561,7 +561,7 @@ const HoldingReport: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Items_Detailed_Report_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Holding Items Audit',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Holding Items & Pending Dispatch Audit Statement',
           filterSummary: filterMeta,
           columns,
@@ -592,7 +592,7 @@ const HoldingReport: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Items_Salesman_Wise_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Salesman Holding',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Salesman-Wise Holding Inventory Portfolio Statement',
           filterSummary: filterMeta,
           columns,
@@ -623,7 +623,7 @@ const HoldingReport: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Items_Customer_Wise_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Customer Holding',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Customer-Wise Holding Stock Allocation Report',
           filterSummary: filterMeta,
           columns,
@@ -652,7 +652,7 @@ const HoldingReport: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Items_Gatepass_Wise_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Gatepass Holding',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Gatepass / Delivery Challan Holding Stock Audit',
           filterSummary: filterMeta,
           columns,
@@ -679,7 +679,7 @@ const HoldingReport: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Items_Invoice_Wise_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Invoice Holding',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Invoice-Wise Holding Inventory Statement',
           filterSummary: filterMeta,
           columns,

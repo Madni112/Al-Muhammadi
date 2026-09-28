@@ -16,7 +16,7 @@ const Footer: React.FC = () => {
             <span className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
               <MdBusiness size={13} />
             </span>
-            <span className="font-extrabold tracking-wide uppercase text-xs">Zoaib Ali & Company</span>
+            <span className="font-extrabold tracking-wide uppercase text-xs">AL MUHAMMADI</span>
           </div>
 
           {businessName && (
@@ -27,7 +27,7 @@ const Footer: React.FC = () => {
 
           <span className="hidden lg:inline text-slate-300 dark:text-slate-700">•</span>
           <span className="hidden lg:inline text-slate-500 dark:text-slate-400 text-[11px]">
-            Zoaib Ali & Company
+            AL MUHAMMADI
           </span>
         </div>
 
@@ -72,7 +72,7 @@ const Footer: React.FC = () => {
 
       {/* Bottom Sub-line */}
       <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
-        <span>© {currentYear} Zoaib Ali & Company. All rights reserved.</span>
+        <span>© {currentYear} AL MUHAMMADI. All rights reserved.</span>
         <span className="font-mono">v1.3.8 • Secure Business Management Infrastructure</span>
       </div>
     </footer>

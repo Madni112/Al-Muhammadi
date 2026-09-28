@@ -298,7 +298,7 @@ const PrintInvoice = () => {
             <div className="flex items-center gap-2">
               <span className="h-4 w-4 bg-emerald-600 rounded-sm"></span>
               <h1 className="text-2xl font-black tracking-tight text-slate-950 uppercase">
-                ZOAIB ALI & COMPANY
+                AL MUHAMMADI
               </h1>
             </div>
             <p className="text-[11px] font-semibold text-slate-500 tracking-wider uppercase mt-0.5">

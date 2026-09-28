@@ -50,21 +50,21 @@ const SaleReportPrint = () => {
   useEffect(() => {
     const originalTitle = document.title;
     if (rType === 'category-sales') {
-      document.title = 'Category-Wise Sales & Volume Report - ZOAIB ALI & COMPANY';
+      document.title = 'Category-Wise Sales & Volume Report - AL MUHAMMADI';
     } else if (rType === 'product-sales-history') {
-      document.title = 'Product Sales History Report - ZOAIB ALI & COMPANY';
+      document.title = 'Product Sales History Report - AL MUHAMMADI';
     } else if (rType === 'sales-query') {
-      document.title = 'Sales Parameter Transaction Register - ZOAIB ALI & COMPANY';
+      document.title = 'Sales Parameter Transaction Register - AL MUHAMMADI';
     } else if (rType === 'customer-sales') {
-      document.title = 'Customer Sales & Volume Analysis - ZOAIB ALI & COMPANY';
+      document.title = 'Customer Sales & Volume Analysis - AL MUHAMMADI';
     } else if (rType === 'return') {
-      document.title = 'Sales Return & Credit Ledger - ZOAIB ALI & COMPANY';
+      document.title = 'Sales Return & Credit Ledger - AL MUHAMMADI';
     } else if (rType === 'invoice') {
-      document.title = 'Sales Invoice Detail Audit - ZOAIB ALI & COMPANY';
+      document.title = 'Sales Invoice Detail Audit - AL MUHAMMADI';
     } else if (rType === 'loyalty') {
-      document.title = 'Customer Financial Statement & Invoice Ledger - ZOAIB ALI & COMPANY';
+      document.title = 'Customer Financial Statement & Invoice Ledger - AL MUHAMMADI';
     } else {
-      document.title = 'Commercial Sales Audit Statement - ZOAIB ALI & COMPANY';
+      document.title = 'Commercial Sales Audit Statement - AL MUHAMMADI';
     }
 
     return () => {
@@ -2320,7 +2320,7 @@ const SaleReportPrint = () => {
       await exportToExcel({
         fileName: `${rType === 'sale' ? 'Commercial_Sales_Ledger' : rType === 'product-sales-history' ? 'Product_Sales_History' : rType === 'customer-sales' ? 'Customer_Sales_Analysis' : rType === 'return' ? 'Sales_Return_Credit_Ledger' : rType === 'sales-query' ? 'Sales_Parameter_Register' : rType}_${new Date().toISOString().split('T')[0]}.xlsx`,
         sheetName: rType === 'sale' ? 'Sales Ledger' : rType === 'customer-sales' ? 'Customer Breakdown' : rType === 'return' ? 'Return Ledger' : 'Sales Report',
-        companyName: businessName || 'ZOAIB ALI & COMPANY',
+        companyName: businessName || 'AL MUHAMMADI',
         reportTitle,
         filterSummary: filterMeta,
         columns,
@@ -2591,7 +2591,7 @@ const SaleReportPrint = () => {
 
         {/* ── OFFICIAL CORPORATE REPORT HEADER ── */}
         <div className="text-center space-y-1 py-4 border-b border-double border-black">
-          <h1 className="text-xl font-black uppercase tracking-widest font-serif">ZOAIB ALI & COMPANY</h1>
+          <h1 className="text-xl font-black uppercase tracking-widest font-serif">AL MUHAMMADI</h1>
           <p className="text-[10px] font-bold tracking-wider text-gray-500 uppercase">
             {rType === 'category-sales'
               ? 'Category-Wise Product Sales, Net Volume Realization & Revenue Contribution Statement'
@@ -4700,7 +4700,7 @@ const SaleReportPrint = () => {
         {/* 🏢 Software & Corporate Provider Footer */}
         <div className="mt-8 pt-3 border-t border-gray-300 flex justify-between items-center text-[10px] text-gray-600 font-sans print:border-gray-400 break-inside-avoid">
           <div className="flex items-center gap-2 font-bold">
-            <span className="text-black font-black uppercase">ZOAIB ALI &amp; COMPANY</span>
+            <span className="text-black font-black uppercase">AL MUHAMMADI</span>
           </div>
           <div className="text-[9.5px] text-gray-600 font-mono font-medium text-right">
             Software Solution &amp; Cloud Infrastructure by <b className="text-black font-bold">NHT ENTERPRISES (Noor Horizon Technologies)</b>

@@ -112,10 +112,10 @@ const AccountReportPrint = () => {
     useEffect(() => {
         const originalTitle = document.title;
         document.title = activeTab === 13 
-            ? 'Customer Balance Detail Report - ZOAIB ALI & COMPANY'
+            ? 'Customer Balance Detail Report - AL MUHAMMADI'
             : activeTab === 3
-            ? 'Vendor Balance Detail Report - ZOAIB ALI & COMPANY'
-            : 'Corporate Account Ledger - ZOAIB ALI & COMPANY';
+            ? 'Vendor Balance Detail Report - AL MUHAMMADI'
+            : 'Corporate Account Ledger - AL MUHAMMADI';
 
         return () => {
             document.title = originalTitle;
@@ -1747,7 +1747,7 @@ const AccountReportPrint = () => {
             await exportToExcel({
                 filename,
                 sheetName: reportHeading.slice(0, 31),
-                title: businessName || 'ZOAIB ALI & COMPANY',
+                title: businessName || 'AL MUHAMMADI',
                 subtitle: reportHeading,
                 columns,
                 data: exportData
@@ -1764,7 +1764,7 @@ const AccountReportPrint = () => {
     const handleShareWhatsApp = () => {
         const periodText = filters.dateFrom && filters.dateTo ? `${filters.dateFrom} to ${filters.dateTo}` : 'Current Period';
         const lines = [
-            `📊 *${businessName || 'ZOAIB ALI & COMPANY'}*`,
+            `📊 *${businessName || 'AL MUHAMMADI'}*`,
             `💼 *Financial Account Ledger Audit Summary*`,
             `━━━━━━━━━━━━━━━━━━━━━`,
             `📅 *Period:* ${periodText}`,
@@ -1839,7 +1839,7 @@ const AccountReportPrint = () => {
                 </div>
 
                 <div className="text-center space-y-1 py-4 border-b border-double border-black">
-                    <h1 className="text-xl font-black uppercase tracking-widest font-serif">ZOAIB ALI & COMPANY</h1>
+                    <h1 className="text-xl font-black uppercase tracking-widest font-serif">AL MUHAMMADI</h1>
                     <p className="text-[10px] font-bold tracking-wider text-gray-500 uppercase">Master Corporate Ledger Book & Financial Audit Statement Summary</p>
 
                     <div className="text-[10px] pt-1 font-mono flex justify-between px-2 text-gray-600">
@@ -3228,7 +3228,7 @@ const AccountReportPrint = () => {
                 {/* 🏢 Software & Corporate Provider Footer */}
                 <div className="mt-8 pt-3 border-t border-gray-300 flex justify-between items-center text-[10px] text-gray-600 font-sans print:border-gray-400 break-inside-avoid">
                     <div className="flex items-center gap-2 font-bold">
-                        <span className="text-black font-black uppercase">ZOAIB ALI &amp; COMPANY</span>
+                        <span className="text-black font-black uppercase">AL MUHAMMADI</span>
                     </div>
                     <div className="text-[9.5px] text-gray-600 font-mono font-medium text-right">
                         Software Solution &amp; Cloud Infrastructure by <b className="text-black font-bold">NHT ENTERPRISES (Noor Horizon Technologies)</b>

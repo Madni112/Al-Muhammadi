@@ -83,7 +83,7 @@ const THEMES = {
  * Creates a beautifully styled and formatted Excel Worksheet
  */
 const createStyledWorksheet = (config: any): XLSX.WorkSheet => {
-  const companyName = String(config.companyName || config.title || 'ZOAIB ALI & COMPANY');
+  const companyName = String(config.companyName || config.title || 'AL MUHAMMADI');
   const reportTitle = String(config.reportTitle || config.subtitle || 'FINANCIAL AUDIT REPORT');
   const {
     filterSummary,

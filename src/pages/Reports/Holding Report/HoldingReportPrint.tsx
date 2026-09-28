@@ -593,7 +593,7 @@ const HoldingReportPrint: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Items_Detailed_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Holding Items',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Holding Items & Pending Dispatch Audit Statement',
           filterSummary: filterMeta,
           columns,
@@ -665,7 +665,7 @@ const HoldingReportPrint: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Salesman_Wise_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Salesman Holding',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Salesman-Wise Holding Inventory & DC/Invoice Audit Statement',
           filterSummary: filterMeta,
           columns,
@@ -737,7 +737,7 @@ const HoldingReportPrint: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Customer_Wise_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Customer Holding',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Customer-Wise Holding Inventory & DC/Invoice Audit Statement',
           filterSummary: filterMeta,
           columns,
@@ -808,7 +808,7 @@ const HoldingReportPrint: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Gatepass_Wise_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Gatepass Holding',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Gatepass-Wise Holding Inventory & DC/Item Audit Statement',
           filterSummary: filterMeta,
           columns,
@@ -880,7 +880,7 @@ const HoldingReportPrint: React.FC = () => {
         await exportToExcel({
           fileName: `Holding_Invoice_Wise_${new Date().toISOString().split('T')[0]}.xlsx`,
           sheetName: 'Invoice Holding',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: 'Invoice-Wise Holding Inventory & DC/Item Audit Statement',
           filterSummary: filterMeta,
           columns,
@@ -983,7 +983,7 @@ const HoldingReportPrint: React.FC = () => {
         {/* Printable Letterhead */}
         <div className="text-center space-y-1 py-4 border-b border-double border-black">
           <h1 className="text-xl font-black uppercase tracking-widest font-serif">
-            {businessName || 'ZOAIB ALI & COMPANY'}
+            {businessName || 'AL MUHAMMADI'}
           </h1>
           <p className="text-[10px] font-bold tracking-wider text-gray-600 uppercase">
             COMMERCIAL HOLDING INVENTORY & PENDING DISPATCH AUDIT STATEMENT
@@ -2089,7 +2089,7 @@ const HoldingReportPrint: React.FC = () => {
         {/* 🏢 Software & Corporate Provider Footer */}
         <div className="mt-8 pt-3 border-t border-gray-300 flex justify-between items-center text-[10px] text-gray-600 font-sans print:border-gray-400 break-inside-avoid">
           <div className="flex items-center gap-2 font-bold">
-            <span className="text-black font-black uppercase">ZOAIB ALI &amp; COMPANY</span>
+            <span className="text-black font-black uppercase">AL MUHAMMADI</span>
           </div>
           <div className="text-[9.5px] text-gray-600 font-mono font-medium text-right">
             Software Solution &amp; Cloud Infrastructure by <b className="text-black font-bold">NHT ENTERPRISES (Noor Horizon Technologies)</b>

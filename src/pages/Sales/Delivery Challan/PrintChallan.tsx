@@ -167,7 +167,7 @@ const PrintChallan = () => {
           {/* Official Document Banner */}
           <div className="border-b-2 border-black pb-4 mb-6 flex justify-between items-end">
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-black">ZOAIB ALI & COMPANY</h1>
+              <h1 className="text-2xl font-black tracking-tight text-black">AL MUHAMMADI</h1>
               <p className="text-xs text-gray-600 font-semibold uppercase tracking-wider">Goods Transit & Warehouse Gate Pass Voucher</p>
             </div>
             <div className="text-right">

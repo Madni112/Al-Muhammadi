@@ -765,7 +765,7 @@ const ReportDashboard: React.FC = () => {
 
       await exportMultiSheetExcel({
         fileName: `Master_Reports_Directory_${new Date().toISOString().split('T')[0]}.xlsx`,
-        companyName: businessName || 'ZOAIB ALI & COMPANY',
+        companyName: businessName || 'AL MUHAMMADI',
         sheets: [
           {
             sheetName: 'Reports Catalog',

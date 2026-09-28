@@ -55,24 +55,23 @@ const SignIn: React.FC = () => {
   });
 
   return (
-    <div className="bg-[#F8FAFC] dark:bg-[#070A10] min-h-screen flex flex-col font-sans selection:bg-emerald-600 selection:text-white relative overflow-hidden">
+    <div className="bg-[#F8FAFC] dark:bg-[#070A10] min-h-screen flex flex-col font-sans selection:bg-red-600 selection:text-white relative overflow-hidden">
       {/* Ambient background light meshes */}
-      <div className="pointer-events-none absolute top-[-10%] left-[20%] w-[500px] h-[400px] bg-emerald-500/10 dark:bg-emerald-600/15 rounded-full blur-[130px]" />
-      <div className="pointer-events-none absolute bottom-[-10%] right-[15%] w-[450px] h-[350px] bg-teal-500/10 dark:bg-teal-600/10 rounded-full blur-[120px]" />
+      <div className="pointer-events-none absolute top-[-10%] left-[20%] w-[500px] h-[400px] bg-red-500/10 dark:bg-red-600/15 rounded-full blur-[130px]" />
+      <div className="pointer-events-none absolute bottom-[-10%] right-[15%] w-[450px] h-[350px] bg-rose-500/10 dark:bg-rose-600/10 rounded-full blur-[120px]" />
 
       {/* Header Bar */}
       <header className="w-full backdrop-blur-md bg-white/90 dark:bg-[#0B0F17]/90 border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-50">
         <div className="flex items-center justify-between px-4 py-3.5 md:px-6 2xl:px-11 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-800 flex items-center justify-center shadow-lg shadow-emerald-600/30 border border-emerald-400/40 relative overflow-hidden select-none shrink-0">
-              <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/20 pointer-events-none" />
-              <span className="relative z-10 font-cinzel font-black tracking-widest text-[15px] text-white dark:text-[#0B0F17] leading-none pl-0.5">
-                ZAC
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center shadow-md shadow-red-600/25 border border-red-500/40 relative overflow-hidden select-none shrink-0">
+              <span className="relative z-10 font-black tracking-wider text-[17px] text-white leading-none">
+                A
               </span>
             </div>
-            <div className="flex items-center gap-1.5 leading-tight">
-              <span className="text-[19px] font-black text-emerald-600 dark:text-emerald-400">ZOAIB ALI</span>
-              <span className="text-[19px] font-black text-slate-800 dark:text-slate-100">& COMPANY</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[17px] font-black tracking-wide text-slate-900 dark:text-white">AL MUHAMMADI</span>
+              <span className="text-[9px] font-bold text-red-600 dark:text-red-400 tracking-widest uppercase">ENTERPRISE ERP</span>
             </div>
           </div>
           <ul className="flex items-center gap-2 m-0 list-none">

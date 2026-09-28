@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   });
   const [tenantId, setTenantId] = useState<string | null>(null);
-  const [businessName, setBusinessName] = useState<string | null>('Zoaib Ali & Company');
+  const [businessName, setBusinessName] = useState<string | null>('AL MUHAMMADI');
   const [userEmail, setUserEmail] = useState<string | null>(() => {
     try {
       return localStorage.getItem('zac_user_email') || null;
@@ -244,7 +244,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUserEmail(email || null);
       setRole(userRole);
       setTenantId(null);
-      setBusinessName('Zoaib Ali & Company');
+      setBusinessName('AL MUHAMMADI');
       setAllowedModules(userPermissions);
       setUserLocationId(locId);
       setUserLocationName(locName);
@@ -265,7 +265,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUserEmail(null);
       setRole('Super Admin');
       setTenantId(null);
-      setBusinessName('Zoaib Ali & Company');
+      setBusinessName('AL MUHAMMADI');
       setUserLocationId(null);
       setUserLocationName(null);
       setUserName(null);

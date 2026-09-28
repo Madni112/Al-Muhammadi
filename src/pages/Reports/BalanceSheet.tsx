@@ -177,7 +177,7 @@ const BalanceSheet: React.FC = () => {
         await exportToExcel({
           fileName: `Commercial_Executive_Summary_${asOfDate}.xlsx`,
           sheetName: 'Executive Summary',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: `Commercial Executive Performance Statement (As of ${asOfDate})`,
           filterSummary: {
             'As Of Date': asOfDate,
@@ -216,7 +216,7 @@ const BalanceSheet: React.FC = () => {
         await exportToExcel({
           fileName: `Corporate_Balance_Sheet_${asOfDate}.xlsx`,
           sheetName: 'Balance Sheet',
-          companyName: businessName || 'ZOAIB ALI & COMPANY',
+          companyName: businessName || 'AL MUHAMMADI',
           reportTitle: `Corporate GAAP Balance Sheet Statement (As of ${asOfDate})`,
           filterSummary: { 'As Of Date': asOfDate, 'Accounting Standard': 'GAAP (Assets = Liabilities + Equity)' },
           columns,
@@ -342,7 +342,7 @@ const BalanceSheet: React.FC = () => {
         
         {/* Printable Header for physical paper prints */}
         <div className="hidden print:block text-center mb-4 border-b-2 border-black pb-3">
-          <h1 className="text-2xl font-black text-black uppercase tracking-wider font-serif">{businessName || 'ZOAIB ALI & COMPANY'}</h1>
+          <h1 className="text-2xl font-black text-black uppercase tracking-wider font-serif">{businessName || 'AL MUHAMMADI'}</h1>
           <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest font-mono">
             {activePerspective === 'summary'
               ? 'COMMERCIAL EXECUTIVE SUMMARY & FINANCIAL TRAJECTORY STATEMENT'
@@ -1044,7 +1044,7 @@ const BalanceSheet: React.FC = () => {
         {/* 🏢 Software & Corporate Provider Footer */}
         <div className="mt-6 pt-3 border-t border-gray-300 flex justify-between items-center text-[10px] text-gray-600 font-sans print:border-gray-400 break-inside-avoid">
           <div className="flex items-center gap-2 font-bold">
-            <span className="text-black font-black uppercase">{businessName || 'ZOAIB ALI & COMPANY'}</span>
+            <span className="text-black font-black uppercase">{businessName || 'AL MUHAMMADI'}</span>
           </div>
           <div className="text-[9.5px] text-gray-600 font-mono font-medium text-right">
             Software Solution &amp; Cloud Infrastructure by <b className="text-black font-bold">NHT ENTERPRISES (Noor Horizon Technologies)</b>

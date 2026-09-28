@@ -31,7 +31,7 @@ const NotFound: React.FC<NotFoundProps> = ({
         <div className="flex items-center gap-3">
           <img src={IconDark} alt="NHT Logo" className="h-9 w-auto" />
           <span className="font-black text-base text-black dark:text-white tracking-tight">
-            ZOAIB ALI <span className="text-primary">& COMPANY</span>
+            AL <span className="text-primary">MUHAMMADI</span>
           </span>
         </div>
 
@@ -67,7 +67,7 @@ const NotFound: React.FC<NotFoundProps> = ({
 
       {/* FOOTER */}
       <footer className="border-t border-stroke dark:border-strokedark py-6 text-center text-xs text-gray-400 dark:text-gray-500">
-        © {new Date().getFullYear()} Zoaib Ali & Company. All Rights Reserved.
+        © {new Date().getFullYear()} AL MUHAMMADI. All Rights Reserved.
       </footer>
     </div>
   );

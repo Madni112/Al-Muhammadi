@@ -153,7 +153,7 @@ const PurchaseReportPrint = () => {
     else if (rType === 'return') titlePrefix = 'Purchase Returns & Debit Ledger';
     else if (rType === 'purchase-query') titlePrefix = 'Purchase Parameter Transaction Register';
 
-    document.title = `${titlePrefix} - ${businessName || 'ZOAIB ALI & COMPANY'}`;
+    document.title = `${titlePrefix} - ${businessName || 'AL MUHAMMADI'}`;
 
     const handleBeforePrint = () => setIsPrinting(true);
     const handleAfterPrint = () => setIsPrinting(false);
@@ -1132,7 +1132,7 @@ const PurchaseReportPrint = () => {
       await exportToExcel({
         fileName: `${filename}.xlsx`,
         sheetName: `Procurement Audit`,
-        companyName: businessName || 'ZOAIB ALI & COMPANY',
+        companyName: businessName || 'AL MUHAMMADI',
         reportTitle: `Master Procurement Accounting Statement (${String(rType).toUpperCase()})`,
         filterSummary: filterMeta,
         columns,
@@ -1261,7 +1261,7 @@ const PurchaseReportPrint = () => {
         {/* ── REPORT FORMAL HEADER BANNER ── */}
         <div className="text-center space-y-1 py-4 border-b border-double border-black">
           <h1 className="text-xl font-black uppercase tracking-widest font-serif">
-            {businessName || 'ZOAIB ALI & COMPANY'}
+            {businessName || 'AL MUHAMMADI'}
           </h1>
           <p className="text-[10px] font-bold tracking-wider text-gray-500 uppercase">
             Master Corporate Procurement Audit &amp; Supplier Accounts Workbook
@@ -1977,7 +1977,7 @@ const PurchaseReportPrint = () => {
         {/* ── SOFTWARE PROVIDER FOOTER ── */}
         <div className="mt-8 pt-3 border-t border-gray-300 flex justify-between items-center text-[10px] text-gray-600 font-sans print:border-gray-400 break-inside-avoid">
           <div className="flex items-center gap-2 font-bold">
-            <span className="text-black font-black uppercase">{businessName || 'ZOAIB ALI & COMPANY'}</span>
+            <span className="text-black font-black uppercase">{businessName || 'AL MUHAMMADI'}</span>
           </div>
           <div className="text-[9.5px] text-gray-600 font-mono font-medium text-right">
             Software Solution &amp; Cloud Infrastructure by <b className="text-black font-bold">NHT ENTERPRISES (Noor Horizon Technologies)</b>

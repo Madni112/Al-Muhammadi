@@ -170,7 +170,7 @@ export interface EmployeeAccount {
 }
 
 // Master Super Admin / Developer Credentials
-const DEV_EMAIL = 'admin@zoaibalicompany.com';
+const DEV_EMAIL = 'admin@almuhammadi.com';
 const ALMUHAMMADI_DEV_EMAIL = 'admin@almuhammadi.com';
 const DEV_PASSWORD = 'admin123';
 const BACKUP_DEV_EMAIL = 'developer@noorhorizontechnologies.com';
@@ -559,7 +559,7 @@ const DeveloperDashboard: React.FC = () => {
             full_name: newEmployee.name.trim(),
             role: newEmployee.role,
             tenant_id: cleanSlug,
-            business_name: 'Zoaib Ali & Company',
+            business_name: 'AL MUHAMMADI',
             allowed_modules: newEmployee.modules,
           },
         },
@@ -575,7 +575,7 @@ const DeveloperDashboard: React.FC = () => {
             slug: cleanSlug,
             email: newEmployee.email.trim(),
             business_activity: newEmployee.role,
-            seller_address: 'Zoaib Ali & Company Headquarters',
+            seller_address: 'AL MUHAMMADI Headquarters',
             allowed_modules: newEmployee.modules,
             location_id: newEmployee.role === 'Warehouse Manager' && newEmployee.location_id ? Number(newEmployee.location_id) : null,
           },
@@ -833,10 +833,10 @@ const DeveloperDashboard: React.FC = () => {
       lower === BACKUP_DEV_EMAIL.toLowerCase()
     ) {
       return {
-        name: 'Zoaib Ali',
+        name: 'Al Muhammadi',
         role: 'Super Admin',
         email: lower.includes('@') ? performedBy : DEV_EMAIL,
-        initials: 'ZA',
+        initials: 'AM',
         avatarBg: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
         badgeColor: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
       };
@@ -1430,7 +1430,7 @@ const DeveloperDashboard: React.FC = () => {
                   </p>
                 </div>
                 <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/20 font-semibold flex items-center gap-1.5">
-                  <MdSecurity /> Zoaib Ali & Company RBAC
+                  <MdSecurity /> AL MUHAMMADI RBAC
                 </span>
               </div>
 
@@ -1496,7 +1496,7 @@ const DeveloperDashboard: React.FC = () => {
                       <input
                         type="email"
                         required
-                        placeholder="e.g. warehouse@zoaibalicompany.com"
+                        placeholder="e.g. warehouse@almuhammadi.com"
                         value={newEmployee.email}
                         onChange={e => setNewEmployee({ ...newEmployee, email: e.target.value })}
                         className="w-full bg-white dark:bg-form-input border border-stroke dark:border-form-strokedark rounded-lg p-2.5 text-black dark:text-white text-xs outline-none focus:border-emerald-500"
@@ -1879,7 +1879,7 @@ const DeveloperDashboard: React.FC = () => {
             </div>
 
             {/* QUICK PRESET TEMPLATES */}
-            {editingEmployee.role === 'Super Admin' || editingEmployee.slug === 'zoaib-admin' ? (
+            {editingEmployee.role === 'Super Admin' || editingEmployee.slug === 'almuhammadi-admin' || editingEmployee.slug === 'zoaib-admin' ? (
               <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-2xl text-xs text-amber-800 dark:text-amber-300 font-semibold flex items-center gap-3">
                 <span className="text-2xl">👑</span>
                 <div>

@@ -148,7 +148,7 @@ const PrintSalesReturnReceipt: React.FC = () => {
         <div className="flex justify-between items-start border-b-2 border-emerald-700 pb-6 mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight uppercase">
-              Zoaib Ali & Company
+              AL MUHAMMADI
             </h1>
             <p className="text-xs text-slate-500 font-semibold mt-1">
               Wholesale Ceramic Tiles, Sanitary Ware & Building Materials
@@ -157,7 +157,7 @@ const PrintSalesReturnReceipt: React.FC = () => {
               National Highway / Main Warehouse, Hyderabad, Sindh
             </p>
             <p className="text-xs text-slate-500 font-medium">
-              Tel: +92 312 8039911 | Email: support@zoaibalicompany.com
+              Tel: +92 312 8039911 | Email: support@almuhammadi.com
             </p>
           </div>
           <div className="text-right">
@@ -351,7 +351,7 @@ const PrintSalesReturnReceipt: React.FC = () => {
 
         {/* Footer Note */}
         <div className="mt-8 text-center text-[10px] text-slate-400 print:mt-12 font-medium">
-          This is a computer-generated official refund settlement voucher from Zoaib Ali & Company ERP System.
+          This is a computer-generated official refund settlement voucher from AL MUHAMMADI ERP System.
         </div>
 
       </div>
