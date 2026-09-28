@@ -182,9 +182,7 @@ const StockReport = () => {
         <button type="button" onClick={() => handleTabChange(2)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 2 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Stock Balance</button>
         <button type="button" onClick={() => handleTabChange(3)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 3 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Stock Status</button>
         <button type="button" onClick={() => handleTabChange(4)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 4 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Stock Transfer</button>
-        <button type="button" onClick={() => handleTabChange(5)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 5 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Detail With Price</button>
-        <button type="button" onClick={() => handleTabChange(6)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 6 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Product Report</button>
-        <button type="button" onClick={() => handleTabChange(7)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 7 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Status Detail</button>
+        <button type="button" onClick={() => handleTabChange(7)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 7 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Category Valuation</button>
         <button type="button" onClick={() => handleTabChange(8)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 8 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Location Stock</button>
       </div>
 
@@ -192,32 +190,11 @@ const StockReport = () => {
         <h3 className="font-bold text-sm text-black dark:text-white mb-4 uppercase tracking-wider text-primary">Report Criteria Specification</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
 
-          {(activeTab === 1 || activeTab === 2 || activeTab === 5 || activeTab === 6) && (
+          {(activeTab === 1 || activeTab === 2) && (
             <>
               <SearchableMultiSelect label="Product Group (UOM):" placeholder="UOM Group" options={uomOptions} value={criteria.uom} onChange={(val) => handleInputChange('uom', val)} />
               <SearchableMultiSelect label="Brand:" placeholder="Brand" options={binOptions} value={criteria.bin} onChange={(val) => handleInputChange('bin', val)} />
               <SearchableMultiSelect label="Select Product Asset:" placeholder="Product" options={productOptions} value={criteria.product} onChange={(val) => handleInputChange('product', val)} />
-              
-              {activeTab === 5 && (
-                <div className="md:col-span-4 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 dark:bg-meta-4/20 p-3 rounded border border-stroke dark:border-strokedark mt-2">
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" id="showSalePrice" checked={criteria.showSalePrice} onChange={(e) => handleInputChange('showSalePrice', e.target.checked)} className="h-4 w-4 rounded text-primary border-stroke cursor-pointer" />
-                    <label htmlFor="showSalePrice" className="font-bold text-gray-600 dark:text-white cursor-pointer select-none">Include Retail Sale Price</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" id="showPurchasePrice" checked={criteria.showPurchasePrice} onChange={(e) => handleInputChange('showPurchasePrice', e.target.checked)} className="h-4 w-4 rounded text-primary border-stroke cursor-pointer" />
-                    <label htmlFor="showPurchasePrice" className="font-bold text-gray-600 dark:text-white cursor-pointer select-none">Include Inbound Purchase Cost</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" id="showFinalPrice" checked={criteria.showFinalPrice} onChange={(e) => handleInputChange('showFinalPrice', e.target.checked)} className="h-4 w-4 rounded text-primary border-stroke cursor-pointer" />
-                    <label htmlFor="showFinalPrice" className="font-bold text-gray-600 dark:text-white cursor-pointer select-none">Include Final Net Value</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" id="showSpecifications" checked={criteria.showSpecifications} onChange={(e) => handleInputChange('showSpecifications', e.target.checked)} className="h-4 w-4 rounded text-primary border-stroke cursor-pointer" />
-                    <label htmlFor="showSpecifications" className="font-bold text-gray-600 dark:text-white cursor-pointer select-none">Include Data Technical Specs</label>
-                  </div>
-                </div>
-              )}
             </>
           )}
 

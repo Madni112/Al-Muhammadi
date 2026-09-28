@@ -165,6 +165,7 @@ const AddSalesReturn = () => {
             customerMap.set(name.toLowerCase(), {
               id: c.id,
               customer_name: name,
+              customer_code: c.customer_code || c.customerCode || '',
               contact_name: c.company || c.contact_name || '',
               phone: c.phone || c.primaryPhone || c.cell_no || '',
               city: c.city || '',
@@ -240,6 +241,7 @@ const AddSalesReturn = () => {
   // Filtered lists
   const filteredCustomers = customers.filter(c =>
     (c.customer_name || '').toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    (c.customer_code || '').toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     (c.contact_name || '').toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     (c.phone || '').toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     (c.city || '').toLowerCase().includes(customerSearchQuery.toLowerCase())
@@ -989,10 +991,6 @@ const AddSalesReturn = () => {
                                 setSelectedInvObj(inv);
                                 setFieldValue('invoiceNo', formattedInv);
 
-                                if (values.paymentTerm === 'On Credit') {
-                                  setFieldValue('paymentTerm', 'By Cash');
-                                }
-
                                 // Auto-populate all line items from the selected invoice
                                 const rawItems = Array.isArray(inv.items) ? inv.items : [];
                                 if (rawItems.length > 0) {
@@ -1614,7 +1612,7 @@ const AddSalesReturn = () => {
                           value={values.paymentTerm}
                           className="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold outline-none text-xs focus:border-emerald-600 cursor-pointer"
                         >
-                          {!selectedInvNo && <option value="On Credit">📄 On Credit (Adjusted Against Invoices)</option>}
+                          <option value="On Credit">📄 On Credit (Adjusted Against Invoices / Customer Balance)</option>
                           <option value="By Cash">💵 By Cash (Immediate Cash Drawer Payout)</option>
                           <option value="By Bank">🏦 By Bank (Immediate Bank Wire Transfer)</option>
                           <option value="Split">💳 Split Payment (Cash + Bank Payout)</option>

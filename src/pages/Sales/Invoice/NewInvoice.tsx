@@ -63,7 +63,7 @@ const NewInvoice = () => {
         setInitialLoading(true);
         const { data: cust } = await supabase.from('customers').select('id, customerName, primaryPhone');
         const { data: prod } = await supabase.from('products').select('id, product_name, current_stock, retail_price, item_sr_no, category, hs_code, uom, pieces_per_box, pcs_per_box, pieces_per_packing, product_description, bin, item_type, service_charges');
-        const { data: sm } = await supabase.from('salesmen').select('id, name');
+        const { data: sm } = await supabase.from('salesmen').select('id, name, invoice_name, invoice_names');
         const { data: trans } = await supabase.from('logistics_transportation').select('id, name, base_charges');
         const { data: locMaster } = await supabase.from('inventory_locations').select('name');
         const { data: wh } = await supabase.from('opening_stocks').select('location');
@@ -108,6 +108,24 @@ const NewInvoice = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const getSalesmanPrefix = (salesmanName: string, smList: any[] = salesmenList): string => {
+    if (!salesmanName) return '';
+    const smObj = (smList && smList.length > 0 ? smList : salesmenList).find(
+      (s) => (s.name || '').toLowerCase().trim() === salesmanName.toLowerCase().trim()
+    );
+    const rawPrefix = (
+      smObj?.invoice_name ||
+      (smObj?.invoice_names && smObj?.invoice_names[0]) ||
+      smObj?.name ||
+      salesmanName ||
+      ''
+    )
+      .trim()
+      .toUpperCase();
+
+    return rawPrefix ? `${rawPrefix}-` : '';
+  };
 
   const getFormInitialValues = () => {
     if (editData) {
@@ -171,29 +189,43 @@ const NewInvoice = () => {
   };
 
   const validationSchema = Yup.object().shape({
-    invoiceNo: Yup.string().required('Invoice # is required').test(
-      'check-invoice-unique',
-      'This Invoice Number already exists!',
-      async function (value) {
-        if (!value) return true;
-        const originalInvoiceNo = editData?.invoice_no;
-        if (originalInvoiceNo && String(originalInvoiceNo).trim().toLowerCase() === String(value).trim().toLowerCase()) {
+    invoiceNo: Yup.string()
+      .required('Invoice # is required')
+      .test(
+        'has-digits',
+        'Please enter the invoice number digits',
+        function (value, ctx) {
+          if (!value) return false;
+          const prefix = getSalesmanPrefix(ctx.parent.salesman, salesmenList);
+          if (prefix && value.trim().toUpperCase() === prefix.trim().toUpperCase()) {
+            return false;
+          }
           return true;
         }
-        try {
-          const { data, error } = await supabase
-            .from('sales_invoices')
-            .select('id')
-            .ilike('invoice_no', value.trim())
-            .maybeSingle();
-          if (error) return true;
-          if (data) return false;
-          return true;
-        } catch (e) {
-          return true;
+      )
+      .test(
+        'check-invoice-unique',
+        'This Invoice Number already exists!',
+        async function (value) {
+          if (!value) return true;
+          const originalInvoiceNo = editData?.invoice_no;
+          if (originalInvoiceNo && String(originalInvoiceNo).trim().toLowerCase() === String(value).trim().toLowerCase()) {
+            return true;
+          }
+          try {
+            const { data, error } = await supabase
+              .from('sales_invoices')
+              .select('id')
+              .ilike('invoice_no', value.trim())
+              .maybeSingle();
+            if (error) return true;
+            if (data) return false;
+            return true;
+          } catch (e) {
+            return true;
+          }
         }
-      }
-    ),
+      ),
     gatePasses: Yup.object().test('all-gate-passes', 'Gate pass required for all locations', function (value, ctx) {
       const { items } = ctx.parent;
       if (!items || !Array.isArray(items)) return true;
@@ -208,15 +240,18 @@ const NewInvoice = () => {
       return true;
     }),
     shippingAddress: Yup.string().nullable(),
-    saleDate: Yup.string().required('Required Field').test('valid-date', 'Date must be within last 2 days', function(value) {
+    saleDate: Yup.string().required('Required Field').test('valid-date', 'Date must be within last 3 days', function(value) {
       if (!value) return false;
+      if (editData && (editData.sale_date || editData.date) && value === String(editData.sale_date || editData.date).split('T')[0]) {
+        return true;
+      }
       const selected = new Date(value);
       selected.setHours(0,0,0,0);
       const base = serverToday ? new Date(serverToday) : new Date();
       const today = new Date(base);
       today.setHours(0,0,0,0);
       const minDate = new Date(today);
-      minDate.setDate(today.getDate() - 2);
+      minDate.setDate(today.getDate() - 3);
       return selected >= minDate && selected <= today;
     }),
     taxScenario: Yup.string().required('Required Field'),
@@ -377,6 +412,24 @@ const NewInvoice = () => {
   const executeInvoicePersistence = async (values: any, customerFinalName: string) => {
     try {
       setLoading(true);
+      
+      // STRICT VALIDATION: Block if quantity exceeds available stock
+      for (const item of values.items) {
+        let maxAllowed = Number(item.availableQty || 0);
+        if (editData && editData.items) {
+           const oldItems = typeof editData.items === 'string' ? JSON.parse(editData.items || '[]') : (editData.items || []);
+           const original = oldItems.find((oi: any) => oi.skuCode === item.skuCode && (oi.warehouse || editData.dispatch_warehouse || 'Main Warehouse') === (item.warehouse || values.dispatchWarehouse || 'Main Warehouse'));
+           if (original) {
+              maxAllowed += Number(original.qty || 0);
+           }
+        }
+        if (item.itemName && Number(item.qty) > maxAllowed) {
+          toast.error(`Insufficient stock for ${item.itemName}. Max Available: ${maxAllowed.toLocaleString()}, Requested: ${Number(item.qty).toLocaleString()}`);
+          setLoading(false);
+          return;
+        }
+      }
+
       let calculatedGrandTotal = values.items.reduce((acc: number, item: any) => {
         return acc + calculateLineTotals(item, values.taxScenario, values.applyFbrTax).netTotal;
       }, 0) + Number(values.transportCharges || 0) + Number(values.additionalCharges || 0);
@@ -396,6 +449,11 @@ const NewInvoice = () => {
       }
 
       const totalPaidCombined = paidCash + paidBank;
+      if (totalPaidCombined > calculatedGrandTotal + 0.01) {
+        toast.error(`Payment amount (Rs. ${totalPaidCombined.toLocaleString(undefined, { minimumFractionDigits: 2 })}) cannot exceed total bill amount (Rs. ${calculatedGrandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })})!`);
+        setLoading(false);
+        return;
+      }
       const runningBalanceTerm = totalPaidCombined >= calculatedGrandTotal ? 'Cash' : 'Credit';
 
       const databasePayload = {
@@ -569,6 +627,28 @@ const NewInvoice = () => {
               }
               nextChallanNo = `${baseCode}-${nextLetter}`;
             }
+          }
+
+          if (!nextChallanNo) {
+            const safePrefix = whName.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            const { data: allDcs } = await supabase
+              .from('delivery_challans')
+              .select('challan_no')
+              .ilike('challan_no', `${safePrefix}-%`);
+
+            let nextNum = 1;
+            if (allDcs && allDcs.length > 0) {
+              const maxNum = allDcs.reduce((max, dc) => {
+                const match = (dc.challan_no || '').match(new RegExp(`^${safePrefix}-(\\d+)`));
+                if (match && match[1]) {
+                  const num = parseInt(match[1], 10);
+                  return num > max ? num : max;
+                }
+                return max;
+              }, 0);
+              nextNum = maxNum + 1;
+            }
+            nextChallanNo = `${safePrefix}-${String(nextNum).padStart(4, '0')}`;
           }
 
           await supabase.from('delivery_challans').insert([{
@@ -788,7 +868,14 @@ const NewInvoice = () => {
             ) : (
               <select value={selectedRecordedCustomer} onChange={(e) => setSelectedRecordedCustomer(e.target.value)} className="w-full p-3 border rounded-lg bg-transparent dark:border-strokedark">
                 <option value="">-- Search Customer --</option>
-                {customersList.map(c => <option key={c.id} value={c.customerName}>{c.customerName}</option>)}
+                {customersList.map(c => {
+                  const code = c.customer_code || c.customerCode;
+                  return (
+                    <option key={c.id} value={c.customerName}>
+                      {code ? `[${code}] ${c.customerName}` : c.customerName}
+                    </option>
+                  );
+                })}
               </select>
             )}
 
@@ -846,11 +933,22 @@ const NewInvoice = () => {
               return acc + calculateLineTotals(item, values.taxScenario, values.applyFbrTax).netTotal;
             }, 0) + Number(values.transportCharges || 0) + Number(values.additionalCharges || 0);
 
+            const currentPrefix = getSalesmanPrefix(values.salesman, salesmenList);
+
+            // Extract user-typed suffix
+            let rawSuffix = values.invoiceNo || '';
+            if (currentPrefix && rawSuffix.toUpperCase().startsWith(currentPrefix.toUpperCase())) {
+              rawSuffix = rawSuffix.slice(currentPrefix.length);
+            }
+
             // Auto-lock salesman value if logged in as salesman
-            if (isSalesman && (matchedSalesman || currentSalesmanName) && values.salesman !== (matchedSalesman || currentSalesmanName)) {
-              setTimeout(() => {
-                setFieldValue('salesman', matchedSalesman || currentSalesmanName);
-              }, 0);
+            if (isSalesman && (matchedSalesman || currentSalesmanName)) {
+              const currentOfficer = matchedSalesman || currentSalesmanName;
+              if (values.salesman !== currentOfficer) {
+                setTimeout(() => {
+                  setFieldValue('salesman', currentOfficer);
+                }, 0);
+              }
             }
 
             return (
@@ -858,7 +956,38 @@ const NewInvoice = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50 dark:bg-meta-4/5 p-4 rounded-sm border border-stroke dark:border-strokedark">
                   <div>
                     <label className="block font-bold text-gray-500 mb-1">Invoice Number #: *</label>
-                    <input type="text" name="invoiceNo" placeholder="Enter Invoice #" value={values.invoiceNo} onChange={(e) => setFieldValue('invoiceNo', e.target.value.toUpperCase())} className={`w-full rounded border p-2 text-sm bg-white dark:bg-boxdark font-bold outline-none text-black dark:text-white ${hasAttempted && errors.invoiceNo ? 'border-red-500 bg-red-50/10' : 'border-stroke dark:border-strokedark focus:border-primary'}`} />
+                    <div className={`flex items-center rounded border overflow-hidden bg-white dark:bg-boxdark ${hasAttempted && errors.invoiceNo ? 'border-red-500 bg-red-50/10' : 'border-stroke dark:border-strokedark focus-within:border-primary'}`}>
+                      <span className="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-emerald-800 dark:text-emerald-300 font-mono font-black text-sm border-r border-stroke dark:border-strokedark select-none whitespace-nowrap min-w-[70px] text-center flex items-center justify-center">
+                        {currentPrefix || <span className="text-gray-400 font-normal text-xs">Prefix-</span>}
+                      </span>
+                      <input 
+                        type="text" 
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        name="invoiceNo" 
+                        placeholder={currentPrefix ? "e.g. 001 or 26388" : "Select salesman first"} 
+                        value={rawSuffix} 
+                        onKeyDown={(e) => {
+                          if (
+                            !/[\d]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key) &&
+                            !e.ctrlKey &&
+                            !e.metaKey
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const digitsOnly = e.target.value.replace(/\D/g, '');
+                          if (currentPrefix) {
+                            setFieldValue('invoiceNo', `${currentPrefix}${digitsOnly}`);
+                          } else {
+                            setFieldValue('invoiceNo', digitsOnly);
+                          }
+                        }} 
+                        className="w-full p-2 text-sm bg-transparent font-bold outline-none text-black dark:text-white placeholder:font-normal placeholder:text-xs placeholder:text-gray-400 font-mono" 
+                      />
+                    </div>
                     {hasAttempted && errors.invoiceNo && <p className="text-red-500 text-xs font-bold mt-1">{String(errors.invoiceNo)}</p>}
                   </div>
 
@@ -868,32 +997,11 @@ const NewInvoice = () => {
                       type="date" 
                       name="saleDate" 
                       value={values.saleDate} 
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        // If user typed only day number (e.g., "06")
-                        if (val && val.length <= 2 && !isNaN(Number(val))) {
-                          const day = Number(val);
-                          const now = new Date();
-                          const constructed = new Date(now.getFullYear(), now.getMonth(), day);
-                          const iso = constructed.toISOString().split('T')[0];
-                          const base = serverToday ? new Date(serverToday) : new Date();
-                          const today = new Date(base);
-                          today.setHours(0,0,0,0);
-                          const minDate = new Date(today);
-                          minDate.setDate(today.getDate() - 2);
-                          if (constructed >= minDate && constructed <= today) {
-                            setFieldValue('saleDate', iso);
-                            console.log('Date accepted');
-                          } else {
-                            toast.error('Invalid date');
-                          }
-                        } else {
-                          setFieldValue('saleDate', val);
-                        }
-                      }}
-                      min={new Date(new Date().setDate(new Date().getDate() - 2)).toISOString().split('T')[0]}
+                      onChange={handleChange}
+                      min={editData ? undefined : new Date(new Date().setDate(new Date().getDate() - 3)).toISOString().split('T')[0]}
                       max={new Date().toISOString().split('T')[0]}
-                      className={`w-full rounded border p-2 text-sm bg-transparent font-bold outline-none text-black dark:text-white ${hasAttempted && errors.saleDate ? 'border-red-500 bg-red-50/10' : 'border-stroke dark:border-strokedark focus:border-primary'}`} />
+                      className={`w-full rounded border p-2 text-sm bg-transparent font-bold outline-none text-black dark:text-white ${hasAttempted && errors.saleDate ? 'border-red-500 bg-red-50/10' : 'border-stroke dark:border-strokedark focus:border-primary'}`} 
+                    />
                   </div>
 
                   <div>
@@ -917,13 +1025,22 @@ const NewInvoice = () => {
                       <select
                         name="salesman"
                         value={values.salesman}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const selectedSm = e.target.value;
+                          setFieldValue('salesman', selectedSm);
+                          const newPrefix = getSalesmanPrefix(selectedSm, salesmenList);
+                          if (rawSuffix) {
+                            setFieldValue('invoiceNo', newPrefix ? `${newPrefix}${rawSuffix}` : rawSuffix);
+                          } else {
+                            setFieldValue('invoiceNo', newPrefix ? `${newPrefix}` : '');
+                          }
+                        }}
                         className={`w-full rounded border p-2 text-sm bg-white dark:bg-boxdark font-bold outline-none text-black dark:text-white ${hasAttempted && errors.salesman ? 'border-red-500 bg-red-50/10' : 'border-stroke dark:border-strokedark focus:border-primary'}`}
                       >
                         <option value="">-- Select Officer --</option>
                         {salesmenList.map((s) => (
                           <option key={s.id} value={s.name}>
-                            {s.name}
+                            {s.name} {s.invoice_name ? `(${s.invoice_name})` : ''}
                           </option>
                         ))}
                       </select>
@@ -991,7 +1108,7 @@ const NewInvoice = () => {
                       Discounts
                     </div>
 
-                    {/* Additional Charges Toggle */}
+                    {/* Freight Charges Toggle */}
                     <div
                       onClick={() => {
                         const isChecked = !values.showAdditionalCharges;
@@ -1004,7 +1121,7 @@ const NewInvoice = () => {
                           : 'bg-white text-slate-500 border-stroke dark:bg-boxdark dark:text-slate-400 dark:border-strokedark hover:bg-slate-50 dark:hover:bg-meta-4'
                       }`}
                     >
-                      Additional Charges
+                      Freight Charges
                     </div>
                   </div>
 
@@ -1080,7 +1197,15 @@ const NewInvoice = () => {
                                 const uomName = selectedProd?.uom ? selectedProd.uom : (isTile ? 'BOX' : 'PCS');
 
                                 // Calculate available stock breakdown
-                                const totalAvailStock = Number(item.availableQty || 0);
+                                let effectiveAvailStock = Number(item.availableQty || 0);
+                                if (editData && editData.items) {
+                                  const oldItems = typeof editData.items === 'string' ? JSON.parse(editData.items || '[]') : (editData.items || []);
+                                  const original = oldItems.find((oi: any) => oi.skuCode === item.skuCode && (oi.warehouse || editData.dispatch_warehouse || 'Main Warehouse') === (item.warehouse || values.dispatchWarehouse || 'Main Warehouse'));
+                                  if (original) {
+                                     effectiveAvailStock += Number(original.qty || 0);
+                                  }
+                                }
+                                const totalAvailStock = effectiveAvailStock;
                                 const totalPieces = isTile && pcsPerBox > 1 ? Math.round(totalAvailStock * pcsPerBox) : 0;
                                 const availBoxes = isTile && pcsPerBox > 1 ? Math.floor(totalPieces / pcsPerBox) : Math.floor(totalAvailStock);
                                 const availLoosePcs = isTile && pcsPerBox > 1 ? (totalPieces % pcsPerBox) : 0;
@@ -1841,51 +1966,83 @@ const NewInvoice = () => {
                       </div>
                     )}
 
-                    <div className={values.settlementMode === 'Split' ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'w-full'}>
-                      {(values.settlementMode === 'Cash' || values.settlementMode === 'Split') && (
-                        <div>
-                          <span className="font-bold text-danger block mb-1">Cash Payment Amount (PKR): *</span>
-                          <input
-                            type="number"
-                            min="0"
-                            onKeyDown={blockInvalidChar}
-                            onWheel={(e: any) => e.target.blur()}
-                            name="cashAmountPaid"
-                            value={values.cashAmountPaid === 0 ? '' : values.cashAmountPaid}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const num = val === '' ? 0 : Math.max(0, Number(val) || 0);
-                              setFieldValue('cashAmountPaid', num);
-                            }}
-                            placeholder="0"
-                            className={`w-full rounded border p-2 bg-transparent text-right font-black text-danger text-sm outline-none text-black dark:text-white ${hasAttempted && errors.cashAmountPaid ? 'border-red-500 bg-red-50/10' : 'border-stroke dark:border-strokedark focus:border-primary'}`}
-                          />
-                          {hasAttempted && errors.cashAmountPaid && <p className="text-red-500 text-[10px] font-bold mt-1">{errors.cashAmountPaid}</p>}
-                        </div>
-                      )}
+                    {(() => {
+                      const totalPaidNow = values.settlementMode === 'Cash'
+                        ? Number(values.cashAmountPaid || 0)
+                        : (values.settlementMode === 'Bank' ? Number(values.bankAmountPaid || 0) : (Number(values.cashAmountPaid || 0) + Number(values.bankAmountPaid || 0)));
+                      const isOverpaid = totalPaidNow > currentSubtotalValue + 0.01;
 
-                      {(values.settlementMode === 'Bank' || values.settlementMode === 'Split') && (
-                        <div>
-                          <span className="font-bold text-primary block mb-1">Bank Payment Amount (PKR): *</span>
-                          <input
-                            type="number"
-                            min="0"
-                            onKeyDown={blockInvalidChar}
-                            onWheel={(e: any) => e.target.blur()}
-                            name="bankAmountPaid"
-                            value={values.bankAmountPaid === 0 ? '' : values.bankAmountPaid}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const num = val === '' ? 0 : Math.max(0, Number(val) || 0);
-                              setFieldValue('bankAmountPaid', num);
-                            }}
-                            placeholder="0"
-                            className={`w-full rounded border p-2 bg-transparent text-right font-black text-primary text-sm outline-none text-black dark:text-white ${hasAttempted && errors.bankAmountPaid ? 'border-red-500 bg-red-50/10' : 'border-stroke dark:border-strokedark focus:border-primary'}`}
-                          />
-                          {hasAttempted && errors.bankAmountPaid && <p className="text-red-500 text-[10px] font-bold mt-1">{errors.bankAmountPaid}</p>}
+                      return (
+                        <div className="w-full space-y-2">
+                          <div className={values.settlementMode === 'Split' ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'w-full'}>
+                            {(values.settlementMode === 'Cash' || values.settlementMode === 'Split') && (
+                              <div>
+                                <span className={`font-bold block mb-1 ${isOverpaid ? 'text-red-600 dark:text-red-400' : 'text-danger'}`}>
+                                  Cash Payment Amount (PKR): *
+                                </span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  onKeyDown={blockInvalidChar}
+                                  onWheel={(e: any) => e.target.blur()}
+                                  name="cashAmountPaid"
+                                  value={values.cashAmountPaid === 0 ? '' : values.cashAmountPaid}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const num = val === '' ? 0 : Math.max(0, Number(val) || 0);
+                                    setFieldValue('cashAmountPaid', num);
+                                  }}
+                                  placeholder="0"
+                                  className={`w-full rounded border p-2 bg-transparent text-right font-black text-sm outline-none ${
+                                    isOverpaid 
+                                      ? 'border-2 border-red-500 bg-red-50/50 dark:bg-red-950/30 text-red-600 dark:text-red-400 ring-2 ring-red-400' 
+                                      : (hasAttempted && errors.cashAmountPaid ? 'border-red-500 bg-red-50/10 text-danger' : 'border-stroke dark:border-strokedark focus:border-primary text-black dark:text-white')
+                                  }`}
+                                />
+                                {hasAttempted && errors.cashAmountPaid && <p className="text-red-500 text-[10px] font-bold mt-1">{errors.cashAmountPaid}</p>}
+                              </div>
+                            )}
+
+                            {(values.settlementMode === 'Bank' || values.settlementMode === 'Split') && (
+                              <div>
+                                <span className={`font-bold block mb-1 ${isOverpaid ? 'text-red-600 dark:text-red-400' : 'text-primary'}`}>
+                                  Bank Payment Amount (PKR): *
+                                </span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  onKeyDown={blockInvalidChar}
+                                  onWheel={(e: any) => e.target.blur()}
+                                  name="bankAmountPaid"
+                                  value={values.bankAmountPaid === 0 ? '' : values.bankAmountPaid}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const num = val === '' ? 0 : Math.max(0, Number(val) || 0);
+                                    setFieldValue('bankAmountPaid', num);
+                                  }}
+                                  placeholder="0"
+                                  className={`w-full rounded border p-2 bg-transparent text-right font-black text-sm outline-none ${
+                                    isOverpaid 
+                                      ? 'border-2 border-red-500 bg-red-50/50 dark:bg-red-950/30 text-red-600 dark:text-red-400 ring-2 ring-red-400' 
+                                      : (hasAttempted && errors.bankAmountPaid ? 'border-red-500 bg-red-50/10 text-primary' : 'border-stroke dark:border-strokedark focus:border-primary text-black dark:text-white')
+                                  }`}
+                                />
+                                {hasAttempted && errors.bankAmountPaid && <p className="text-red-500 text-[10px] font-bold mt-1">{errors.bankAmountPaid}</p>}
+                              </div>
+                            )}
+                          </div>
+
+                          {isOverpaid && (
+                            <div className="p-2.5 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-bold flex items-center gap-2 animate-pulse">
+                              <span className="text-base">⚠️</span>
+                              <span>
+                                <strong>Payment Exceeds Total Bill:</strong> Entered Rs. {totalPaidNow.toLocaleString(undefined, { minimumFractionDigits: 2 })} on a bill of Rs. {currentSubtotalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}. Please correct the amount before logging.
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                   </div>
 
                   {/* FINANCIAL AUDIT SUMMARY CARD */}
@@ -1897,7 +2054,7 @@ const NewInvoice = () => {
 
                     {values.showAdditionalCharges && (
                       <div className="flex justify-between items-center border-b pb-1 dark:border-strokedark text-blue-600 dark:text-blue-400">
-                        <span className="text-xs">Additional Charges:</span>
+                        <span className="text-xs">Freight Charges:</span>
                         <input
                           type="number"
                           min="0"
@@ -1957,29 +2114,52 @@ const NewInvoice = () => {
                     Cancel
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSubmitAction('print');
-                      submitForm();
-                    }}
-                    disabled={loading}
-                    className="rounded-xl bg-teal-600 hover:bg-teal-700 py-3 px-6 font-bold text-white transition disabled:opacity-50 shadow-md text-xs cursor-pointer flex items-center gap-2"
-                  >
-                    <FiPrinter size={15} /> <span>Save & Print</span>
-                  </button>
+                  {(() => {
+                    const totalPaidNow = values.settlementMode === 'Cash'
+                      ? Number(values.cashAmountPaid || 0)
+                      : (values.settlementMode === 'Bank' ? Number(values.bankAmountPaid || 0) : (Number(values.cashAmountPaid || 0) + Number(values.bankAmountPaid || 0)));
+                    const isOverpaid = totalPaidNow > currentSubtotalValue + 0.01;
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSubmitAction('save');
-                      submitForm();
-                    }}
-                    disabled={loading}
-                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 px-8 font-bold text-white transition disabled:opacity-50 shadow-md text-xs cursor-pointer flex items-center gap-2"
-                  >
-                    {loading ? <Spinner color="border-white" size="w-4 h-4" /> : <><FiCheck size={15} /> <span>{editData ? 'Apply Updates' : 'Log Invoice'}</span></>}
-                  </button>
+                    return (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isOverpaid) {
+                              toast.error(`Payment (Rs. ${totalPaidNow.toLocaleString()}) cannot exceed bill total (Rs. ${currentSubtotalValue.toLocaleString()})!`);
+                              return;
+                            }
+                            setSubmitAction('print');
+                            submitForm();
+                          }}
+                          disabled={loading || isOverpaid}
+                          className={`rounded-xl py-3 px-6 font-bold text-white transition shadow-md text-xs cursor-pointer flex items-center gap-2 ${
+                            isOverpaid ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-teal-600 hover:bg-teal-700'
+                          }`}
+                        >
+                          <FiPrinter size={15} /> <span>Save & Print</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isOverpaid) {
+                              toast.error(`Payment (Rs. ${totalPaidNow.toLocaleString()}) cannot exceed bill total (Rs. ${currentSubtotalValue.toLocaleString()})!`);
+                              return;
+                            }
+                            setSubmitAction('save');
+                            submitForm();
+                          }}
+                          disabled={loading || isOverpaid}
+                          className={`rounded-xl py-3 px-8 font-bold text-white transition shadow-md text-xs cursor-pointer flex items-center gap-2 ${
+                            isOverpaid ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-emerald-600 hover:bg-emerald-700'
+                          }`}
+                        >
+                          {loading ? <Spinner color="border-white" size="w-4 h-4" /> : <><FiCheck size={15} /> <span>{editData ? 'Apply Updates' : 'Log Invoice'}</span></>}
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
               </Form>
             );

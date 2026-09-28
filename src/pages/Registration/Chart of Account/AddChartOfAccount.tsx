@@ -275,6 +275,8 @@ const AddChartOfAccount = () => {
             controlCode: editData.control_code || '',
             accountCode: editData.account_code || '',
             accountTitle: editData.account_title || '',
+            openingBalance: editData.opening_balance !== undefined && editData.opening_balance !== null ? String(editData.opening_balance) : '',
+            balanceNature: editData.balance_nature || 'Debit',
             notes: editData.notes || '',
             linkedBankId: editData.linked_bank_id || ''
           } : {
@@ -283,6 +285,8 @@ const AddChartOfAccount = () => {
             controlCode: '',
             accountCode: '',
             accountTitle: '',
+            openingBalance: '',
+            balanceNature: 'Debit',
             notes: '',
             linkedBankId: ''
           }}
@@ -307,13 +311,13 @@ const AddChartOfAccount = () => {
                 return;
               }
 
-              const databasePayload = {
+              const databasePayload: any = {
                 category_code: values.categoryCode,
                 sub_category_code: values.subCategoryCode,
                 control_code: values.controlCode,
                 account_code: cleanCode,
                 account_title: values.accountTitle.trim(),
-                notes: values.notes.trim(),
+                notes: values.notes?.trim() || `${values.accountTitle.trim()}${values.openingBalance ? ` (Opening Balance: ${values.openingBalance} ${values.balanceNature})` : ''}`,
                 linked_bank_id: values.controlCode === 'Banks' ? values.linkedBankId : null
               };
 
@@ -322,6 +326,26 @@ const AddChartOfAccount = () => {
                 : await supabase.from('chart_of_accounts').insert([databasePayload]);
 
               if (error) throw error;
+
+              // Record opening balance in financial_vouchers if openingBalance > 0
+              if (values.openingBalance && Number(values.openingBalance) > 0) {
+                const bal = Number(values.openingBalance);
+                try {
+                  await supabase.from('financial_vouchers').insert([{
+                    voucher_no: `OB-${cleanCode}`,
+                    voucher_type: 'JV',
+                    voucher_date: new Date().toISOString().split('T')[0],
+                    account_code: cleanCode,
+                    account_title: values.accountTitle.trim(),
+                    debit: values.balanceNature === 'Debit' ? bal : 0,
+                    credit: values.balanceNature === 'Credit' ? bal : 0,
+                    narration: `Opening Balance for ${values.accountTitle.trim()}`
+                  }]);
+                } catch (_) {
+                  // Non-blocking
+                }
+              }
+
               toast.success('Account registered successfully!');
               navigate('/Registration/Chart-of-Account/List');
             } catch (err: any) {
@@ -336,8 +360,6 @@ const AddChartOfAccount = () => {
           }}
         >
           {({ handleChange, values, errors, touched, setFieldValue }) => {
-            const activeFilteredControls = controlsList.filter(c => c.category_name === values.categoryCode);
-
             return (
               <Form className="space-y-5 text-xs text-gray-700 dark:text-gray-300 p-6">
 
@@ -348,10 +370,16 @@ const AddChartOfAccount = () => {
                       name="categoryCode"
                       value={values.categoryCode}
                       onChange={(e) => {
+                        const newCat = e.target.value;
                         handleChange(e);
                         setFieldValue('subCategoryCode', '');
                         setFieldValue('controlCode', '');
                         setFieldValue('linkedBankId', '');
+                        if (newCat.includes('LIABILITIES') || newCat.includes('EQUITY') || newCat.includes('REVENUE')) {
+                          setFieldValue('balanceNature', 'Credit');
+                        } else {
+                          setFieldValue('balanceNature', 'Debit');
+                        }
                       }}
                       className={`flex-1 rounded border px-3 h-10 bg-transparent text-xs font-semibold text-black dark:text-white outline-none focus:border-primary dark:bg-boxdark ${touched.categoryCode && errors.categoryCode ? 'border-red-500' : 'border-stroke dark:border-strokedark'}`}
                     >
@@ -407,7 +435,7 @@ const AddChartOfAccount = () => {
                       className={`flex-1 rounded border px-3 h-10 bg-transparent text-xs font-semibold text-black dark:text-white outline-none focus:border-primary disabled:opacity-50 dark:bg-boxdark ${touched.controlCode && errors.controlCode ? 'border-red-500' : 'border-stroke dark:border-strokedark'}`}
                     >
                       <option value="" className="dark:bg-boxdark text-gray-400">-- Select Control Code --</option>
-                      {controlsList.filter(c => c.sub_category_name === values.subCategoryCode).map(c => <option key={c.control_name} value={c.control_name} className="dark:bg-boxdark">{c.control_name}</option>)}
+                      {controlsList.filter(c => (!c.category_name || c.category_name === values.categoryCode) && c.sub_category_name === values.subCategoryCode).map(c => <option key={c.control_name} value={c.control_name} className="dark:bg-boxdark">{c.control_name}</option>)}
                     </select>
                     {values.controlCode && !DEFAULT_CONTROLS.includes(values.controlCode) && (
                       <button type="button" onClick={() => handleDeleteControlRow(values.controlCode, setFieldValue)} className="h-10 w-10 shrink-0 flex items-center justify-center rounded border border-red-500/30 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-500 hover:text-white transition" title="Delete selected control subgroup"><FiX size={16} /></button>
@@ -456,6 +484,30 @@ const AddChartOfAccount = () => {
                   <label className="w-full md:w-48 block font-bold text-black dark:text-white text-xs uppercase tracking-wide">Account Title: *</label>
                   <div className="w-full md:w-150">
                     <input type="text" name="accountTitle" readOnly={values.controlCode?.toLowerCase().includes('bank')} onChange={handleChange} value={values.accountTitle} className={`w-full rounded border px-3 h-10 font-bold text-xs text-black dark:text-white ${values.controlCode?.toLowerCase().includes('bank') ? 'bg-gray-100 dark:bg-meta-4/30 text-success' : 'bg-transparent'} ${touched.accountTitle && errors.accountTitle ? 'border-red-500' : 'border-stroke dark:border-strokedark'}`} placeholder="Enter Ledger Title Name" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                  <label className="w-full md:w-48 block font-bold text-black dark:text-white text-xs uppercase tracking-wide">Opening Balance & Nature:</label>
+                  <div className="w-full md:w-150 flex items-center gap-3">
+                    <input 
+                      type="number" 
+                      step="any"
+                      name="openingBalance" 
+                      onChange={handleChange} 
+                      value={values.openingBalance} 
+                      className="flex-1 rounded border border-stroke dark:border-strokedark px-3 h-10 bg-transparent outline-none focus:border-primary font-mono text-xs font-bold text-black dark:text-white" 
+                      placeholder="0.00" 
+                    />
+                    <select
+                      name="balanceNature"
+                      value={values.balanceNature}
+                      onChange={handleChange}
+                      className="w-32 rounded border border-stroke dark:border-strokedark px-3 h-10 bg-transparent font-bold text-xs text-black dark:text-white outline-none focus:border-primary dark:bg-boxdark"
+                    >
+                      <option value="Debit">Debit (Dr)</option>
+                      <option value="Credit">Credit (Cr)</option>
+                    </select>
                   </div>
                 </div>
 

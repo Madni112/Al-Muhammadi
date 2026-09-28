@@ -119,6 +119,7 @@ const SalesReturnReceiptAdd: React.FC = () => {
             customerMap.set(name.toLowerCase(), {
               id: c.id,
               customer_name: name,
+              customer_code: c.customer_code || c.customerCode || '',
               contact_name: c.company || c.contact_name || '',
               phone: c.phone || c.primaryPhone || c.cell_no || '',
               city: c.city || '',
@@ -402,6 +403,7 @@ const SalesReturnReceiptAdd: React.FC = () => {
   // Filtered lists for autocomplete
   const filteredCustomers = customerOptions.filter(c =>
     (c.customer_name || c.name || '').toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    (c.customer_code || '').toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     (c.contact_name || c.contact_person || '').toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     (c.cell_no || c.phone_no || c.phone || '').toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     (c.city || '').toLowerCase().includes(customerSearchQuery.toLowerCase())

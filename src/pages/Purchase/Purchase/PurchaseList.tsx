@@ -5,11 +5,14 @@ import { toast } from 'react-hot-toast';
 import Spinner from '../../../ui/Spinner';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
+import { useModal } from '../../../Context/Modal';
 import { MdStore, MdPerson, MdEvent } from 'react-icons/md';
+import PurchaseStockModal from './PurchaseStockModal';
 
 const PurchaseList = () => {
   const navigate = useNavigate();
   const { tenantId } = useAuth();
+  const { showModal, hideModal } = useModal();
   const [purchases, setPurchases] = useState<any[]>([]);
   const [purchaseAllocationsMap, setPurchaseAllocationsMap] = useState<Record<string, { totalPaid: number; due: number }>>({});
   const [loading, setLoading] = useState(true);
@@ -504,9 +507,28 @@ const PurchaseList = () => {
                             )] as string[];
                             const locations = warehouses.length > 0 ? warehouses : [pur.target_warehouse].filter(Boolean);
                             return locations.map((wh: string) => (
-                              <span key={wh} className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wide inline-flex items-center gap-1 whitespace-nowrap w-fit">
-                                <MdStore size={12} className="shrink-0" />{wh}
-                              </span>
+                              <button
+                                key={wh}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  showModal(
+                                    <PurchaseStockModal
+                                      purchase={pur}
+                                      initialTab={wh}
+                                      onClose={() => hideModal()}
+                                    />,
+                                    `Stock Receiving Details - PUR-${pur.purchase_no || pur.id}`,
+                                    undefined,
+                                    "max-w-5xl"
+                                  );
+                                }}
+                                className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 hover:border-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wide inline-flex items-center gap-1 whitespace-nowrap w-fit transition cursor-pointer shadow-xs active:scale-95"
+                                title={`Click to view stock breakdown for ${wh}`}
+                              >
+                                <MdStore size={12} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                <span>{wh}</span>
+                              </button>
                             ));
                           })()}
                         </div>

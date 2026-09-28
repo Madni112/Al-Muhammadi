@@ -293,25 +293,25 @@ const SalesmanDashboard: React.FC = () => {
           title="Today's Sales"
           value={`Rs. ${metrics.todaySales.toLocaleString(undefined, { minimumFractionDigits: 0 })}`}
           Icon={MdShoppingCart}
-          bgColor="bg-gradient-to-br from-blue-600 to-indigo-700"
+          bgColor="bg-gradient-to-br from-red-500 to-rose-600"
         />
         <StatCard
           title="This Month Sales"
           value={`Rs. ${metrics.monthSales.toLocaleString(undefined, { minimumFractionDigits: 0 })}`}
           Icon={MdReceiptLong}
-          bgColor="bg-gradient-to-br from-emerald-600 to-teal-700"
+          bgColor="bg-gradient-to-br from-rose-600 to-red-800"
         />
         <StatCard
           title="Pending Warehouse Dispatch"
           value={metrics.pendingDispatchCount}
           Icon={MdHourglassEmpty}
-          bgColor="bg-gradient-to-br from-amber-500 to-orange-600"
+          bgColor="bg-gradient-to-br from-red-600 to-rose-700"
         />
         <StatCard
           title="Dispatched Invoices"
           value={metrics.dispatchedCount}
           Icon={MdLocalShipping}
-          bgColor="bg-gradient-to-br from-teal-600 to-cyan-700"
+          bgColor="bg-gradient-to-br from-red-800 to-slate-900"
         />
       </div>
 
@@ -321,21 +321,21 @@ const SalesmanDashboard: React.FC = () => {
           title="New Sales Invoice"
           subtitle="Generate instant customer invoice"
           Icon={MdAddShoppingCart}
-          bgGradient="bg-gradient-to-br from-blue-600 to-indigo-700"
+          bgGradient="bg-gradient-to-br from-red-600 to-rose-700"
           onClick={() => navigate('/Sales/Invoice/Add')}
         />
         <ActionCard
           title="Invoice Receipts"
           subtitle="Record customer payments"
           Icon={MdReceiptLong}
-          bgGradient="bg-gradient-to-br from-emerald-600 to-teal-800"
+          bgGradient="bg-gradient-to-br from-rose-600 to-red-800"
           onClick={() => navigate('/Sales/InvoiceReceipt/List')}
         />
         <ActionCard
           title="Customers Directory"
           subtitle="Look up customer accounts & balances"
           Icon={MdPeople}
-          bgGradient="bg-gradient-to-br from-purple-600 to-indigo-800"
+          bgGradient="bg-gradient-to-br from-red-700 to-rose-900"
           onClick={() => navigate('/Sales/Customers/List')}
         />
         <ActionCard
@@ -356,7 +356,7 @@ const SalesmanDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/60 dark:border-slate-800/60">
               <div>
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <MdReceiptLong className="text-blue-600 text-xl" />
+                  <MdReceiptLong className="text-red-600 text-xl" />
                   Recent Sales Invoices
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">

@@ -41,6 +41,8 @@ import {
   MdPerson,
   MdCode,
   MdInfoOutline,
+  MdDelete,
+  MdDeleteOutline,
 } from 'react-icons/md';
 import { ROLE_PRESETS, RolePreset, getModulesForRole } from '../../constant/roles';
 
@@ -169,6 +171,7 @@ export interface EmployeeAccount {
 
 // Master Super Admin / Developer Credentials
 const DEV_EMAIL = 'admin@zoaibalicompany.com';
+const ALMUHAMMADI_DEV_EMAIL = 'admin@almuhammadi.com';
 const DEV_PASSWORD = 'admin123';
 const BACKUP_DEV_EMAIL = 'developer@noorhorizontechnologies.com';
 const BACKUP_DEV_PASSWORD = 'NoorHorizon@5923';
@@ -411,6 +414,12 @@ const DeveloperDashboard: React.FC = () => {
   const [editModules, setEditModules] = useState<string[]>([]);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
+  // Delete Employee State (requires developer password verification)
+  const [deletingEmployee, setDeletingEmployee] = useState<EmployeeAccount | null>(null);
+  const [deletePasswordInput, setDeletePasswordInput] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Create Employee Form State
   const [newEmployee, setNewEmployee] = useState({
     name: '',
@@ -442,6 +451,7 @@ const DeveloperDashboard: React.FC = () => {
     const enteredEmail = emailInput.trim().toLowerCase();
     if (
       (enteredEmail === DEV_EMAIL.toLowerCase() && passwordInput === DEV_PASSWORD) ||
+      (enteredEmail === ALMUHAMMADI_DEV_EMAIL.toLowerCase() && passwordInput === DEV_PASSWORD) ||
       (enteredEmail === BACKUP_DEV_EMAIL.toLowerCase() && passwordInput === BACKUP_DEV_PASSWORD)
     ) {
       sessionStorage.setItem('nht_dev_auth_session', 'authorized');
@@ -480,7 +490,7 @@ const DeveloperDashboard: React.FC = () => {
       let formattedEmployees: EmployeeAccount[] = [];
       if (tenantData && tenantData.length > 0) {
         formattedEmployees = tenantData.map((t: any) => ({
-          id: t.id,
+          id: String(t.id),
           name: t.name,
           slug: t.slug,
           email: t.email,
@@ -488,36 +498,6 @@ const DeveloperDashboard: React.FC = () => {
           allowed_modules: Array.isArray(t.allowed_modules) && t.allowed_modules.length > 0 ? t.allowed_modules : getAllPermissionIds(),
           created_at: t.created_at || new Date().toISOString(),
         }));
-      } else {
-        formattedEmployees = [
-          {
-            id: '1',
-            name: 'Zoaib Ali (Super Admin)',
-            slug: 'zoaib-admin',
-            email: 'admin@zoaibalicompany.com',
-            role: 'Super Admin',
-            allowed_modules: ROLE_PRESETS['Super Admin'].modules,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: '2',
-            name: 'Warehouse Manager',
-            slug: 'warehouse-mgr',
-            email: 'warehouse@zoaibalicompany.com',
-            role: 'Warehouse Manager',
-            allowed_modules: ROLE_PRESETS['Warehouse Manager'].modules,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: '3',
-            name: 'Finance & Accounts',
-            slug: 'accountant',
-            email: 'accountant@zoaibalicompany.com',
-            role: 'Accountant',
-            allowed_modules: ROLE_PRESETS['Accountant'].modules,
-            created_at: new Date().toISOString(),
-          },
-        ];
       }
 
       setEmployees(formattedEmployees);
@@ -565,8 +545,8 @@ const DeveloperDashboard: React.FC = () => {
       // 1. Create User in Supabase Auth with allowed modules and role
       // Create a secondary client so we don't log out the active session
       const secondaryAuthClient = createClient(
-        import.meta.env.VITE_SUPABASE_URL || 'https://wpzwntbgpeiiclytuuht.supabase.co',
-        import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_IpW1ssWRf1_q6-J0hvXTzA_kVDyZcjy',
+        import.meta.env.VITE_SUPABASE_URL || 'https://ioxsprfchcytqbyriwby.supabase.co',
+        import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_59EOl26obYAzn_Z9pZQ9Bw_T0iKDKZJ',
         { auth: { persistSession: false, autoRefreshToken: false } }
       );
       
@@ -651,17 +631,6 @@ const DeveloperDashboard: React.FC = () => {
   const handleSaveEmployeePermissions = async () => {
     if (!editingEmployee) return;
 
-    const isSuperAdminAccount =
-      editingEmployee.role === 'Super Admin' ||
-      editingEmployee.slug === 'zoaib-admin' ||
-      editingEmployee.name?.toLowerCase().includes('super admin');
-
-    if (isSuperAdminAccount) {
-      toast.error('The Super Admin role is permanent and cannot be modified or downgraded.');
-      setEditingEmployee(null);
-      return;
-    }
-
     try {
       setIsSavingEdit(true);
       
@@ -713,6 +682,68 @@ const DeveloperDashboard: React.FC = () => {
     }
   };
 
+  const handleOpenDeleteModal = (emp: EmployeeAccount) => {
+    setDeletingEmployee(emp);
+    setDeletePasswordInput('');
+    setDeleteError(null);
+  };
+
+  const handleConfirmDeleteEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deletingEmployee) return;
+
+    // Validate Developer / Super Admin Password
+    const entered = deletePasswordInput.trim();
+    if (entered !== DEV_PASSWORD && entered !== BACKUP_DEV_PASSWORD) {
+      setDeleteError('Incorrect Developer Password. Access denied.');
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+
+      // 1. Delete from tenants table
+      if (deletingEmployee.slug) {
+        const { error: delErr } = await supabase.from('tenants').delete().eq('slug', deletingEmployee.slug);
+        if (delErr) console.warn('Tenant delete error:', delErr);
+      } else if (deletingEmployee.id) {
+        const { error: delErr } = await supabase.from('tenants').delete().eq('id', deletingEmployee.id);
+        if (delErr) console.warn('Tenant delete error:', delErr);
+      }
+
+      // 2. If Salesman, also remove from salesmen directory
+      if (deletingEmployee.role === 'Salesman' || deletingEmployee.name) {
+        try {
+          await supabase
+            .from('salesmen')
+            .delete()
+            .eq('name', deletingEmployee.name);
+        } catch (err) {
+          console.warn('Salesman cleanup warning:', err);
+        }
+      }
+
+      // 3. Clear local storage permissions cache
+      try {
+        localStorage.removeItem(`nht_modules_${deletingEmployee.slug}`);
+      } catch (_) {}
+
+      // Update state locally for instant UI update
+      setEmployees(prev => prev.filter(e => e.id !== deletingEmployee.id && e.slug !== deletingEmployee.slug));
+
+      toast.success(`Employee account "${deletingEmployee.name}" deleted successfully.`);
+      setDeletingEmployee(null);
+      setDeletePasswordInput('');
+      fetchDevData();
+    } catch (err: any) {
+      console.error('Delete employee failed:', err);
+      toast.error('Failed to delete employee: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // IF NOT AUTHENTICATED AS DEVELOPER -> SHOW SECURE LOGIN FORM
   if (!isDevAuthorized) {
     return (
@@ -730,7 +761,7 @@ const DeveloperDashboard: React.FC = () => {
               <MdSecurity />
             </div>
             <h2 className="text-2xl font-black tracking-tight text-black dark:text-white">Master Role & Dev Console</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Employee Access & Roles Control for Zoaib Ali & Company</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Employee Access & Roles Control for AL Muhammadi</p>
           </div>
 
           {authError && (
@@ -1036,6 +1067,36 @@ const DeveloperDashboard: React.FC = () => {
       };
     }
 
+    if (table.includes('product')) {
+      const isBulk = Boolean(details.event?.toLowerCase().includes('bulk') || details.new_products_added !== undefined || details.file_name);
+      if (isBulk) {
+        const added = details.new_products_added ?? 0;
+        const updated = details.existing_products_updated ?? 0;
+        const skipped = details.skipped_duplicates ?? 0;
+        return {
+          category: 'Product Catalog',
+          actionLabel: 'Bulk Product Upload',
+          badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+          icon: '📦',
+          title: `Bulk Upload: ${added} New Products Added`,
+          summary: `${added} added • ${updated} updated • ${skipped} duplicates skipped (${details.file_name || 'Excel'})`,
+        };
+      }
+
+      return {
+        category: 'Product Catalog',
+        actionLabel: action === 'INSERT' ? 'Created Product' : action === 'UPDATE' ? 'Updated Product' : 'Deleted Product',
+        badgeClass: action === 'INSERT'
+          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300'
+          : action === 'UPDATE'
+          ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300'
+          : 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border-red-300',
+        icon: '🏷️',
+        title: `${action === 'INSERT' ? 'Added' : action === 'UPDATE' ? 'Updated' : 'Removed'} Product: ${details.product_name || details.name || ''}`,
+        summary: details.item_sr_no ? `Code: ${details.item_sr_no}` : (details.category ? `Category: ${details.category}` : 'Product catalog modified'),
+      };
+    }
+
     let friendlyAction = 'Activity Logged';
     let badgeClass = 'bg-gray-100 text-gray-700 dark:bg-meta-4 dark:text-gray-300 border-gray-300 dark:border-strokedark';
     if (action === 'INSERT') {
@@ -1137,13 +1198,13 @@ const DeveloperDashboard: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-black dark:text-white tracking-tight">Zoaib Ali & Company</h1>
+              <h1 className="text-xl font-black text-black dark:text-white tracking-tight">AL Muhammadi</h1>
               <span className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                 Employee Role & Access Control
               </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">
-              Admin & Role Console: <span className="text-black dark:text-gray-200 font-medium">{DEV_EMAIL}</span>
+              Admin & Role Console: <span className="text-black dark:text-gray-200 font-medium">admin@almuhammadi.com</span>
             </p>
           </div>
         </div>
@@ -1321,12 +1382,21 @@ const DeveloperDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4 text-center">
-                        <button
-                          onClick={() => handleOpenEditModal(emp)}
-                          className="inline-flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition shadow-xs"
-                        >
-                          <MdEdit /> Edit Role & Permissions
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleOpenEditModal(emp)}
+                            className="inline-flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition shadow-xs"
+                          >
+                            <MdEdit /> Edit Role & Permissions
+                          </button>
+                          <button
+                            onClick={() => handleOpenDeleteModal(emp)}
+                            className="inline-flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition shadow-xs"
+                            title="Delete Employee Account"
+                          >
+                            <MdDeleteOutline className="text-sm" /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1878,6 +1948,90 @@ const DeveloperDashboard: React.FC = () => {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* DELETE EMPLOYEE CONFIRMATION MODAL WITH MASTER DEV PASSWORD */}
+      {deletingEmployee && (
+        <div className="fixed inset-0 bg-black/60 z-99999 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-boxdark w-full max-w-md rounded-3xl border border-stroke dark:border-strokedark p-6 shadow-2xl space-y-5 transition-colors duration-200 animate-in fade-in zoom-in duration-150">
+            <div className="flex items-center justify-between border-b border-stroke dark:border-strokedark pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 flex items-center justify-center text-xl shrink-0">
+                  <MdDeleteOutline />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-black dark:text-white">Delete Employee Account</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Security Verification Required</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setDeletingEmployee(null);
+                  setDeletePasswordInput('');
+                  setDeleteError(null);
+                }}
+                className="p-1.5 rounded-xl text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-meta-4 transition cursor-pointer"
+              >
+                <MdClose className="text-xl" />
+              </button>
+            </div>
+
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 p-4 rounded-2xl space-y-1.5 text-xs text-red-700 dark:text-red-300">
+              <p className="font-bold">
+                Are you sure you want to permanently delete account for <span className="text-red-900 dark:text-red-200 underline underline-offset-2">{deletingEmployee.name}</span> ({deletingEmployee.email || 'No email'})?
+              </p>
+              <p className="text-[11px] text-red-600/90 dark:text-red-400/90">
+                This will revoke their access ({deletingEmployee.allowed_modules?.length || 0} permitted modules) and delete their account profile.
+              </p>
+            </div>
+
+            <form onSubmit={handleConfirmDeleteEmployee} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-black dark:text-white mb-1.5 flex items-center gap-1">
+                  <MdLockOutline className="text-gray-400 text-sm" /> Enter Developer Password to Confirm:
+                </label>
+                <input
+                  type="password"
+                  required
+                  autoFocus
+                  value={deletePasswordInput}
+                  onChange={e => {
+                    setDeletePasswordInput(e.target.value);
+                    setDeleteError(null);
+                  }}
+                  placeholder="Enter master dev password"
+                  className="w-full bg-white dark:bg-form-input border border-stroke dark:border-form-strokedark rounded-xl p-3 text-xs text-black dark:text-white outline-none focus:border-red-500 transition shadow-inner"
+                />
+                {deleteError && (
+                  <div className="mt-2 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 text-xs p-2.5 rounded-xl border border-red-300 dark:border-red-800 flex items-center gap-1.5 font-semibold">
+                    <MdLockOutline className="shrink-0" /> {deleteError}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stroke dark:border-strokedark">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeletingEmployee(null);
+                    setDeletePasswordInput('');
+                    setDeleteError(null);
+                  }}
+                  className="px-4 py-2 text-xs font-bold rounded-xl border border-stroke dark:border-strokedark hover:bg-gray-100 dark:hover:bg-meta-4 text-gray-700 dark:text-gray-300 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isDeleting || !deletePasswordInput.trim()}
+                  className="px-5 py-2 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isDeleting ? <Spinner /> : <MdDeleteOutline className="text-sm" />} Confirm & Delete
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -61,11 +61,11 @@
   }
 
   .erp-card-hover {
-    @apply hover:shadow-[0_10px_25px_-5px_rgba(5,150,105,0.1),0_8px_10px_-6px_rgba(0,0,0,0.04)] hover:border-emerald-500/30 hover:-translate-y-0.5;
+    @apply hover:shadow-[0_10px_25px_-5px_rgba(220,38,38,0.12),0_8px_10px_-6px_rgba(0,0,0,0.04)] hover:border-red-500/30 hover:-translate-y-0.5;
   }
 
   .erp-input {
-    @apply w-full rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/60 px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none transition-all duration-150 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-not-allowed disabled:bg-slate-50 dark:disabled:bg-slate-900;
+    @apply w-full rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/60 px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none transition-all duration-150 focus:border-red-600 focus:ring-2 focus:ring-red-500/20 disabled:cursor-not-allowed disabled:bg-slate-50 dark:disabled:bg-slate-900;
   }
 
   .glass-header {
@@ -202,13 +202,13 @@ span.flatpickr-weekday,
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: #3c50e0;
+  background: #DC2626;
   @apply !border-primary !bg-primary hover:!border-primary hover:!bg-primary;
 }
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #3c50e0;
+  box-shadow: -10px 0 0 #DC2626;
 }
 
 .map-btn .jvm-zoom-btn {

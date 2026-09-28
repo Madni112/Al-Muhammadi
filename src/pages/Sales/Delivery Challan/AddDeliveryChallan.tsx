@@ -41,7 +41,7 @@ const AddDeliveryChallan = () => {
         setFetchingData(isEditMode);
 
         // 1. Load active customers directory lists
-        const { data: custData } = await supabase.from('customers').select('id, customerName');
+        const { data: custData } = await supabase.from('customers').select('id, customerName, customer_code, customerCode');
         if (custData) setCustomers(custData);
 
         // 2. Hydrate form values with existing dataset properties if updating
@@ -264,9 +264,14 @@ const AddDeliveryChallan = () => {
                   <label className="block font-medium text-black dark:text-white mb-1.5 text-xs uppercase tracking-wide">Customer / Business Name: *</label>
                   <select name="customerName" onChange={handleChange} value={values.customerName} className="w-full rounded border border-stroke p-2 bg-transparent dark:border-strokedark text-black dark:bg-meta-4 dark:text-white outline-none focus:border-primary text-xs">
                     <option value="">Select Reference</option>
-                    {customers.map(c => (
-                      <option key={c.id} value={c.customerName}>{c.customerName}</option>
-                    ))}
+                    {customers.map(c => {
+                      const code = c.customer_code || c.customerCode;
+                      return (
+                        <option key={c.id} value={c.customerName}>
+                          {code ? `[${code}] ${c.customerName}` : c.customerName}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 

@@ -375,25 +375,25 @@ const WarehouseDashboard: React.FC<WarehouseDashboardProps> = ({ initialLocation
           title={isA39 ? 'A-39 Total Storage Stock' : 'Shop Floor Stock Units'}
           value={metrics.totalStockQty.toLocaleString(undefined, { minimumFractionDigits: 0 })}
           Icon={MdInventory2}
-          bgColor={isA39 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-teal-500 to-emerald-700'}
+          bgColor="bg-gradient-to-br from-red-500 to-rose-600"
         />
         <StatCard
           title={isA39 ? 'Dispatched Challans' : 'Counter Dispatches'}
           value={metrics.totalDispatched}
           Icon={MdCheckCircle}
-          bgColor="bg-gradient-to-br from-emerald-600 to-teal-700"
+          bgColor="bg-gradient-to-br from-rose-600 to-red-800"
         />
         <StatCard
           title="Pending Dispatches"
           value={metrics.totalPending}
           Icon={MdHourglassEmpty}
-          bgColor="bg-gradient-to-br from-rose-500 to-red-600"
+          bgColor="bg-gradient-to-br from-red-600 to-rose-700"
         />
         <StatCard
           title={isA39 ? 'Transfers Out to Shop' : 'Transfers In from A-39'}
           value={metrics.totalTransfers}
           Icon={MdSyncAlt}
-          bgColor="bg-gradient-to-br from-indigo-600 to-blue-700"
+          bgColor="bg-gradient-to-br from-red-800 to-slate-900"
         />
       </div>
 
@@ -405,28 +405,28 @@ const WarehouseDashboard: React.FC<WarehouseDashboardProps> = ({ initialLocation
               title="Warehouse Dispatch"
               subtitle="Outward Delivery Challan (WDQ)"
               Icon={MdLocalShipping}
-              bgGradient="bg-gradient-to-br from-orange-600 to-amber-700"
+              bgGradient="bg-gradient-to-br from-red-600 to-rose-700"
               onClick={() => navigate('/Sales/Delivery-Challan/List')}
             />
             <ActionCard
               title="Inward Challan"
               subtitle="Receive goods from suppliers / GRN"
               Icon={MdMoveToInbox}
-              bgGradient="bg-gradient-to-br from-blue-600 to-indigo-800"
+              bgGradient="bg-gradient-to-br from-rose-600 to-red-800"
               onClick={() => navigate('/Purchase/Inward-Challan/List')}
             />
             <ActionCard
               title="Stock Transfer"
               subtitle="Transfer boxes to Saddar Shop"
               Icon={MdCompareArrows}
-              bgGradient="bg-gradient-to-br from-purple-600 to-violet-800"
+              bgGradient="bg-gradient-to-br from-red-700 to-rose-900"
               onClick={() => navigate('/Administration/StockTransfer/List')}
             />
             <ActionCard
               title="Return Challan"
               subtitle="Process return verification"
               Icon={MdAssignmentReturn}
-              bgGradient="bg-gradient-to-br from-rose-600 to-slate-800"
+              bgGradient="bg-gradient-to-br from-red-800 to-slate-900"
               onClick={() => navigate('/Warehouse/Return-Challan')}
             />
           </>
@@ -436,28 +436,28 @@ const WarehouseDashboard: React.FC<WarehouseDashboardProps> = ({ initialLocation
               title="Shop Dispatch"
               subtitle="Shop Dispatch Queue (SDQ)"
               Icon={MdStorefront}
-              bgGradient="bg-gradient-to-br from-teal-600 to-emerald-800"
+              bgGradient="bg-gradient-to-br from-red-600 to-rose-700"
               onClick={() => navigate('/Sales/Shop-Dispatch/List')}
             />
             <ActionCard
               title="Shop Receiving"
               subtitle="Receive stock transferred from A-39"
               Icon={MdMoveToInbox}
-              bgGradient="bg-gradient-to-br from-cyan-600 to-blue-800"
+              bgGradient="bg-gradient-to-br from-rose-600 to-red-800"
               onClick={() => navigate('/Purchase/Shop-Receiving')}
             />
             <ActionCard
               title="Shop Returns"
               subtitle="Customer return receiving queue"
               Icon={MdAssignmentReturn}
-              bgGradient="bg-gradient-to-br from-amber-600 to-orange-700"
+              bgGradient="bg-gradient-to-br from-red-700 to-rose-900"
               onClick={() => navigate('/Warehouse/Shop-Return')}
             />
             <ActionCard
               title="Shop Stock Report"
               subtitle="View showroom inventory levels"
               Icon={MdInventory2}
-              bgGradient="bg-gradient-to-br from-slate-700 to-slate-900"
+              bgGradient="bg-gradient-to-br from-red-800 to-slate-900"
               onClick={() => navigate('/Reports/Stock-Report')}
             />
           </>

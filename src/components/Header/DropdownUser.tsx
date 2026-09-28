@@ -25,9 +25,9 @@ const DropdownUser = () => {
     logout();
   };
 
-  const displayEmail = userEmail || profile?.email || 'admin@zoaibalicompany.com';
+  const displayEmail = userEmail || profile?.email || 'admin@almuhammadi.com';
   const displayRole = role || profile?.role || 'Super Admin';
-  const displayCompanyName = 'Zoaib Ali & Company';
+  const displayCompanyName = 'AL MUHAMMADI';
   const displayName = profile?.user_metadata?.full_name || profile?.user_metadata?.name || displayCompanyName;
 
   return (
@@ -38,10 +38,10 @@ const DropdownUser = () => {
         to="#"
       >
         <span className="hidden text-right lg:block">
-          <span className="block text-sm font-bold text-black dark:text-white truncate max-w-[200px]">
+          <span className="block text-sm font-black text-black dark:text-white truncate max-w-[200px]">
             {displayCompanyName}
           </span>
-          <span className="block text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+          <span className="block text-xs font-semibold text-red-600 dark:text-red-400">
             {displayRole}
           </span>
         </span>
@@ -54,7 +54,7 @@ const DropdownUser = () => {
             alt="User"
           />
         ) : (
-          <div className="w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center font-bold border border-emerald-500/20 shadow-sm">
+          <div className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
             <MdPerson size={20} />
           </div>
         )}

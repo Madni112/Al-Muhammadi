@@ -57,6 +57,8 @@ const AddCustomer = () => {
       const payload = {
         ...values,
         customerName: values.customerName.trim(),
+        customer_code: values.customer_code ? values.customer_code.trim() : (values.customerCode ? values.customerCode.trim() : ''),
+        customerCode: values.customer_code ? values.customer_code.trim() : (values.customerCode ? values.customerCode.trim() : ''),
         ntnNo: values.ntnNo ? values.ntnNo.trim() : '',
         cnicNo: values.cnicNo ? values.cnicNo.trim() : '',
         stRegNo: values.stRegNo ? values.stRegNo.trim() : '',
@@ -102,8 +104,12 @@ const AddCustomer = () => {
         </div>
 
         <Formik
-          initialValues={editData || {
+          initialValues={editData ? {
+            ...editData,
+            customer_code: editData.customer_code || editData.customerCode || '',
+          } : {
             customerName: '',
+            customer_code: '',
             registrationType: 'Retail / General',
             ntnNo: '',
             cnicNo: '',
@@ -139,6 +145,19 @@ const AddCustomer = () => {
                   {touched.customerName && errors.customerName && (
                     <p className="text-red-500 text-[11px] mt-1">{errors.customerName as string}</p>
                   )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-black dark:text-white">
+                    Customer Code (Optional)
+                  </label>
+                  <input
+                    name="customer_code"
+                    onChange={handleChange}
+                    value={values.customer_code || values.customerCode || ''}
+                    placeholder="e.g. CUST-001 or 1020-001"
+                    className="w-full rounded border border-stroke dark:border-strokedark bg-transparent text-black dark:text-white p-3 outline-none text-xs font-mono focus:border-primary"
+                  />
                 </div>
 
                 <div>

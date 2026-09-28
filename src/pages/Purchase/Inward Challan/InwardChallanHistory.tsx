@@ -5,28 +5,40 @@ import Spinner from '../../../ui/Spinner';
 
 interface InwardChallanHistoryProps {
   onView: (id: string) => void;
+  locationFilter?: string;
 }
 
-const InwardChallanHistory: React.FC<InwardChallanHistoryProps> = ({ onView }) => {
+const InwardChallanHistory: React.FC<InwardChallanHistoryProps> = ({ onView, locationFilter }) => {
   const [challans, setChallans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [locationFilter]);
 
   const fetchHistory = async () => {
     setLoading(true);
     try {
       const [ { data: grns, error }, { data: purchases } ] = await Promise.all([
-        supabase.from('grn_receipts').select('*').neq('status', 'Pending Inward').order('created_at', { ascending: false }),
+        supabase.from('grn_receipts').select('*, grn_items(*)').neq('status', 'Pending Inward').order('created_at', { ascending: false }),
         supabase.from('supplier_purchases').select('purchase_no, metadata')
       ]);
       
       if (error) throw error;
 
-      const mapped = (grns || []).map(g => {
+      let filteredGrns = grns || [];
+      if (locationFilter && locationFilter !== 'ALL') {
+        filteredGrns = filteredGrns.filter(g => {
+          const items = g.grn_items || [];
+          return items.some((item: any) => {
+            const isShop = String(item.warehouse_name).toUpperCase() === 'SHOP';
+            return locationFilter === 'SHOP' ? isShop : !isShop;
+          });
+        });
+      }
+
+      const mapped = filteredGrns.map(g => {
         const pur = (purchases || []).find(p => p.metadata?.grn_id === g.id);
         return { ...g, purchase_no: pur?.purchase_no || '' };
       });

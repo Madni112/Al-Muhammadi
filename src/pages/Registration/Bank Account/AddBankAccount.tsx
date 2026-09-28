@@ -85,8 +85,9 @@ const AddBank = () => {
                 await supabase.from('chart_of_accounts').insert([{
                     account_code: values.accountNumber.trim(),
                     account_title: `${values.bankName.trim()} (A/C: ${values.accountNumber.trim()})`,
-                    category_code: 'Current Assets',
-                    control_code: 'Bank',
+                    category_code: '1. ASSETS',
+                    sub_category_code: 'Current Assets',
+                    control_code: 'Banks',
                     linked_bank_id: String(insertedBank?.id || ''),
                     notes: `Auto-linked bank ledger for ${values.accountTitle}`
                 }]);

@@ -40,12 +40,15 @@ const AccountReport = () => {
     subCategoryCode: [],
     controlCode: [],
     chartOfAccountCode: [],
+    customerCategory: [],
     customer: [],
     vendor: [],
     company: [],
     voucherType: 'All',
     saleType: 'Sale',
     salesman: [],
+    showZeroValues: false,
+    showOnlyTransacted: false,
     dateFrom: getPastWeekDateString(),
     dateTo: getTodayDateString()
   });
@@ -59,7 +62,7 @@ const AccountReport = () => {
       try {
         setLoading(true);
         const [custRes, vendRes, smRes, compRes, coaRes] = await Promise.all([
-          supabase.from('customers').select('id, customerName'),
+          supabase.from('customers').select('id, customerName, registrationType, primaryPhone, customer_code, customerCode'),
           supabase.from('vendors').select('id, vendor_name'),
           supabase.from('salesmen').select('id, name'),
           supabase.from('companies').select('id, name'),
@@ -145,7 +148,15 @@ const AccountReport = () => {
   const subCategoryCodeOptions = useMemo(() => getFilteredSubCategoryCodesPool(), [uniqueSubCategoryCodes, chartOfAccounts, filters.categoryCode]);
   const controlCodeOptions = useMemo(() => getFilteredControlCodesPool(), [uniqueControlCodes, chartOfAccounts, filters.categoryCode, filters.subCategoryCode]);
   const chartOfAccountOptions = useMemo(() => getFilteredChartOfAccountsPool().map(c => `${c.account_code} - ${c.account_title}`), [chartOfAccounts, filters.categoryCode, filters.subCategoryCode, filters.controlCode]);
-  const customerOptions = useMemo(() => customers.map(c => c.customerName).filter(Boolean), [customers]);
+  const customerOptions = useMemo(() => customers.map(c => {
+    const code = c.customer_code || c.customerCode;
+    return code ? `[${code}] ${c.customerName}` : c.customerName;
+  }).filter(Boolean), [customers]);
+  const customerCategoryOptions = useMemo(() => {
+    const fromCust = customers.map(c => c.registrationType).filter(Boolean);
+    const standard = ['Retail / General', 'Contractor / Builder', 'Wholesaler / Dealer', 'Registered Corporate'];
+    return Array.from(new Set([...standard, ...fromCust]));
+  }, [customers]);
   const vendorOptions = useMemo(() => vendors.map(v => v.vendor_name).filter(Boolean), [vendors]);
   const companyOptions = useMemo(() => companies.map(c => c.name).filter(Boolean), [companies]);
   const salesmanOptions = useMemo(() => salesmen.map(s => s.name).filter(Boolean), [salesmen]);
@@ -157,12 +168,15 @@ const AccountReport = () => {
       subCategoryCode: [],
       controlCode: [],
       chartOfAccountCode: [],
+      customerCategory: [],
       customer: [],
       vendor: [],
       company: [],
       voucherType: 'All',
       saleType: 'Sale',
       salesman: [],
+      showZeroValues: false,
+      showOnlyTransacted: false,
       dateFrom: prev.dateFrom,
       dateTo: prev.dateTo
     }));
@@ -197,15 +211,16 @@ const AccountReport = () => {
       </div>
 
       <div className="flex flex-wrap border-b border-stroke dark:border-strokedark gap-1 bg-white dark:bg-boxdark font-black tracking-wider text-[10px] uppercase text-gray-500">
+        <button type="button" onClick={() => handleTabChange(13)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 13 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Customer Balance Detail</button>
+        <button type="button" onClick={() => handleTabChange(3)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 3 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Vendor Balance Detail</button>
         <button type="button" onClick={() => handleTabChange(1)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 1 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>General Ledger</button>
         <button type="button" onClick={() => handleTabChange(2)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 2 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Customer Summary</button>
-        <button type="button" onClick={() => handleTabChange(3)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 3 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Vendor Summary</button>
-        <button type="button" onClick={() => handleTabChange(4)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 4 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Income Statement</button>
+        <button type="button" onClick={() => handleTabChange(4)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 4 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Operational Expenses</button>
         <button type="button" onClick={() => handleTabChange(5)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 5 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Chart of Accounts</button>
         <button type="button" onClick={() => handleTabChange(6)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 6 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Vendor Outstanding</button>
         <button type="button" onClick={() => handleTabChange(7)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 7 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Customer Recovery</button>
         <button type="button" onClick={() => handleTabChange(8)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 8 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Voucher Report</button>
-        <button type="button" onClick={() => handleTabChange(9)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 9 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Daily Activity</button>
+        <button type="button" onClick={() => handleTabChange(9)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 9 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Cash & Bank Daybook</button>
         <button type="button" onClick={() => handleTabChange(10)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 10 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Salesman Statement</button>
         <button type="button" onClick={() => handleTabChange(11)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 11 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Trial Balance</button>
         <button type="button" onClick={() => handleTabChange(12)} className={`py-2.5 px-4 transition border-b-2 cursor-pointer ${activeTab === 12 ? 'border-primary text-primary font-black bg-primary/5' : 'border-transparent text-gray-400 hover:text-black'}`}>Aging Report</button>
@@ -214,6 +229,77 @@ const AccountReport = () => {
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark p-6">
         <h3 className="font-bold text-sm text-black dark:text-white mb-4 uppercase tracking-wider text-primary">Report Criteria Specification</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+
+          {(activeTab === 1 || activeTab === 13) && (
+            <>
+              <SearchableMultiSelect 
+                label="Customer Category / Type:" 
+                placeholder="All Categories" 
+                options={customerCategoryOptions} 
+                value={filters.customerCategory} 
+                onChange={(val) => handleInputChange('customerCategory', val)} 
+              />
+              <SearchableMultiSelect 
+                label="Select Customer Title:" 
+                placeholder="All Customers" 
+                options={customerOptions} 
+                value={filters.customer} 
+                onChange={(val) => handleInputChange('customer', val)} 
+              />
+              <div className="md:col-span-2 flex flex-wrap items-center gap-6 pt-3">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={Boolean(filters.showZeroValues)} 
+                    onChange={(e) => handleInputChange('showZeroValues', e.target.checked)}
+                    className="w-4 h-4 text-primary rounded border-stroke dark:border-strokedark focus:ring-0 cursor-pointer accent-primary"
+                  />
+                  <span className="text-xs font-bold text-black dark:text-white">Show Zero Values (Settled Accounts)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={Boolean(filters.showOnlyTransacted)} 
+                    onChange={(e) => handleInputChange('showOnlyTransacted', e.target.checked)}
+                    className="w-4 h-4 text-primary rounded border-stroke dark:border-strokedark focus:ring-0 cursor-pointer accent-primary"
+                  />
+                  <span className="text-xs font-bold text-black dark:text-white">Show Only Customers With Transaction</span>
+                </label>
+              </div>
+            </>
+          )}
+
+          {activeTab === 3 && (
+            <>
+              <SearchableMultiSelect 
+                label="Select Procurement Vendor:" 
+                placeholder="All Vendors" 
+                options={vendorOptions} 
+                value={filters.vendor} 
+                onChange={(val) => handleInputChange('vendor', val)} 
+              />
+              <div className="md:col-span-3 flex flex-wrap items-center gap-6 pt-3">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={Boolean(filters.showZeroValues)} 
+                    onChange={(e) => handleInputChange('showZeroValues', e.target.checked)}
+                    className="w-4 h-4 text-primary rounded border-stroke dark:border-strokedark focus:ring-0 cursor-pointer accent-primary"
+                  />
+                  <span className="text-xs font-bold text-black dark:text-white">Show Zero Values (Settled / Inactive Vendors)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={Boolean(filters.showOnlyTransacted)} 
+                    onChange={(e) => handleInputChange('showOnlyTransacted', e.target.checked)}
+                    className="w-4 h-4 text-primary rounded border-stroke dark:border-strokedark focus:ring-0 cursor-pointer accent-primary"
+                  />
+                  <span className="text-xs font-bold text-black dark:text-white">Show Only Vendors With Transactions</span>
+                </label>
+              </div>
+            </>
+          )}
 
           {activeTab === 1 && (
             <>

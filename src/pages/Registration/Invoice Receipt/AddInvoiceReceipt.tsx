@@ -134,7 +134,11 @@ function AddInvoiceReceipt() {
             setSelectedInvoiceNo(invRef);
             setInvoiceSearchQuery(invRef);
             const cleanId = String(invRef).replace(/\D/g, '');
-            const matchedInv = invData?.find(i => String(i.id) === cleanId || `INV-${String(i.id).padStart(4, '0')}` === invRef);
+            const matchedInv = invData?.find(i => 
+              (i.invoice_no && i.invoice_no.toLowerCase() === invRef.toLowerCase()) ||
+              String(i.id) === cleanId || 
+              `INV-${String(i.id).padStart(4, '0')}`.toLowerCase() === invRef.toLowerCase()
+            );
             if (matchedInv) setSelectedInvoiceObj(matchedInv);
           } else {
             setSelectedInvoiceNo('');
@@ -230,16 +234,20 @@ function AddInvoiceReceipt() {
       let totalVouchersPaid = 0;
       let unallocatedGeneralVouchers = 0;
 
-      // Initialize each Invoice allocation by unique invoice ID
+      // Initialize each Invoice allocation by unique invoice ID and actual invoice_no
       sortedCustomerInvoices.forEach(i => {
         const invId = String(i.id);
+        const actualNo = String(i.invoice_no || `INV-${invId.padStart(4, '0')}`).trim();
         const gross = Number(i.total_amount) || 0;
         const upfront = Number(i.cash_amount_paid || 0) + Number(i.bank_amount || 0);
 
         // Find returns for this specific invoice
         const invoiceReturns = customerReturns.filter(r => {
-          const rInv = String(r.original_invoice_no || '').replace(/\D/g, '').trim();
-          return rInv === invId;
+          const rInv = String(r.original_invoice_no || '').trim().toLowerCase();
+          return rInv === invId.toLowerCase() ||
+                 (actualNo && rInv === actualNo.toLowerCase()) ||
+                 rInv === `inv-${invId.padStart(4, '0')}`.toLowerCase() ||
+                 rInv.replace(/\D/g, '') === invId;
         }).reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0);
 
         allocations[invId] = {
@@ -259,11 +267,18 @@ function AddInvoiceReceipt() {
         const vAmt = Number(v.total_amount) || 0;
         totalVouchersPaid += vAmt;
 
-        const vInvRef = v.original_invoice_no || v.metadata?.linkedInvoiceNo || '';
+        const vInvRef = String(v.original_invoice_no || v.metadata?.linkedInvoiceNo || '').trim();
         if (vInvRef) {
-          const cleanInvId = String(vInvRef).replace(/\D/g, '');
-          if (cleanInvId && allocations[cleanInvId]) {
-            allocations[cleanInvId].specificVouchers += vAmt;
+          const cleanInvId = vInvRef.replace(/\D/g, '');
+          const matchedInv = sortedCustomerInvoices.find(i => 
+            (i.invoice_no && i.invoice_no.toLowerCase() === vInvRef.toLowerCase()) ||
+            String(i.id) === vInvRef ||
+            String(i.id) === cleanInvId ||
+            `INV-${String(i.id).padStart(4, '0')}`.toLowerCase() === vInvRef.toLowerCase()
+          );
+
+          if (matchedInv && allocations[String(matchedInv.id)]) {
+            allocations[String(matchedInv.id)].specificVouchers += vAmt;
           } else {
             unallocatedGeneralVouchers += vAmt;
           }
@@ -289,13 +304,19 @@ function AddInvoiceReceipt() {
         }
       });
 
-      // Create dual-key map for easy lookup by either '5' or 'INV-0005'
+      // Create multi-key map for easy lookup by either '5', actual 'TESTING-01', or 'INV-0005'
       const finalMap: Record<string, typeof allocations[string]> = {};
       sortedCustomerInvoices.forEach(i => {
         const invId = String(i.id);
+        const actualNo = String(i.invoice_no || `INV-${invId.padStart(4, '0')}`).trim();
         const formattedKey = `INV-${invId.padStart(4, '0')}`;
         finalMap[invId] = allocations[invId];
         finalMap[formattedKey] = allocations[invId];
+        finalMap[formattedKey.toLowerCase()] = allocations[invId];
+        if (actualNo) {
+          finalMap[actualNo] = allocations[invId];
+          finalMap[actualNo.toLowerCase()] = allocations[invId];
+        }
       });
 
       setInvAllocationsMap(finalMap);
@@ -305,7 +326,7 @@ function AddInvoiceReceipt() {
 
       // If a specific Invoice is selected
       const cleanRefId = String(invoiceRef).replace(/\D/g, '');
-      const selectedAlloc = finalMap[invoiceRef] || finalMap[cleanRefId];
+      const selectedAlloc = finalMap[invoiceRef] || (invoiceRef && finalMap[invoiceRef.toLowerCase()]) || finalMap[cleanRefId];
 
       if (invoiceRef && selectedAlloc) {
         setInvGrossBill(selectedAlloc.gross);
@@ -349,7 +370,11 @@ function AddInvoiceReceipt() {
 
     if (invNo) {
       const cleanId = String(invNo).replace(/\D/g, '');
-      const invObj = salesInvoicesList.find(i => String(i.id) === cleanId || `INV-${String(i.id).padStart(4, '0')}` === invNo);
+      const invObj = salesInvoicesList.find(i => 
+        (i.invoice_no && i.invoice_no.toLowerCase() === invNo.toLowerCase()) ||
+        String(i.id) === cleanId || 
+        `INV-${String(i.id).padStart(4, '0')}`.toLowerCase() === invNo.toLowerCase()
+      );
       setSelectedInvoiceObj(invObj || null);
     } else {
       setSelectedInvoiceObj(null);
@@ -372,12 +397,14 @@ function AddInvoiceReceipt() {
 
   const filteredInvoices = customerInvoicesList.filter(i => {
     if (!invoiceSearchQuery || invoiceSearchQuery.startsWith('-- General')) return true;
-    const invFormatted = `INV-${String(i.id).padStart(4, '0')}`;
+    const actualNo = String(i.invoice_no || `INV-${String(i.id).padStart(4, '0')}`);
+    const q = invoiceSearchQuery.toLowerCase();
     return (
-      invFormatted.toLowerCase().includes(invoiceSearchQuery.toLowerCase()) ||
-      String(i.id).includes(invoiceSearchQuery) ||
-      (i.invoice_date || '').toLowerCase().includes(invoiceSearchQuery.toLowerCase()) ||
-      (i.dispatch_warehouse || '').toLowerCase().includes(invoiceSearchQuery.toLowerCase())
+      actualNo.toLowerCase().includes(q) ||
+      String(i.id).includes(q) ||
+      (i.gate_pass_no || '').toLowerCase().includes(q) ||
+      (i.invoice_date || '').toLowerCase().includes(q) ||
+      (i.dispatch_warehouse || '').toLowerCase().includes(q)
     );
   });
 
@@ -602,9 +629,13 @@ function AddInvoiceReceipt() {
             // Sync with sales_invoices status if specific invoice was selected
             if (selectedInvoiceNo) {
               const cleanId = String(selectedInvoiceNo).replace(/\D/g, '');
-              const targetInv = salesInvoicesList.find(i => String(i.id) === cleanId || `INV-${String(i.id).padStart(4, '0')}` === selectedInvoiceNo);
+              const targetInv = salesInvoicesList.find(i => 
+                (i.invoice_no && i.invoice_no.toLowerCase() === selectedInvoiceNo.toLowerCase()) ||
+                String(i.id) === cleanId || 
+                `INV-${String(i.id).padStart(4, '0')}`.toLowerCase() === selectedInvoiceNo.toLowerCase()
+              );
               if (targetInv) {
-                const targetAlloc = invAllocationsMap[selectedInvoiceNo] || invAllocationsMap[cleanId];
+                const targetAlloc = invAllocationsMap[selectedInvoiceNo] || (selectedInvoiceNo && invAllocationsMap[selectedInvoiceNo.toLowerCase()]) || invAllocationsMap[cleanId];
                 const newRemainingDue = Math.max(0, (targetAlloc ? targetAlloc.due : 0) - finalAmount);
                 if (newRemainingDue <= 0.01) {
                   await supabase.from('sales_invoices').update({ receipt_status: 'SETTLED' }).eq('id', targetInv.id);
@@ -813,7 +844,8 @@ function AddInvoiceReceipt() {
                               handleSelectInvoice('');
                             } else if (filteredInvoices[highlightedInvoiceIndex - 1]) {
                               const inv = filteredInvoices[highlightedInvoiceIndex - 1];
-                              handleSelectInvoice(`INV-${String(inv.id).padStart(4, '0')}`);
+                              const actualNo = inv.invoice_no || `INV-${String(inv.id).padStart(4, '0')}`;
+                              handleSelectInvoice(actualNo);
                             }
                           } else if (e.key === 'Escape') {
                             setIsInvoiceDropdownOpen(false);
@@ -824,7 +856,7 @@ function AddInvoiceReceipt() {
                           setIsInvoiceDropdownOpen(true);
                           setHighlightedInvoiceIndex(0);
                         }}
-                        placeholder="Search Invoice # (e.g. INV-0042), date, or warehouse..."
+                        placeholder="Search Invoice # (e.g. TESTING-01), date, or warehouse..."
                         className="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 pr-10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold outline-none text-xs focus:border-primary"
                       />
 
@@ -869,8 +901,8 @@ function AddInvoiceReceipt() {
 
                         {/* Invoice List */}
                         {filteredInvoices.map((inv, iIdx) => {
-                          const invFormatted = `INV-${String(inv.id).padStart(4, '0')}`;
-                          const alloc = invAllocationsMap[invFormatted] || invAllocationsMap[String(inv.id)];
+                          const invFormatted = inv.invoice_no || `INV-${String(inv.id).padStart(4, '0')}`;
+                          const alloc = invAllocationsMap[invFormatted] || (invFormatted && invAllocationsMap[invFormatted.toLowerCase()]) || invAllocationsMap[String(inv.id)];
                           const bill = alloc ? alloc.gross : (Number(inv.total_amount) || 0);
                           const due = alloc ? alloc.due : Math.max(0, bill - (Number(inv.cash_amount_paid || 0) + Number(inv.bank_amount || 0)));
 
@@ -1180,7 +1212,7 @@ function AddInvoiceReceipt() {
                         </strong>
                       </div>
 
-                      <div className="flex justify-between items-center text-emerald-700 dark:text-emerald-400">
+                      <div className="flex justify-between items-center text-red-700 dark:text-red-400">
                         <span className="font-sans">Paid Upfront at Billing:</span>
                         <span>Rs. {formatMoney(invPaidUpfront)}</span>
                       </div>
@@ -1193,7 +1225,7 @@ function AddInvoiceReceipt() {
                       )}
 
                       {invPastReceiptsPaid > 0 && (
-                        <div className="flex justify-between items-center text-teal-700 dark:text-teal-400">
+                        <div className="flex justify-between items-center text-rose-700 dark:text-rose-400">
                           <span className="font-sans">Past Voucher Collections:</span>
                           <span>Rs. {formatMoney(invPastReceiptsPaid)}</span>
                         </div>
@@ -1215,7 +1247,7 @@ function AddInvoiceReceipt() {
 
                         <div className={`p-3 rounded-xl border flex justify-between items-center ${
                           projectedRemaining <= 0
-                            ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 text-emerald-900 dark:text-emerald-300'
+                            ? 'bg-red-50 dark:bg-red-950/30 border-red-300 text-red-900 dark:text-red-300'
                             : 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 text-amber-900 dark:text-amber-300'
                         }`}>
                           <div className="font-sans">

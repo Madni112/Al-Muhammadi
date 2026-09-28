@@ -19,16 +19,18 @@ const Header = (props: {
               e.stopPropagation();
               props.setSidebarOpen(!props.sidebarOpen);
             }}
-            className="z-99999 block rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 shadow-sm min-[751px]:hidden text-slate-700 dark:text-slate-200 hover:text-emerald-600 transition"
+            className="z-99999 block rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 shadow-sm min-[751px]:hidden text-slate-700 dark:text-slate-200 hover:text-red-600 transition"
           >
             <MdMenu size={22} />
           </button>
 
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
             </span>
+            <span className="text-[11px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">ALMUHAMMADI</span>
+            <span className="text-[10px] text-slate-400">•</span>
             <span className="text-[11px] font-medium tracking-wide">Portal Active</span>
           </div>
         </div>

@@ -30,17 +30,45 @@ module.exports = {
         },
         red: {
           ...colors.red,
-          DEFAULT: '#E0E5F2',
+          DEFAULT: '#DC2626',
+        },
+        emerald: {
+          50: '#FEF2F2',
+          100: '#FEE2E2',
+          200: '#FECACA',
+          300: '#FCA5A5',
+          400: '#F87171',
+          500: '#EF4444',
+          600: '#DC2626',
+          700: '#B91C1C',
+          800: '#991B1B',
+          900: '#7F1D1D',
+          950: '#450A0A',
+          DEFAULT: '#DC2626',
+        },
+        teal: {
+          50: '#FFF1F2',
+          100: '#FFE4E6',
+          200: '#FECDD3',
+          300: '#FDA4AF',
+          400: '#FB7185',
+          500: '#F43F5E',
+          600: '#E11D48',
+          700: '#BE123C',
+          800: '#9F1239',
+          900: '#881337',
+          950: '#4C0519',
+          DEFAULT: '#E11D48',
         },
 
         body: '#64748B',
         bodydark: '#94A3B8',
         bodydark1: '#E2E8F0',
         bodydark2: '#64748B',
-        primary: '#059669', // Sophisticated Emerald
-        'primary-hover': '#047857',
-        'primary-light': '#D1FAE5',
-        secondary: '#0F766E', // Deep Teal
+        primary: '#DC2626', // Imperial Crimson Red
+        'primary-hover': '#B91C1C',
+        'primary-light': '#FEE2E2',
+        secondary: '#991B1B', // Rich Burgundy / Wine
         textColor: '#0F172A',
 
         stroke: '#E2E8F0',
@@ -61,7 +89,7 @@ module.exports = {
         meta: {
           1: '#DC3545',
           2: '#EFF2F7',
-          3: '#10B981',
+          3: '#DC2626',
           4: '#313D4A',
           5: '#259AE6',
           6: '#FFBA00',
@@ -70,7 +98,7 @@ module.exports = {
           9: '#E5E7EB',
           10: '#0FADCF',
         },
-        success: '#219653',
+        success: '#DC2626',
         danger: '#D34053',
         warning: '#FFA70B',
       },

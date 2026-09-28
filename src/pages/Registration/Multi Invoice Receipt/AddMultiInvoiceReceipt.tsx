@@ -81,7 +81,7 @@ const AddMultiInvoiceReceipt = () => {
 
             const { data: openInvoices, error } = await supabase
                 .from('sales_invoices')
-                .select('id, customer_name, total_amount, cash_amount_paid, bank_amount, receipt_status, created_at')
+                .select('id, invoice_no, customer_name, total_amount, cash_amount_paid, bank_amount, receipt_status, created_at')
                 .ilike('customer_name', `%${trimmedCustomer}%`)
                 .not('receipt_status', 'ilike', '%RETURNED%')
                 .not('receipt_status', 'ilike', '%PAID%')
@@ -97,17 +97,18 @@ const AddMultiInvoiceReceipt = () => {
 
             const activeAllocationsPromise = openInvoices.map(async (inv) => {
                 const initialDownpayments = (Number(inv.cash_amount_paid) || 0) + (Number(inv.bank_amount) || 0);
+                const actualInvNo = inv.invoice_no || `INV-${inv.id}`;
 
                 const { data: historicalReceipts } = await supabase
                     .from('financial_vouchers')
                     .select('total_amount')
-                    .or(`original_invoice_no.eq.${inv.id},original_invoice_no.eq.INV-${inv.id}`)
+                    .or(`original_invoice_no.eq.${inv.id},original_invoice_no.eq.INV-${inv.id},original_invoice_no.eq.${actualInvNo}`)
                     .or('voucher_type.eq.Cash Receipt Voucher,voucher_type.eq.Bank Receipt Voucher,voucher_type.eq.Cash & Bank Receipt Voucher');
 
                 const { data: returnRecords } = await supabase
                     .from('sales_returns')
                     .select('total_amount')
-                    .or(`original_invoice_no.eq.${inv.id},original_invoice_no.eq.INV-${inv.id}`);
+                    .or(`original_invoice_no.eq.${inv.id},original_invoice_no.eq.INV-${inv.id},original_invoice_no.eq.${actualInvNo}`);
 
                 const historicalCleared = historicalReceipts ? historicalReceipts.reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0) : 0;
                 const totalReturnedVal = returnRecords ? returnRecords.reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0) : 0;
@@ -117,6 +118,7 @@ const AddMultiInvoiceReceipt = () => {
 
                 return {
                     invoiceId: inv.id,
+                    invoiceNo: inv.invoice_no || `INV-${String(inv.id).padStart(4, '0')}`,
                     totalBill: totalNetInvoiceValue,
                     remainingBalance: outstandingRemainingDebt,
                     amountToAllocate: 0
@@ -411,12 +413,12 @@ const AddMultiInvoiceReceipt = () => {
                                                                     }}
                                                                     className={`p-2.5 cursor-pointer transition flex items-center justify-between group ${
                                                                         isHighlighted
-                                                                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500'
+                                                                            ? 'bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500'
                                                                             : 'hover:bg-slate-50 dark:hover:bg-slate-800/80'
                                                                     }`}
                                                                 >
                                                                     <div className="flex flex-col gap-0.5 text-left">
-                                                                        <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                                                                        <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400">
                                                                             {c.customerName}
                                                                         </span>
                                                                         {c.primaryPhone && (
@@ -549,7 +551,7 @@ const AddMultiInvoiceReceipt = () => {
                                                     handleAutoKnockoffDistribution(String(total), values.allocations, setFieldValue);
                                                 }}
                                                 placeholder="0"
-                                                className="w-full rounded border border-stroke dark:border-strokedark p-2 bg-transparent outline-none text-xs font-black text-right text-emerald-600 dark:text-emerald-400 focus:border-primary"
+                                                className="w-full rounded border border-stroke dark:border-strokedark p-2 bg-transparent outline-none text-xs font-black text-right text-red-600 dark:text-red-400 focus:border-primary"
                                                 disabled={!values.customerName || fetchingInvoices}
                                             />
                                         </div>
@@ -577,7 +579,7 @@ const AddMultiInvoiceReceipt = () => {
                                                 {values.allocations.map((bill: any, index: number) => (
                                                     <tr key={bill.invoiceId} className="border-b border-stroke dark:border-strokedark bg-white dark:bg-boxdark hover:bg-slate-50 dark:hover:bg-meta-4/5">
                                                         <td className="p-2.5 font-bold text-gray-500 bg-gray-50 dark:bg-meta-4/10">{index + 1}</td>
-                                                        <td className="p-2.5 font-mono font-bold text-primary">INV-{String(bill.invoiceId).padStart(4, '0')}</td>
+                                                        <td className="p-2.5 font-mono font-bold text-primary">{bill.invoiceNo || `INV-${String(bill.invoiceId).padStart(4, '0')}`}</td>
                                                         <td className="p-2.5 text-right pr-4 font-semibold text-gray-500">Rs. {Number(bill.totalBill).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                                         <td className="p-2.5 text-right pr-4 font-black text-danger">Rs. {Number(bill.remainingBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                                         <td className="p-1 bg-success/5 border-l border-success/20">
@@ -654,7 +656,7 @@ const AddMultiInvoiceReceipt = () => {
                                 <button
                                     type="submit"
                                     disabled={loading || values.allocations.length === 0}
-                                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 px-8 font-bold text-white transition disabled:opacity-50 shadow-md text-xs cursor-pointer flex items-center gap-2"
+                                    className="rounded-xl bg-red-600 hover:bg-red-700 py-3 px-8 font-bold text-white transition disabled:opacity-50 shadow-md text-xs cursor-pointer flex items-center gap-2"
                                 >
                                     {loading ? <Spinner color="border-white" size="w-4 h-4" /> : <span>Save Bulk Receipt</span>}
                                 </button>

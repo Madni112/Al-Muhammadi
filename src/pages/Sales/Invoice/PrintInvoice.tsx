@@ -483,7 +483,7 @@ const PrintInvoice = () => {
 
             {additionalCharges > 0 && (
               <div className="flex justify-between text-blue-700">
-                <span>Additional Charges:</span>
+                <span>Freight Charges:</span>
                 <span className="font-bold text-blue-900">Rs. {additionalCharges.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             )}

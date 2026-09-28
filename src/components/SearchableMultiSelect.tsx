@@ -50,7 +50,11 @@ export const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
     setHighlightedIndex(0);
   }, [query, isOpen]);
 
-  const defaultAllText = allLabel || `All ${placeholder.endsWith('y') ? placeholder.slice(0, -1) + 'ies' : placeholder + 's'}`;
+  const defaultAllText = allLabel || (
+    placeholder.toLowerCase().startsWith('all ')
+      ? placeholder
+      : `All ${placeholder.endsWith('y') ? placeholder.slice(0, -1) + 'ies' : placeholder.endsWith('s') ? placeholder : placeholder + 's'}`
+  );
   
   // First item in the list is always "Select All / Clear All"
   const totalCount = filtered.length + 1;
@@ -143,7 +147,7 @@ export const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Search ${placeholder}...`}
+              placeholder={`Search ${placeholder.replace(/^all\s+/i, '')}...`}
               className="w-full pl-8 pr-2.5 py-1.5 rounded-lg border border-stroke dark:border-strokedark bg-slate-50 dark:bg-slate-900 text-xs font-bold outline-none text-black dark:text-white"
             />
           </div>
@@ -188,7 +192,7 @@ export const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
                 );
               })
             ) : (
-              <div className="p-3 text-center text-[11px] text-gray-400 italic">No matching {placeholder.toLowerCase()}s</div>
+              <div className="p-3 text-center text-[11px] text-gray-400 italic">No matching {placeholder.replace(/^all\s+/i, '').toLowerCase()} found</div>
             )}
           </div>
         </div>

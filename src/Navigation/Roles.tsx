@@ -87,6 +87,7 @@ import PurchaseReportPrint from '../pages/Reports/Purchase Report/PurchaseReport
 import StockReportPrint from '../pages/Reports/Stock Report/StockReportPrint';
 import AccountReportPrint from '../pages/Reports/Account Report/AccountReportPrint';
 import BalanceSheet from '../pages/Reports/BalanceSheet';
+import DedicatedReportFilter from '../pages/Reports/DedicatedReportFilter';
 
 export const adminRoutes = [
   {
@@ -328,51 +329,51 @@ export const adminRoutes = [
   },
   {
     label: 'Reports',
-    icon: MdAssessment,
-    children: [
-      {
-        label: 'Reports Dashboard',
-        path: '/Reports/Reports-Dashboard',
-        component: <ReportDashboard />,
-        icon: MdDashboardCustomize
-      },
-      {
-        label: 'Sales Report',
-        path: '/Reports/Sales-Report',
-        component: <SalesReport />,
-        icon: MdTrendingUp
-      },
-      {
-        label: 'Purchase Report',
-        path: '/Reports/Purchase-Report',
-        component: <PurchaseReport />,
-        icon: MdBarChart
-      },
-      {
-        label: 'Stock Report',
-        path: '/Reports/Stock-Report',
-        component: <StockReport />,
-        icon: MdInventory
-      },
-      {
-        label: 'Account Report',
-        path: '/Reports/Account-Report',
-        component: <AccountReport />,
-        icon: MdAccountBalanceWallet
-      },
-      {
-        label: 'Holding Item Report',
-        path: '/Reports/Holding-Report',
-        component: <HoldingReport />,
-        icon: MdPauseCircleFilled
-      },
-      {
-        label: 'Balance Sheet',
-        path: '/Reports/Balance-Sheet',
-        component: <BalanceSheet />,
-        icon: MdBalance
-      }
-    ]
+    path: '/Reports/Reports-Dashboard',
+    component: <ReportDashboard />,
+    icon: MdAssessment
+  },
+  {
+    path: '/Reports/Sales-Report',
+    component: <SalesReport />,
+    label: 'Sales Report',
+    hideFromSidebar: true
+  },
+  {
+    path: '/Reports/Purchase-Report',
+    component: <PurchaseReport />,
+    label: 'Purchase Report',
+    hideFromSidebar: true
+  },
+  {
+    path: '/Reports/Stock-Report',
+    component: <StockReport />,
+    label: 'Stock Report',
+    hideFromSidebar: true
+  },
+  {
+    path: '/Reports/Account-Report',
+    component: <AccountReport />,
+    label: 'Account Report',
+    hideFromSidebar: true
+  },
+  {
+    path: '/Reports/Holding-Report',
+    component: <HoldingReport />,
+    label: 'Holding Item Report',
+    hideFromSidebar: true
+  },
+  {
+    path: '/Reports/Balance-Sheet',
+    component: <BalanceSheet />,
+    label: 'Balance Sheet',
+    hideFromSidebar: true
+  },
+  {
+    path: '/Reports/view/:reportId',
+    component: <DedicatedReportFilter />,
+    label: 'Report Filter',
+    hideFromSidebar: true
   },
   {
     path: '/Administration/Products/Add',

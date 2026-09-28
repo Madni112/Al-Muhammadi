@@ -175,7 +175,12 @@ const PurchaseReport = () => {
         }
       }
     }
-    navigate(`${tenantId ? `/${tenantId}` : ''}/Reports/Purchase-Report/Print`, { state: { type: activeTab, filters: criteria } });
+    const filterPayload = {
+      ...criteria,
+      brand: criteria.bin,
+      supplier: criteria.vendor
+    };
+    navigate(`${tenantId ? `/${tenantId}` : ''}/Reports/Purchase-Report/Print`, { state: { type: activeTab, filters: filterPayload, criteria: filterPayload } });
   };
 
   if (loading) return <div className="flex h-48 items-center justify-center"><Spinner /></div>;
@@ -190,7 +195,7 @@ const PurchaseReport = () => {
       <div className="flex border-b border-stroke dark:border-strokedark gap-2 bg-white dark:bg-boxdark font-black tracking-wider text-[11px] uppercase text-gray-500">
         <button type="button" onClick={() => handleTabChange('purchase')} className={`py-2.5 px-6 font-bold uppercase transition tracking-wide text-xs border-b-2 cursor-pointer ${activeTab === 'purchase' ? 'border-primary text-primary font-black' : 'border-transparent text-gray-400 hover:text-black dark:hover:text-white'}`}>General Purchase Detail</button>
         <button type="button" onClick={() => handleTabChange('return')} className={`py-2.5 px-6 font-bold uppercase transition tracking-wide text-xs border-b-2 cursor-pointer ${activeTab === 'return' ? 'border-primary text-primary font-black' : 'border-transparent text-gray-400 hover:text-black dark:hover:text-white'}`}>Purchase Return</button>
-        <button type="button" onClick={() => handleTabChange('invoice')} className={`py-2.5 px-6 font-bold uppercase transition tracking-wide text-xs border-b-2 cursor-pointer ${activeTab === 'invoice' ? 'border-primary text-primary font-black' : 'border-transparent text-gray-400 hover:text-black dark:hover:text-white'}`}>Purchase Invoice Detail</button>
+        <button type="button" onClick={() => handleTabChange('invoice')} className={`py-2.5 px-6 font-bold uppercase transition tracking-wide text-xs border-b-2 cursor-pointer ${activeTab === 'invoice' ? 'border-primary text-primary font-black' : 'border-transparent text-gray-400 hover:text-black dark:hover:text-white'}`}>Purchase Itemized Detail</button>
       </div>
 
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark p-6">
@@ -236,8 +241,8 @@ const PurchaseReport = () => {
             <>
               <div className="md:col-span-2">
                 <SearchableDropdown
-                  label="Select Supplier Purchase Invoice Profile: *"
-                  placeholder="Purchase Invoice"
+                  label="Select Supplier Purchase No: *"
+                  placeholder="Purchase No"
                   options={invoiceOptions}
                   value={criteria.invoiceNo}
                   onChange={(val) => handleInputChange('invoiceNo', val)}

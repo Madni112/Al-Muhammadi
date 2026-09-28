@@ -294,20 +294,32 @@ const AddPurchases = () => {
                 if (linkedGrnId) {
                   const { data: existingGrnItems } = await supabase
                     .from('grn_items')
-                    .select('product_name, accepted_qty')
+                    .select('product_name, warehouse_name, accepted_qty')
                     .eq('grn_id', linkedGrnId);
 
                   if (existingGrnItems && existingGrnItems.length > 0) {
-                    for (const grnItem of existingGrnItems) {
-                      const acceptedQty = Number(grnItem.accepted_qty || 0);
-                      if (acceptedQty <= 0) continue; // not yet verified, skip
-                      const matchingNewItem = values.items.find((i: any) =>
-                        String(i.itemName || '').toLowerCase() === String(grnItem.product_name || '').toLowerCase()
-                      );
-                      const newQty = Number(matchingNewItem?.qty || 0);
-                      if (!matchingNewItem || newQty < acceptedQty) {
+                    // Group accepted quantities by product
+                    const acceptedByProduct: Record<string, number> = {};
+                    existingGrnItems.forEach((g: any) => {
+                      const pKey = String(g.product_name || '').trim().toLowerCase();
+                      const acc = Number(g.accepted_qty || 0);
+                      if (acc > 0) {
+                        acceptedByProduct[pKey] = (acceptedByProduct[pKey] || 0) + acc;
+                      }
+                    });
+
+                    // Compare against total new quantities in values.items
+                    for (const [pKey, acceptedTotal] of Object.entries(acceptedByProduct)) {
+                      if (acceptedTotal <= 0) continue;
+                      const newTotalForProduct = values.items
+                        .filter((i: any) => String(i.itemName || '').trim().toLowerCase() === pKey)
+                        .reduce((sum: number, i: any) => sum + Number(i.qty || 0), 0);
+
+                      // Tolerance of 0.0001 for floating-point rounding
+                      if (newTotalForProduct < (acceptedTotal - 0.0001)) {
+                        const originalProdName = existingGrnItems.find((g: any) => String(g.product_name || '').trim().toLowerCase() === pKey)?.product_name || pKey;
                         toast.error(
-                          `Cannot reduce below approved qty!\n\nProduct: "${grnItem.product_name}"\nAlready Approved in GRN: ${acceptedQty}\nYour New Qty: ${newQty}\n\nMinimum allowed qty is ${acceptedQty}.`,
+                          `Cannot reduce below approved qty!\n\nProduct: "${originalProdName}"\nAlready Approved in GRN: ${acceptedTotal}\nYour New Total Qty: ${newTotalForProduct}\n\nMinimum allowed total qty is ${acceptedTotal}.`,
                           { duration: 6000 }
                         );
                         setLoading(false);
@@ -382,20 +394,48 @@ const AddPurchases = () => {
                 // Sync updated items back to linked GRN so Inward Challan stays accurate
                 const linkedGrnId = values.grnId || editData?.metadata?.grn_id || editData?.grn_id || null;
                 if (linkedGrnId) {
-                  // Delete old grn_items and re-insert updated ones
+                  // Fetch existing GRN items so we retain accepted_qty for already verified items
+                  const { data: existingGrnItems } = await supabase
+                    .from('grn_items')
+                    .select('*')
+                    .eq('grn_id', linkedGrnId);
+
                   await supabase.from('grn_items').delete().eq('grn_id', linkedGrnId);
-                  const updatedGrnItems = values.items.map((item: any) => ({
-                    grn_id: linkedGrnId,
-                    product_name: item.itemName,
-                    warehouse_name: item.warehouse || values.targetWarehouse || locations[0]?.name || 'Main Warehouse',
-                    qty: Number(item.qty),
-                    uom: item.uom || 'EACH'
-                  }));
+
+                  let hasUnverified = false;
+                  const updatedGrnItems = values.items.map((item: any) => {
+                    const matched = (existingGrnItems || []).find((eg: any) =>
+                      eg.product_name === item.itemName &&
+                      String(eg.warehouse_name).toUpperCase() === String(item.warehouse || values.targetWarehouse || locations[0]?.name || 'Main Warehouse').toUpperCase() &&
+                      Number(eg.qty) === Number(item.qty)
+                    );
+
+                    const acceptedQty = matched ? matched.accepted_qty : null;
+                    const rejectedQty = matched ? matched.rejected_qty : 0;
+                    const holdQty = matched ? matched.hold_qty : 0;
+
+                    const isUnverified = (acceptedQty == null) || (acceptedQty === 0 && rejectedQty === 0 && Number(item.qty) > 0);
+                    if (isUnverified) hasUnverified = true;
+
+                    return {
+                      grn_id: linkedGrnId,
+                      product_name: item.itemName,
+                      warehouse_name: item.warehouse || values.targetWarehouse || locations[0]?.name || 'Main Warehouse',
+                      qty: Number(item.qty),
+                      uom: item.uom || 'EACH',
+                      accepted_qty: acceptedQty,
+                      rejected_qty: rejectedQty,
+                      hold_qty: holdQty
+                    };
+                  });
                   await supabase.from('grn_items').insert(updatedGrnItems);
-                  // Also update GRN header date/vendor
+
+                  // Update GRN header date/vendor and status
+                  const newStatus = hasUnverified ? 'Partially Received' : 'Confirm';
                   await supabase.from('grn_receipts').update({
                     vendor_name: values.supplierName,
                     receipt_date: values.purchaseDate,
+                    status: newStatus
                   }).eq('id', linkedGrnId);
                 }
 
@@ -618,7 +658,7 @@ const AddPurchases = () => {
                       Discounts
                     </div>
 
-                    {/* Additional Charges Toggle */}
+                    {/* Freight Charges Toggle */}
                     <div
                       onClick={() => {
                         const isChecked = !values.showAdditionalCharges;
@@ -631,7 +671,7 @@ const AddPurchases = () => {
                           : 'bg-white text-slate-500 border-stroke dark:bg-boxdark dark:text-slate-400 dark:border-strokedark hover:bg-slate-50 dark:hover:bg-meta-4'
                       }`}
                     >
-                      Additional Charges
+                      Freight Charges
                     </div>
                   </div>
 
@@ -1366,7 +1406,7 @@ const AddPurchases = () => {
 
                       {values.showAdditionalCharges && (
                         <div className="flex justify-between items-center text-sm text-blue-600 dark:text-blue-400">
-                          <span className="font-sans font-bold text-xs">Additional Charges:</span>
+                          <span className="font-sans font-bold text-xs">Freight Charges:</span>
                           <input
                             type="number"
                             min="0"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MdEdit, MdDelete, MdPrint, MdVisibility, MdReplay, MdMoreHoriz } from 'react-icons/md';
+import { MdEdit, MdDelete, MdVisibility, MdReplay, MdMoreHoriz } from 'react-icons/md';
+import { FiPrinter } from 'react-icons/fi';
 
 export type ActionVariant = 'edit' | 'delete' | 'print' | 'view' | 'return';
 
@@ -20,7 +21,7 @@ const variantConfig: Record<
   }
 > = {
   print: {
-    icon: MdPrint,
+    icon: FiPrinter,
     defaultTitle: 'Print Record',
     classes:
       'bg-emerald-50 hover:bg-emerald-100/90 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 dark:text-emerald-300 dark:border-emerald-800/60 shadow-xs hover:border-emerald-300',
@@ -243,7 +244,7 @@ export const TableActions: React.FC<TableActionsProps> = ({
                   }}
                   className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg transition duration-150 cursor-pointer text-left font-semibold ${config.menuItemClasses}`}
                 >
-                  <IconComp size={15} />
+                  <IconComp size={15} className="shrink-0" />
                   <span>{action.title}</span>
                 </button>
               );

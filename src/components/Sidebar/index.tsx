@@ -64,7 +64,7 @@ const FlyoutSubMenu = ({ item, pathname, handleLinkClick, getTenantPath }: any) 
         onClick={handleLinkClick}
         className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium duration-150 ${
           isActive
-            ? 'text-emerald-600 bg-emerald-50/80 dark:bg-emerald-500/15 dark:text-emerald-400 font-semibold'
+            ? 'text-red-600 bg-red-50/80 dark:bg-red-500/15 dark:text-red-400 font-semibold'
             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800'
         }`}
       >
@@ -165,7 +165,7 @@ const SidebarItem = ({ item, pathname, depth = 0, sidebarOpen, setSidebarOpen, h
                 to="#"
                 className={`group relative flex items-center rounded-xl py-2.5 font-medium duration-200 ease-in-out ${
                   isChildActive && shouldShowLabels
-                    ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-500/15 font-semibold shadow-xs'
+                    ? 'text-red-600 dark:text-red-400 bg-red-50/80 dark:bg-red-500/15 font-semibold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800'
                 } ${shouldShowLabels ? 'px-3.5 justify-start' : 'justify-center mx-auto w-10 h-10 px-0'}`}
                 style={{ paddingLeft: shouldShowLabels ? `${(depth + 1) * 0.85}rem` : undefined }}
@@ -181,7 +181,7 @@ const SidebarItem = ({ item, pathname, depth = 0, sidebarOpen, setSidebarOpen, h
                   handleClick();
                 }}
               >
-                {item.icon && <item.icon className={`text-lg shrink-0 ${isChildActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />}
+                {item.icon && <item.icon className={`text-lg shrink-0 ${isChildActive ? 'text-red-600 dark:text-red-400' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />}
                 {shouldShowLabels && (
                   <>
                     <span className="text-xs font-medium ml-2.5 whitespace-nowrap overflow-hidden text-ellipsis flex flex-col gap-1 tracking-wide">
@@ -243,7 +243,7 @@ const SidebarItem = ({ item, pathname, depth = 0, sidebarOpen, setSidebarOpen, h
                 to { opacity: 1; transform: translateX(0); }
               }
             `}</style>
-            <div className="px-3 py-1.5 mb-1.5 border-b border-slate-100 dark:border-slate-800 font-bold text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider text-left">
+            <div className="px-3 py-1.5 mb-1.5 border-b border-slate-100 dark:border-slate-800 font-bold text-[10px] text-red-600 dark:text-red-400 uppercase tracking-wider text-left">
               {item.label}
             </div>
             <ul className="flex flex-col gap-1">
@@ -324,17 +324,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         <div className={`flex items-center justify-between gap-2 py-5 border-b border-slate-200/80 dark:border-slate-800/80 min-h-[76px] duration-300 ${sidebarOpen ? 'px-6' : 'px-0 min-[751px]:px-2 justify-center'}`} >
           {(sidebarOpen || isMobile) ? (
             <div className="flex items-center justify-between w-full">
-              <NavLink className="flex items-center gap-3 group" to="/">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center text-white font-black text-base shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform duration-200 border border-emerald-400/30">
-                  Z
+              <NavLink className="flex items-center gap-3.5 group" to="/">
+                <div className="w-11 h-11 rounded-xl bg-red-600 flex items-center justify-center shadow-md shadow-red-600/30 group-hover:scale-105 transition-all duration-200 text-white font-black text-lg select-none shrink-0">
+                  A
                 </div>
                 <div className="text-left">
-                  <div className="flex items-center gap-1 leading-tight">
-                    <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">ZOAIB</span>
-                    <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">ALI</span>
+                  <div className="text-[16px] font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+                    AL MUHAMMADI
                   </div>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider">& COMPANY</span>
+                  <div className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 tracking-wider mt-0.5 uppercase">
+                    ENTERPRISE ERP
                   </div>
                 </div>
               </NavLink>
@@ -358,8 +357,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               }}
               title="Open Sidebar"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center text-white font-black text-base shadow-md shadow-emerald-600/20 hover:scale-105 transition-transform duration-200 border border-emerald-400/30">
-                Z
+              <div className="w-11 h-11 rounded-xl bg-red-600 flex items-center justify-center shadow-md shadow-red-600/30 hover:scale-105 transition-all duration-200 text-white font-black text-lg select-none">
+                A
               </div>
             </div>
           )}

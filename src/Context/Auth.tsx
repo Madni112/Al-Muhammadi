@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient';
 import * as RoleRoutes from '../Navigation/Roles';
 import { UserRole } from '../constant/auth';
 import { getModulesForRole, ROLE_PRESETS } from '../constant/roles';
+import { toast } from 'react-hot-toast';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -95,6 +96,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return ROLE_PRESETS['Super Admin'].modules;
   });
 
+  const handleSessionExpired = (showToast = true) => {
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setUserEmail(null);
+    setTenantId(null);
+    setUserName(null);
+    setUserLocationId(null);
+    setUserLocationName(null);
+
+    try {
+      localStorage.removeItem('zac_is_authenticated');
+      localStorage.removeItem('zac_user_role');
+      localStorage.removeItem('zac_user_email');
+      localStorage.removeItem('zac_user_name');
+      localStorage.removeItem('zac_user_modules');
+      localStorage.removeItem('zac_user_location_id');
+      localStorage.removeItem('zac_user_location_name');
+    } catch (_) {}
+
+    if (window.location.pathname !== '/signin') {
+      if (showToast) {
+        toast.error('Your session has expired. Please sign in again.');
+      }
+      navigate('/signin');
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -103,11 +131,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (isMounted) setLoading(false);
     }, 1200);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (isMounted) {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error || !session) {
+        if (localStorage.getItem('zac_is_authenticated') === 'true') {
+          handleSessionExpired(true);
+        }
+      } else if (isMounted) {
         handleAuthState(session);
-        setLoading(false);
       }
+      if (isMounted) setLoading(false);
     }).catch((err) => {
       console.error('Auth getSession error:', err);
       if (isMounted) setLoading(false);
@@ -118,8 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('JWT Token auto-refreshed successfully');
       }
       if (event === 'SIGNED_OUT') {
-        setIsAuthenticated(false);
-        setCurrentUser(null);
+        handleSessionExpired(false);
       } else if (session) {
         handleAuthState(session);
       }
@@ -130,13 +161,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const handleVisibilityOrFocus = async () => {
       if (document.visibilityState === 'visible') {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error || !session) {
+            if (localStorage.getItem('zac_is_authenticated') === 'true') {
+              handleSessionExpired(true);
+            }
+            return;
+          }
           if (session) {
             // Check if JWT token is near expiry and refresh silently
             const expiresAt = session.expires_at || 0;
             const now = Math.floor(Date.now() / 1000);
             if (expiresAt - now < 300) { // Less than 5 mins remaining
-              await supabase.auth.refreshSession();
+              const { error: refreshErr } = await supabase.auth.refreshSession();
+              if (refreshErr) {
+                handleSessionExpired(true);
+              }
             }
           }
         } catch (_) {}

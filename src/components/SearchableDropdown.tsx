@@ -50,7 +50,11 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
     setHighlightedIndex(0);
   }, [query, isOpen]);
 
-  const defaultAllText = allLabel || `All ${placeholder.endsWith('y') ? placeholder.slice(0, -1) + 'ies' : placeholder + 's'}`;
+  const defaultAllText = allLabel || (
+    placeholder.toLowerCase().startsWith('all ')
+      ? placeholder
+      : `All ${placeholder.endsWith('y') ? placeholder.slice(0, -1) + 'ies' : placeholder.endsWith('s') ? placeholder : placeholder + 's'}`
+  );
   const totalCount = allowAll ? filtered.length + 1 : filtered.length;
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

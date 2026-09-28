@@ -155,22 +155,28 @@ const ProductList = () => {
 
           // 2.5 GRN stock calculation
           let totalRejected = 0;
+          let totalPurchaseHold = 0;
           (grnReceipts || []).forEach((grn: any) => {
-            if (grn.status === 'Confirm' || grn.status === 'Partially Received' || grn.status === 'Billed' || grn.status === 'Rejected') {
+            if (['Pending Inward', 'Confirm', 'Partially Received', 'Billed', 'Rejected'].includes(grn.status)) {
               (grn.grn_items || []).forEach((item: any) => {
                 const pName = String(item.product_name || '').trim().toLowerCase();
                 if (pName === name || pName.includes(name)) {
-                  const accepted = Number(item.accepted_qty ?? (grn.status === 'Partially Received' ? 0 : item.qty) ?? 0);
+                  const isUnverified = (item.accepted_qty == null) || (item.accepted_qty === 0 && item.rejected_qty === 0 && Number(item.qty) > 0 && ['Pending Inward', 'Partially Received'].includes(grn.status));
+                  const accepted = isUnverified ? 0 : Number(item.accepted_qty ?? item.qty ?? 0);
                   const rejected = Number(item.rejected_qty ?? 0);
-                  // Show FULL original purchase qty (accepted + rejected) in breakdown
+                  const holdQty = Number(item.hold_qty ?? 0) + (isUnverified ? Number(item.qty) : 0);
+
+                  // Show accepted + rejected in totalPurchased (once confirmed/received)
                   const fullQty = accepted + rejected;
 
                   totalPurchased += fullQty;
                   totalRejected += rejected;
+                  totalPurchaseHold += holdQty;
 
                   const warehouse = item.warehouse_name || grn.target_warehouse || grn.warehouse || 'Global / Unassigned';
                   getWh(warehouse).purchased += fullQty;
                   getWh(warehouse).rejected += rejected;
+                  getWh(warehouse).purchaseHold = (getWh(warehouse).purchaseHold || 0) + holdQty;
                 }
               });
             }
@@ -288,7 +294,8 @@ const ProductList = () => {
               transferredOut,
               available: wAvailable,
               onHand: wOnHand,
-              rejected: w.rejected || 0
+              rejected: w.rejected || 0,
+              purchaseHold: w.purchaseHold || 0
             };
           });
 
@@ -298,6 +305,7 @@ const ProductList = () => {
             breakdown: {
               opening: liveStock,
               purchased: totalPurchased,
+              purchaseHold: totalPurchaseHold,
               sold: totalSold,
               salesReturned: totalSalesReturned,
               purchaseReturned: totalPurchaseReturned,

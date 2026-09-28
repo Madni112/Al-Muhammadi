@@ -166,7 +166,7 @@ const HoldingReport: React.FC = () => {
         supabase.from('delivery_challans').select('*').order('created_at', { ascending: false }),
         supabase.from('sales_invoices').select('*'),
         supabase.from('salesmen').select('id, name'),
-        supabase.from('customers').select('id, customerName')
+        supabase.from('customers').select('id, customerName, customer_code, customerCode')
       ]);
 
       if (dcRes.error) throw dcRes.error;
@@ -174,7 +174,10 @@ const HoldingReport: React.FC = () => {
       const dcs = dcRes.data || [];
       const invoices = invRes.data || [];
       const salesmen = (smRes.data || []).map((s: any) => s.name).filter(Boolean);
-      const customers = (custRes.data || []).map((c: any) => c.customerName).filter(Boolean);
+      const customers = (custRes.data || []).map((c: any) => {
+        const code = c.customer_code || c.customerCode;
+        return code ? `[${code}] ${c.customerName}` : c.customerName;
+      }).filter(Boolean);
 
       // Create lookup map for invoices
       const invMap: Record<string, any> = {};
@@ -301,7 +304,10 @@ const HoldingReport: React.FC = () => {
       if (selectedSalesman !== 'All' && row.salesman.toLowerCase() !== selectedSalesman.toLowerCase()) return false;
 
       // 3. Customer
-      if (selectedCustomer !== 'All' && row.customerName.toLowerCase() !== selectedCustomer.toLowerCase()) return false;
+      if (selectedCustomer !== 'All') {
+        const cleanCust = selectedCustomer.replace(/^\[.*?\]\s*/, '').trim().toLowerCase();
+        if (row.customerName.toLowerCase() !== cleanCust && row.customerName.toLowerCase() !== selectedCustomer.toLowerCase()) return false;
+      }
 
       // 4. Gatepass
       if (selectedGatepass !== 'All' && row.gatepassNo.toLowerCase() !== selectedGatepass.toLowerCase()) return false;

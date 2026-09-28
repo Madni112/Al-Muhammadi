@@ -46,13 +46,25 @@ const AddSalesman = () => {
         return;
       }
 
-      const payload = {
+      const payload: any = {
         name: values.name.trim(),
         phone: values.phone.trim(),
-        area: values.area ? values.area.trim() : null
+        area: values.area ? values.area.trim() : null,
+        invoice_name: values.invoice_name ? values.invoice_name.trim() : null,
+        invoice_names: values.invoice_name ? [values.invoice_name.trim()] : []
       };
 
       if (isEditMode) {
+        // Retain existing invoice_names array if editing and adding
+        if (editData.invoice_names && Array.isArray(editData.invoice_names) && editData.invoice_names.length > 0) {
+          const invTrimmed = values.invoice_name ? values.invoice_name.trim() : null;
+          const merged = invTrimmed && !editData.invoice_names.includes(invTrimmed)
+            ? [...editData.invoice_names, invTrimmed]
+            : editData.invoice_names;
+          payload.invoice_names = merged;
+          payload.invoice_name = merged[0] || invTrimmed;
+        }
+
         // UPDATE EXISTING SALESMAN 
         const { error } = await supabase
           .from('salesmen')
@@ -85,26 +97,28 @@ const AddSalesman = () => {
           </h3>
           <button
             onClick={() => navigate('/Salesman/list')}
-            className="text-sm text-primary hover:underline font-medium"
+            className="text-sm text-primary hover:underline font-medium cursor-pointer"
           >
             {isEditMode ? 'Back to List' : 'See List'}
           </button>
         </div>
 
         <Formik
-          /* Removed email property from initial values */
-          initialValues={editData || { name: '', phone: '', area: '', commissionRate: 0 }}
+          initialValues={editData || { name: '', phone: '', area: '', invoice_name: '', commissionRate: 0 }}
           enableReinitialize={true}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
           {({ handleChange, values, errors, touched }) => (
             <Form className="p-6.5">
-              {/* Grid columns updated to fit 3 fields cleanly without an empty email slot */}
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <label className="mb-3 block text-sm font-medium text-black dark:text-white">Full Name *</label>
                   <input name="name" onChange={handleChange} value={values.name} className={`w-full rounded border bg-transparent text-black dark:text-white p-3 outline-none focus:border-primary ${touched.name && errors.name ? 'border-red-500' : 'border-stroke'}`} />
+                </div>
+                <div>
+                  <label className="mb-3 block text-sm font-medium text-black dark:text-white">Invoice Display Name</label>
+                  <input name="invoice_name" onChange={handleChange} value={values.invoice_name || ''} placeholder="e.g. Ahmed" className="w-full rounded border bg-transparent text-black dark:text-white border-stroke p-3 outline-none focus:border-primary" />
                 </div>
                 <div>
                   <label className="mb-3 block text-sm font-medium text-black dark:text-white">Phone Number *</label>
