@@ -100,7 +100,13 @@ const AddPurchases = () => {
 
         const { data: locData } = await supabase.from('inventory_locations').select('id, name').order('name', { ascending: true });
         const { data: prodData } = await supabase.from('products').select('id, product_name, purchase_price, uom, item_sr_no, pieces_per_box, pcs_per_box, category, scenario_name, product_description');
-        const { data: bankData } = await supabase.from('banks').select('id, bankName, accountTitle, accountNumber');
+        const { data: rawBankData } = await supabase.from('banks').select('*');
+        const bankData = (rawBankData || []).map((b: any) => ({
+          ...b,
+          bankName: b.bankName || b.bankname || '',
+          accountTitle: b.accountTitle || b.accounttitle || b.account_title || '',
+          accountNumber: b.accountNumber || b.accountnumber || ''
+        }));
 
         setSuppliers(normalizedVendors);
         if (locData) setLocations(locData);

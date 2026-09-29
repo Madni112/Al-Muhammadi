@@ -63,7 +63,7 @@ const SalesReport = () => {
             try {
                 setLoading(true);
                 const [custRes, smRes, transRes, catRes, binRes, prodRes, locRes, invRes, uomRes] = await Promise.all([
-                    supabase.from('customers').select('id, customerName, customer_code, customerCode'),
+                    supabase.from('customers').select('*'),
                     supabase.from('salesmen').select('id, name'),
                     supabase.from('logistics_transportation').select('id, name'),
                     supabase.from('inventory_categories').select('id, name, parent_id'),
@@ -71,10 +71,16 @@ const SalesReport = () => {
                     supabase.from('products').select('id, product_name'),
                     supabase.from('inventory_locations').select('id, name'),
                     supabase.from('sales_invoices').select('id, total_amount, customer_name').order('id', { ascending: false }),
-                    supabase.from('inventory_uom').select('id, short_code, full_name').eq('tenant_id', tenantId || 'bashir').eq('is_active', true)
+                    supabase.from('inventory_uom').select('*').eq('is_active', true)
                 ]);
 
-                if (custRes.data) setCustomers(custRes.data);
+                if (custRes.data) {
+                    setCustomers(custRes.data.map((c: any) => ({
+                        ...c,
+                        customerName: c.customerName || c.customername || c.name || '',
+                        customer_code: c.customer_code || c.customerCode || c.customercode || ''
+                    })));
+                }
                 if (smRes.data) setSalesmen(smRes.data);
                 if (transRes.data) setTransportFleet(transRes.data);
                 if (catRes.data) setCategories(catRes.data);

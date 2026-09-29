@@ -166,7 +166,7 @@ const HoldingReport: React.FC = () => {
         supabase.from('delivery_challans').select('*').order('created_at', { ascending: false }),
         supabase.from('sales_invoices').select('*'),
         supabase.from('salesmen').select('id, name'),
-        supabase.from('customers').select('id, customerName, customer_code, customerCode')
+        supabase.from('customers').select('*')
       ]);
 
       if (dcRes.error) throw dcRes.error;
@@ -175,8 +175,9 @@ const HoldingReport: React.FC = () => {
       const invoices = invRes.data || [];
       const salesmen = (smRes.data || []).map((s: any) => s.name).filter(Boolean);
       const customers = (custRes.data || []).map((c: any) => {
-        const code = c.customer_code || c.customerCode;
-        return code ? `[${code}] ${c.customerName}` : c.customerName;
+        const code = c.customer_code || c.customerCode || c.customercode;
+        const name = c.customerName || c.customername || c.name || '';
+        return code ? `[${code}] ${name}` : name;
       }).filter(Boolean);
 
       // Create lookup map for invoices

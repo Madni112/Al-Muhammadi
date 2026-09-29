@@ -72,13 +72,10 @@ const UomManager = () => {
   const fetchUomCatalog = async () => {
     try {
       setLoading(true);
-      const activeTenant = tenantId || 'bashir';
-
       const [uomRes, prodRes] = await Promise.all([
         supabase
           .from('inventory_uom')
           .select('*')
-          .eq('tenant_id', activeTenant)
           .order('id', { ascending: true }),
         supabase
           .from('products')

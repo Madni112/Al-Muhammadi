@@ -61,14 +61,26 @@ const NewInvoice = () => {
     const fetchCompleteEnterpriseCatalog = async () => {
       try {
         setInitialLoading(true);
-        const { data: cust } = await supabase.from('customers').select('id, customerName, primaryPhone');
+        const { data: rawCust } = await supabase.from('customers').select('*');
         const { data: prod } = await supabase.from('products').select('id, product_name, current_stock, retail_price, item_sr_no, category, hs_code, uom, pieces_per_box, pcs_per_box, pieces_per_packing, product_description, bin, item_type, service_charges');
         const { data: sm } = await supabase.from('salesmen').select('id, name, invoice_name, invoice_names');
         const { data: trans } = await supabase.from('logistics_transportation').select('id, name, base_charges');
         const { data: locMaster } = await supabase.from('inventory_locations').select('name');
         const { data: wh } = await supabase.from('opening_stocks').select('location');
         const { data: invWh } = await supabase.from('warehouse_inventory').select('warehouse_name');
-        const { data: bnk } = await supabase.from('banks').select('id, bankName, accountTitle');
+        const { data: rawBnk } = await supabase.from('banks').select('*');
+
+        const cust = (rawCust || []).map((c: any) => ({
+          ...c,
+          customerName: c.customerName || c.customername || c.name || '',
+          primaryPhone: c.primaryPhone || c.primaryphone || c.phone || '',
+          customer_code: c.customer_code || c.customerCode || c.customercode || ''
+        }));
+        const bnk = (rawBnk || []).map((b: any) => ({
+          ...b,
+          bankName: b.bankName || b.bankname || '',
+          accountTitle: b.accountTitle || b.accounttitle || b.account_title || ''
+        }));
 
         // Load the stock ledger snapshot once (reused for every row's availability check)
         fetchStockDataset().then(setStockDataset).catch(() => setStockDataset(null));

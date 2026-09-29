@@ -62,14 +62,22 @@ const AccountReport = () => {
       try {
         setLoading(true);
         const [custRes, vendRes, smRes, compRes, coaRes] = await Promise.all([
-          supabase.from('customers').select('id, customerName, registrationType, primaryPhone, customer_code, customerCode'),
+          supabase.from('customers').select('*'),
           supabase.from('vendors').select('id, vendor_name'),
           supabase.from('salesmen').select('id, name'),
           supabase.from('companies').select('id, name'),
           supabase.from('chart_of_accounts').select('id, category_code, sub_category_code, control_code, account_code, account_title')
         ]);
 
-        if (custRes.data) setCustomers(custRes.data);
+        if (custRes.data) {
+          setCustomers(custRes.data.map((c: any) => ({
+            ...c,
+            customerName: c.customerName || c.customername || c.name || '',
+            registrationType: c.registrationType || c.registrationtype || 'Retail / General',
+            primaryPhone: c.primaryPhone || c.primaryphone || c.phone || '',
+            customer_code: c.customer_code || c.customerCode || c.customercode || ''
+          })));
+        }
         if (vendRes.data) setVendors(vendRes.data);
         if (smRes.data) setSalesmen(smRes.data);
         if (compRes.data) setCompanies(compRes.data);

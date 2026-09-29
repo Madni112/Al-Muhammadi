@@ -41,7 +41,12 @@ const AddDeliveryChallan = () => {
         setFetchingData(isEditMode);
 
         // 1. Load active customers directory lists
-        const { data: custData } = await supabase.from('customers').select('id, customerName, customer_code, customerCode');
+        const { data: rawCustData } = await supabase.from('customers').select('*');
+        const custData = (rawCustData || []).map((c: any) => ({
+          ...c,
+          customerName: c.customerName || c.customername || c.name || '',
+          customer_code: c.customer_code || c.customerCode || c.customercode || ''
+        }));
         if (custData) setCustomers(custData);
 
         // 2. Hydrate form values with existing dataset properties if updating

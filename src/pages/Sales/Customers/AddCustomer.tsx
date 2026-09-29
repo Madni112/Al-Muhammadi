@@ -35,20 +35,21 @@ const AddCustomer = () => {
     setLoading(true);
     try {
       // --- DYNAMIC DUPLICATE VALIDATION CHECK ENGINE ---
-      let query = supabase
+      const { data: allCustomers, error: checkError } = await supabase
         .from('customers')
-        .select('id')
-        .eq('customerName', values.customerName.trim())
-        .eq('company', values.company || '');
-
-      if (isEditMode) {
-        query = query.neq('id', editData.id);
-      }
-
-      const { data: existingRecords, error: checkError } = await query;
+        .select('*');
       if (checkError) throw checkError;
 
-      if (existingRecords && existingRecords.length > 0) {
+      const trimmedName = values.customerName.trim().toLowerCase();
+      const existingRecords = (allCustomers || []).filter((c: any) => {
+        if (isEditMode && String(c.id) === String(editData.id)) return false;
+        const name = (c.customerName || c.customername || '').trim().toLowerCase();
+        const comp = (c.company || '').trim().toLowerCase();
+        const valComp = (values.company || '').trim().toLowerCase();
+        return name === trimmedName && comp === valComp;
+      });
+
+      if (existingRecords.length > 0) {
         toast.error('A customer with this exact name and company selection already exists!');
         setLoading(false);
         return;
@@ -92,7 +93,7 @@ const AddCustomer = () => {
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark flex justify-between items-center">
           <h3 className="font-semibold text-black dark:text-white text-base">
-            {isEditMode ? `Edit Customer: ${editData.customerName}` : 'New Customer Registration'}
+            {isEditMode ? `Edit Customer: ${editData.customerName || editData.customername || ''}` : 'New Customer Registration'}
           </h3>
           <button
             type="button"
@@ -106,7 +107,20 @@ const AddCustomer = () => {
         <Formik
           initialValues={editData ? {
             ...editData,
-            customer_code: editData.customer_code || editData.customerCode || '',
+            customerName: editData.customerName || editData.customername || '',
+            customer_code: editData.customer_code || editData.customerCode || editData.customercode || '',
+            registrationType: editData.registrationType || editData.registrationtype || 'Retail / General',
+            ntnNo: editData.ntnNo || editData.ntnno || '',
+            cnicNo: editData.cnicNo || editData.cnicno || '',
+            stRegNo: editData.stRegNo || editData.stregno || '',
+            primaryPhone: editData.primaryPhone || editData.primaryphone || '',
+            email: editData.email || '',
+            address: editData.address || '',
+            province: editData.province || 'Sindh',
+            company: editData.company || '',
+            website: editData.website || '',
+            notes: editData.notes || '',
+            followUpDate: editData.followUpDate || editData.followupdate || ''
           } : {
             customerName: '',
             customer_code: '',

@@ -101,14 +101,20 @@ const SalesReturnReceiptAdd: React.FC = () => {
           supabase.from('customers').select('*'),
           supabase.from('sales_invoices').select('id, customer_name'),
           supabase.from('sales_returns').select('*').order('id', { ascending: false }),
-          supabase.from('banks').select('id, bankName, accountTitle, accountNumber'),
+          supabase.from('banks').select('*'),
           supabase.from('chart_of_accounts').select('account_code, account_title, control_code, category_code')
         ]);
 
         const cData = cRes.data || [];
         const invData = invRes.data || [];
         const rData = rRes.data || [];
-        const bankData = bankRes.data || [];
+        const rawBankData = bankRes.data || [];
+        const bankData = rawBankData.map((b: any) => ({
+          ...b,
+          bankName: b.bankName || b.bankname || '',
+          accountTitle: b.accountTitle || b.accounttitle || b.account_title || '',
+          accountNumber: b.accountNumber || b.accountnumber || ''
+        }));
         const coaData = coaRes.data || [];
 
         const customerMap = new Map<string, any>();

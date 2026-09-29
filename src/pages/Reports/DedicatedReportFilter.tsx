@@ -634,7 +634,7 @@ const DedicatedReportFilter: React.FC = () => {
           invRes,
           uomRes
         ] = await Promise.allSettled([
-          supabase.from('customers').select('id, customerName, registrationType, customer_code, customerCode'),
+          supabase.from('customers').select('*'),
           supabase.from('vendors').select('id, vendor_name, name'),
           supabase.from('salesmen').select('id, name'),
           supabase.from('logistics_transportation').select('id, name'),
@@ -643,10 +643,17 @@ const DedicatedReportFilter: React.FC = () => {
           supabase.from('products').select('id, product_name'),
           supabase.from('inventory_locations').select('id, name'),
           supabase.from('sales_invoices').select('id, total_amount, customer_name, invoice_no').order('id', { ascending: false }),
-          supabase.from('inventory_uom').select('id, short_code, full_name').eq('tenant_id', tenantId || 'bashir').eq('is_active', true)
+          supabase.from('inventory_uom').select('*').eq('is_active', true)
         ]);
 
-        if (custRes.status === 'fulfilled' && custRes.value.data) setCustomers(custRes.value.data);
+        if (custRes.status === 'fulfilled' && custRes.value.data) {
+          setCustomers(custRes.value.data.map((c: any) => ({
+            ...c,
+            customerName: c.customerName || c.customername || c.name || '',
+            registrationType: c.registrationType || c.registrationtype || 'Retail / General',
+            customer_code: c.customer_code || c.customerCode || c.customercode || ''
+          })));
+        }
         if (suppRes.status === 'fulfilled' && suppRes.value.data) setSuppliers(suppRes.value.data);
         if (smRes.status === 'fulfilled' && smRes.value.data) setSalesmen(smRes.value.data);
         if (transRes.status === 'fulfilled' && transRes.value.data) setTransports(transRes.value.data);

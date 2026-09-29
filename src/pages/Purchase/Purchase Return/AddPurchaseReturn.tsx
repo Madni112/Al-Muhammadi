@@ -183,7 +183,13 @@ const AddPurchaseReturn = () => {
         fetchStockDataset().then(setStockDataset).catch(() => setStockDataset(null));
 
         // 4. Fetch Banks
-        const { data: bankData } = await supabase.from('banks').select('id, bankName, accountTitle, accountNumber');
+        const { data: rawBankData } = await supabase.from('banks').select('*');
+        const bankData = (rawBankData || []).map((b: any) => ({
+          ...b,
+          bankName: b.bankName || b.bankname || '',
+          accountTitle: b.accountTitle || b.accounttitle || b.account_title || '',
+          accountNumber: b.accountNumber || b.accountnumber || ''
+        }));
         if (bankData) setBankAccountsList(bankData);
 
         // 5. Fetch Purchases

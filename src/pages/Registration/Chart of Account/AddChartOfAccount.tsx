@@ -51,7 +51,13 @@ const AddChartOfAccount = () => {
       const { data: catData } = await supabase.from('coa_categories').select('name').order('name', { ascending: true });
       const { data: subCatData } = await supabase.from('coa_sub_categories').select('category_name, sub_category_name').order('sub_category_name', { ascending: true });
       const { data: ctrlData } = await supabase.from('coa_controls').select('category_name, sub_category_name, control_name').order('control_name', { ascending: true });
-      const { data: bankData } = await supabase.from('banks').select('id, bankName, accountTitle, accountNumber');
+      const { data: rawBankData } = await supabase.from('banks').select('*');
+      const bankData = (rawBankData || []).map((b: any) => ({
+        ...b,
+        bankName: b.bankName || b.bankname || '',
+        accountTitle: b.accountTitle || b.accounttitle || b.account_title || '',
+        accountNumber: b.accountNumber || b.accountnumber || b.account_no || ''
+      }));
       
       const { data: legacyCOA } = await supabase.from('chart_of_accounts').select('category_code, sub_category_code, control_code');
 

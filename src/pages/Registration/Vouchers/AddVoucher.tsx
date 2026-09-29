@@ -26,7 +26,7 @@ function AddVoucher() {
           .from('chart_of_accounts')
           .select('account_code, account_title')
           .order('account_code', { ascending: true });
-        const { data: bankData } = await supabase.from('banks').select('id, bankName, accountNumber, accountTitle');
+        const { data: bankData } = await supabase.from('banks').select('*');
         const { data: smData } = await supabase.from('salesmen').select('id, name');
 
         const accountMap: Record<string, string> = {};
@@ -43,9 +43,12 @@ function AddVoucher() {
         // Seamlessly register all bank accounts so they show their real bank names
         if (bankData && Array.isArray(bankData)) {
           bankData.forEach((b: any) => {
-            const code = String(b.accountNumber || b.id).trim();
+            const accNum = b.accountNumber || b.accountnumber || b.account_no || b.id;
+            const bName = b.bankName || b.bankname || 'Bank';
+            const accTitle = b.accountTitle || b.accounttitle || b.account_title || accNum;
+            const code = String(accNum).trim();
             if (!accountMap[code]) {
-              accountMap[code] = `${b.bankName || 'Bank'} (${b.accountTitle || code})`;
+              accountMap[code] = `${bName} (${accTitle})`;
             }
           });
         }

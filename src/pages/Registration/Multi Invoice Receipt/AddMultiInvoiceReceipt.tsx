@@ -44,9 +44,23 @@ const AddMultiInvoiceReceipt = () => {
         const fetchCoreMetadata = async () => {
             try {
                 setInitialLoading(true);
-                const { data: custData } = await supabase.from('customers').select('id, customerName, primaryPhone');
-                const { data: bankData } = await supabase.from('banks').select('id, bankName, accountTitle');
+                const { data: rawCustData } = await supabase.from('customers').select('*');
+                const { data: rawBankData } = await supabase.from('banks').select('*');
                 const { data: coaData } = await supabase.from('chart_of_accounts').select('account_code, account_title, control_code, category_code');
+                
+                const custData = (rawCustData || []).map((c: any) => ({
+                    ...c,
+                    customerName: c.customerName || c.customername || c.name || '',
+                    primaryPhone: c.primaryPhone || c.primaryphone || c.phone || '',
+                    customer_code: c.customer_code || c.customerCode || c.customercode || ''
+                }));
+                const bankData = (rawBankData || []).map((b: any) => ({
+                    ...b,
+                    bankName: b.bankName || b.bankname || '',
+                    accountTitle: b.accountTitle || b.accounttitle || b.account_title || '',
+                    accountNumber: b.accountNumber || b.accountnumber || ''
+                }));
+
                 if (custData) setCustomers(custData);
                 if (bankData) setBanks(bankData);
                 if (coaData) setCoaAccounts(coaData);

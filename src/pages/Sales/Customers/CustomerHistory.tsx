@@ -35,12 +35,29 @@ const CustomerHistory = () => {
     setLoading(true); 
     try { 
       const [custRes, coaRes] = await Promise.all([
-        supabase.from('customers').select('*').order('customerName', { ascending: true }),
+        supabase.from('customers').select('*').order('id', { ascending: true }),
         supabase.from('chart_of_accounts').select('*')
       ]);
       
       if (custRes.error) throw custRes.error; 
-      setCustomers(custRes.data || []); 
+      
+      const normalized = (custRes.data || []).map((c: any) => ({
+        ...c,
+        customerName: c.customerName || c.customername || c.name || '',
+        customerCode: c.customerCode || c.customercode || c.customer_code || '',
+        customer_code: c.customer_code || c.customercode || c.customerCode || '',
+        primaryPhone: c.primaryPhone || c.primaryphone || c.phone || '',
+        ntnNo: c.ntnNo || c.ntnno || '',
+        stRegNo: c.stRegNo || c.stregno || '',
+        cnicNo: c.cnicNo || c.cnicno || '',
+        registrationType: c.registrationType || c.registrationtype || '',
+        followUpDate: c.followUpDate || c.followupdate || ''
+      }));
+
+      // Sort alphabetically by customerName
+      normalized.sort((a, b) => a.customerName.localeCompare(b.customerName));
+
+      setCustomers(normalized); 
       if (coaRes.data) setCoaAccounts(coaRes.data);
     } catch (err: any) { 
       toast.error(err.message); 
@@ -50,7 +67,7 @@ const CustomerHistory = () => {
   }; 
 
   const getCustomerCOA = (cust: any) => {
-    const cName = (cust.customerName || '').trim().toLowerCase();
+    const cName = (cust.customerName || cust.customername || cust.name || '').trim().toLowerCase();
     // Match by customer_code / account_code or exact account_title
     return coaAccounts.find(a => 
       (cust.account_code && String(a.account_code).trim() === String(cust.account_code).trim()) ||

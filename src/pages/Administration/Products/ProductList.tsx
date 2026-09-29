@@ -93,6 +93,7 @@ const ProductList = () => {
         const { data: sales } = await supabase.from('sales_invoices').select('items, sale_status, receipt_status, dispatch_warehouse');
         const { data: sReturns } = await supabase.from('sales_returns').select('*');
         const { data: pReturns } = await supabase.from('purchase_returns').select('*');
+        const { data: deliveryChallans } = await supabase.from('delivery_challans').select('*').order('created_at', { ascending: false });
         const [ { data: rData }, { data: iData } ] = await Promise.all([
           supabase.from('grn_receipts').select('*'),
           supabase.from('grn_items').select('*')

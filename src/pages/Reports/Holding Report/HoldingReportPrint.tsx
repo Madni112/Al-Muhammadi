@@ -78,7 +78,7 @@ const HoldingReportPrint: React.FC = () => {
           supabase.from('delivery_challans').select('*').order('created_at', { ascending: false }),
           supabase.from('sales_invoices').select('*'),
           supabase.from('salesmen').select('id, name'),
-          supabase.from('customers').select('id, customerName, customer_code, customerCode')
+          supabase.from('customers').select('*')
         ]);
 
         if (dcRes.error) throw dcRes.error;

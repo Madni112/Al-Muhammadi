@@ -21,10 +21,24 @@ const BankAccountList = () => {
       const { data, error } = await supabase
         .from('banks')
         .select('*')
-        .order('accountTitle', { ascending: true });
+        .order('id', { ascending: true });
 
       if (error) throw error;
-      setBanks(data || []);
+      const normalized = (data || []).map((b: any) => ({
+        ...b,
+        accountTitle: b.accountTitle || b.accounttitle || b.account_title || '',
+        accountNumber: b.accountNumber || b.accountnumber || b.account_no || '',
+        bankName: b.bankName || b.bankname || '',
+        branchName: b.branchName || b.branchname || '',
+        branchCode: b.branchCode || b.branchcode || '',
+        branchNumber: b.branchNumber || b.branchnumber || '',
+        contactPerson: b.contactPerson || b.contactperson || '',
+        phoneNumber: b.phoneNumber || b.phonenumber || '',
+        openingBalance: b.openingBalance || b.openingbalance || 0,
+        openingBalanceDate: b.openingBalanceDate || b.openingbalancedate || '',
+        address: b.address || ''
+      }));
+      setBanks(normalized);
     } catch (err: any) {
       toast.error(err.message);
     } finally {

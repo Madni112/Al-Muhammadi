@@ -107,7 +107,13 @@ function AddInvoiceReceipt() {
         setCustomersList(normalizedCust);
 
         // 2. Fetch Banks & COA
-        const { data: bankData } = await supabase.from('banks').select('id, bankName, accountTitle, accountNumber');
+        const { data: rawBankData } = await supabase.from('banks').select('*');
+        const bankData = (rawBankData || []).map((b: any) => ({
+          ...b,
+          bankName: b.bankName || b.bankname || '',
+          accountTitle: b.accountTitle || b.accounttitle || b.account_title || '',
+          accountNumber: b.accountNumber || b.accountnumber || ''
+        }));
         const { data: coaData } = await supabase.from('chart_of_accounts').select('account_code, account_title, control_code, category_code');
 
         if (bankData) setBankAccounts(bankData);
