@@ -6,6 +6,8 @@ import { MdInbox, MdHistory } from 'react-icons/md';
 import { useModal } from '../../../Context/Modal';
 import VerifyReturnChallan from './VerifyReturnChallan';
 import ReturnChallanHistory from './ReturnChallanHistory';
+import { isShopLocation } from '../../../utils/locationUtils';
+import { useAuth } from '../../../Context/Auth';
 
 interface ReturnChallanListProps {
   locationFilter?: 'SHOP' | 'WAREHOUSE' | 'ALL';
@@ -64,7 +66,7 @@ const ReturnChallanList: React.FC<ReturnChallanListProps> = ({ locationFilter = 
         });
       } else if (locationFilter !== 'ALL') {
         filteredData = filteredData.filter(ret => {
-          const isShop = String(ret.warehouse_name || '').toUpperCase() === 'SHOP';
+          const isShop = isShopLocation(ret.warehouse_name);
           return locationFilter === 'SHOP' ? isShop : !isShop;
         });
       }

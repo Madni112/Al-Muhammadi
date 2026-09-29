@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../Context/supabaseClient';
 import { MdVisibility } from 'react-icons/md';
 import Spinner from '../../../ui/Spinner';
+import { isShopLocation } from '../../../utils/locationUtils';
 
 interface InwardChallanHistoryProps {
   onView: (id: string) => void;
@@ -45,7 +46,7 @@ const InwardChallanHistory: React.FC<InwardChallanHistoryProps> = ({ onView, loc
         filteredGrns = filteredGrns.filter(g => {
           const items = g.grn_items || [];
           return items.some((item: any) => {
-            const isShop = String(item.warehouse_name).toUpperCase() === 'SHOP';
+            const isShop = isShopLocation(item.warehouse_name);
             return locationFilter === 'SHOP' ? isShop : !isShop;
           });
         });

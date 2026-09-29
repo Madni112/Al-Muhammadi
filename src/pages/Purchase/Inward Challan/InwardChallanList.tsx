@@ -8,6 +8,7 @@ import { useAuth } from '../../../Context/Auth';
 import { useModal } from '../../../Context/Modal';
 import VerifyInward from './VerifyInward';
 import InwardChallanHistory from './InwardChallanHistory';
+import { isShopLocation } from '../../../utils/locationUtils';
 
 interface InwardChallanListProps {
   locationFilter?: 'SHOP' | 'WAREHOUSE' | 'ALL';
@@ -107,15 +108,15 @@ const InwardChallanList: React.FC<InwardChallanListProps> = ({ locationFilter = 
       } else if (locationFilter !== 'ALL') {
         filteredData = filteredData.filter(grn => {
           if (locationFilter === 'SHOP') {
-            // Include if there are any SHOP items that are pending/partial
+            // Include if there are any SHOP/Showroom items that are pending/partial
             return grn.grn_items?.some((item: any) => {
-              const isShop = String(item.warehouse_name).toUpperCase() === 'SHOP';
+              const isShop = isShopLocation(item.warehouse_name);
               return isShop && isItemPending(item);
             });
           } else {
-            // Include if there are any NON-SHOP items that are pending/partial
+            // Include if there are any WAREHOUSE (non-shop) items that are pending/partial
             return grn.grn_items?.some((item: any) => {
-              const isShop = String(item.warehouse_name).toUpperCase() === 'SHOP';
+              const isShop = isShopLocation(item.warehouse_name);
               return !isShop && isItemPending(item);
             });
           }
@@ -215,7 +216,7 @@ const InwardChallanList: React.FC<InwardChallanListProps> = ({ locationFilter = 
                   const items = rec.grn_items || [];
                   // Filter items by location if needed
                   const visibleItems = locationFilter === 'ALL' ? items : items.filter((item: any) => {
-                    const isShop = String(item.warehouse_name || '').toUpperCase() === 'SHOP';
+                    const isShop = isShopLocation(item.warehouse_name);
                     return locationFilter === 'SHOP' ? isShop : !isShop;
                   });
 
