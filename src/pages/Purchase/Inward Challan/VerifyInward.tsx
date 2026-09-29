@@ -4,6 +4,7 @@ import { supabase } from '../../../Context/supabaseClient';
 import { toast } from 'react-hot-toast';
 import Spinner from '../../../ui/Spinner';
 import { MdCheckCircle, MdArrowBack } from 'react-icons/md';
+import { useAuth } from '../../../Context/Auth';
 import { isShopLocation } from '../../../utils/locationUtils';
 
 const VerifyInward = ({ inwardId, locationFilter, onSuccess, onCancel, readonly }: { inwardId?: string, locationFilter?: string, onSuccess?: () => void, onCancel?: () => void, readonly?: boolean }) => {
