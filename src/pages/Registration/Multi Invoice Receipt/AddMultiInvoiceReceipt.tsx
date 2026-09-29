@@ -7,9 +7,10 @@ import { supabase } from '../../../Context/supabaseClient';
 import Spinner from '../../../ui/Spinner';
 import { MdReceipt, MdArrowBack } from 'react-icons/md';
 import { useAuth } from '../../../Context/Auth';
+import { logActivity } from '../../../service/auditLogger';
 
 const AddMultiInvoiceReceipt = () => {
-    const { tenantId } = useAuth();
+    const { tenantId, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -334,6 +335,21 @@ const AddMultiInvoiceReceipt = () => {
                                     .update({ receipt_status: targetStatusBadgeText })
                                     .eq('id', row.invoiceId);
                             }
+
+                            // Log audit activity for multi-invoice payment
+                            logActivity({
+                                action: 'INSERT',
+                                tableName: 'invoice_receipts',
+                                details: {
+                                    receipt_no: values.receiptNo,
+                                    customer_name: values.customerName,
+                                    amount: Number(values.totalAmountCollected),
+                                    total_amount: Number(values.totalAmountCollected),
+                                    payment_method: values.paymentMethod,
+                                    event: `Created Bulk Invoice Receipt for ${activeRowsToClear.length} invoices`
+                                },
+                                performedBy: user?.name || user?.email || 'User'
+                            });
 
                             toast.success(`Bulk receipts processed successfully! ${activeRowsToClear.length} invoices updated.`);
                             navigate(`${tenantId ? `/${tenantId}` : ''}/Sales/InvoiceReceipt/List`);

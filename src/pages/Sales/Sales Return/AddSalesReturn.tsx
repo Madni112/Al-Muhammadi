@@ -21,6 +21,7 @@ import {
   MdOutlinePayment
 } from 'react-icons/md';
 import { FiPrinter } from 'react-icons/fi';
+import { logActivity } from '../../../service/auditLogger';
 
 const AddSalesReturn = () => {
   const { tenantId } = useAuth();
@@ -655,6 +656,19 @@ const AddSalesReturn = () => {
                   .update(returnPayload)
                   .eq('id', editData.id);
                 if (updateErr) throw updateErr;
+
+                logActivity({
+                  action: 'UPDATE',
+                  tableName: 'sales_returns',
+                  details: {
+                    id: editData.id,
+                    return_number: values.returnNo,
+                    customer_name: values.customerName,
+                    total_amount: calculatedNetTotal,
+                    item_count: (values.items || []).length,
+                    event: `Updated sales return note ${values.returnNo} for ${values.customerName}`
+                  }
+                });
               } else {
                 const { data: insertedRtn, error: insertErr } = await supabase
                   .from('sales_returns')
@@ -663,6 +677,19 @@ const AddSalesReturn = () => {
                   .single();
                 if (insertErr) throw insertErr;
                 savedReturnId = insertedRtn?.id;
+
+                logActivity({
+                  action: 'INSERT',
+                  tableName: 'sales_returns',
+                  details: {
+                    id: insertedRtn?.id,
+                    return_number: values.returnNo,
+                    customer_name: values.customerName,
+                    total_amount: calculatedNetTotal,
+                    item_count: (values.items || []).length,
+                    event: `Created sales return note ${values.returnNo} (Rs. ${calculatedNetTotal.toLocaleString()}) for ${values.customerName}`
+                  }
+                });
               }
 
               // Physical stock increment is now handled by the Warehouse team via Return Challans (VerifyReturnChallan.tsx)

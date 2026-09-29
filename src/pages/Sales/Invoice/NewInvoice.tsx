@@ -9,6 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FiPrinter, FiSave, FiCheck, FiX, FiUserCheck, FiTrash2, FiUser } from 'react-icons/fi';
 import { SearchableDropdown } from '../../../components/SearchableDropdown';
 import { useAuth } from '../../../Context/Auth';
+import { logActivity } from '../../../service/auditLogger';
 
 const NewInvoice = () => {
   const navigate = useNavigate();
@@ -564,6 +565,21 @@ const NewInvoice = () => {
 
         if (invoiceUpdateError) throw invoiceUpdateError;
 
+        logActivity({
+          action: 'UPDATE',
+          tableName: 'sales_invoices',
+          details: {
+            id: editData.id,
+            invoice_number: editData.invoice_no || values.invoiceNo,
+            customer_name: customerFinalName,
+            total_amount: calculatedGrandTotal,
+            item_count: (values.items || []).length,
+            payment_term: runningBalanceTerm,
+            warehouse: values.dispatchWarehouse,
+            event: `Updated sales invoice ${editData.invoice_no || values.invoiceNo} for ${customerFinalName}`
+          }
+        });
+
         // 4. Update products.current_stock (Restore old, Deduct new)
         // warehouse_inventory is no longer the source of truth — formula-based
         const oldItems = typeof editData.items === 'string' ? JSON.parse(editData.items || '[]') : (editData.items || []);
@@ -702,6 +718,21 @@ const NewInvoice = () => {
 
         finalInvoiceId = insertedInvoice?.id;
         const formattedInvCode = values.invoiceNo;
+
+        logActivity({
+          action: 'INSERT',
+          tableName: 'sales_invoices',
+          details: {
+            id: insertedInvoice?.id,
+            invoice_number: values.invoiceNo,
+            customer_name: customerFinalName,
+            total_amount: calculatedGrandTotal,
+            item_count: (values.items || []).length,
+            payment_term: runningBalanceTerm,
+            warehouse: values.dispatchWarehouse,
+            event: `Created sales invoice ${values.invoiceNo} for ${customerFinalName}`
+          }
+        });
 
         // ── AUTO-CREATE DELIVERY CHALLANS PER UNIQUE WAREHOUSE ──
         try {

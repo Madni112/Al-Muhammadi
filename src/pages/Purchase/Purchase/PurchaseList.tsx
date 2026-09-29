@@ -8,6 +8,7 @@ import { useAuth } from '../../../Context/Auth';
 import { useModal } from '../../../Context/Modal';
 import { MdStore, MdPerson, MdEvent } from 'react-icons/md';
 import PurchaseStockModal from './PurchaseStockModal';
+import { logActivity } from '../../../service/auditLogger';
 
 const PurchaseList = () => {
   const navigate = useNavigate();
@@ -386,6 +387,18 @@ const PurchaseList = () => {
 
       const { error } = await supabase.from('supplier_purchases').delete().eq('id', id);
       if (error) throw error;
+
+      logActivity({
+        action: 'DELETE',
+        tableName: 'supplier_purchases',
+        details: {
+          id,
+          purchase_number: targetRecord?.purchase_no || `#${id}`,
+          supplier_name: targetRecord?.supplier_name || targetRecord?.vendor_name,
+          warehouse: targetRecord?.target_warehouse,
+          event: `Deleted purchase consignment #${id} (${targetRecord?.supplier_name || 'Vendor'})`
+        }
+      });
 
       toast.success('Procurement consignment record dropped and stock levels reversed safely!');
       fetchProcurementLogs();

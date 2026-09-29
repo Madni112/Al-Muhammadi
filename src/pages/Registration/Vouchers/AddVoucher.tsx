@@ -5,8 +5,11 @@ import * as Yup from 'yup';
 import { supabase } from '../../../Context/supabaseClient';
 import { toast } from 'react-hot-toast';
 import Spinner from '../../../ui/Spinner';
+import { useAuth } from '../../../Context/Auth';
+import { logActivity } from '../../../service/auditLogger';
 
 function AddVoucher() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -157,6 +160,19 @@ function AddVoucher() {
                 : await supabase.from('financial_vouchers').insert([databasePayload]);
 
               if (error) throw error;
+
+              logActivity({
+                action: isEditMode ? 'UPDATE' : 'INSERT',
+                tableName: 'financial_vouchers',
+                details: {
+                  voucher_no: values.voucherNo,
+                  voucher_type: values.voucherType,
+                  amount: sumDebits,
+                  total_amount: sumDebits,
+                  event: isEditMode ? 'Updated Financial Voucher' : 'Created Financial Voucher'
+                },
+                performedBy: user?.name || user?.email || 'User'
+              });
 
               toast.success(isEditMode ? 'Voucher details updated successfully!' : 'Voucher saved successfully!');
               navigate('/Registration/Vouchers/List');

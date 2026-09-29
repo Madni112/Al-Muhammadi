@@ -6,9 +6,10 @@ import Spinner from '../../../ui/Spinner';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
 import { MdStore, MdPerson, MdReceipt, MdEvent, MdAdd } from 'react-icons/md';
+import { logActivity } from '../../../service/auditLogger';
 
 const PurchaseReturnList = () => {
-  const { tenantId } = useAuth();
+  const { tenantId, user } = useAuth();
   const navigate = useNavigate();
   const [returns, setReturns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +72,7 @@ const PurchaseReturnList = () => {
 
     try {
       setLoading(true);
-      const { data: targetRecord } = await supabase.from('purchase_returns').select('items, source_warehouse').eq('id', id).single();
+      const { data: targetRecord } = await supabase.from('purchase_returns').select('*').eq('id', id).single();
       if (targetRecord?.items) {
         for (const item of targetRecord.items) {
           const qty = Number(item.qty || item.quantity || 0);
@@ -90,6 +91,20 @@ const PurchaseReturnList = () => {
       }
       const { error } = await supabase.from('purchase_returns').delete().eq('id', id);
       if (error) throw error;
+
+      // Log audit activity
+      logActivity({
+        action: 'DELETE',
+        tableName: 'purchase_returns',
+        details: {
+          return_no: targetRecord?.return_no || targetRecord?.return_number || id,
+          vendor_name: targetRecord?.vendor_name || targetRecord?.supplier_name,
+          amount: targetRecord?.total_amount || targetRecord?.total,
+          event: 'Deleted Purchase Return'
+        },
+        performedBy: user?.name || user?.email || 'User'
+      });
+
       toast.success('Return note removed and inventory restored cleanly!');
       fetchReturnLogs();
     } catch (err: any) {

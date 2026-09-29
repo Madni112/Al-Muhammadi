@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
 import { FiTruck, FiX, FiCheckCircle, FiClock, FiDollarSign, FiActivity, FiShield } from 'react-icons/fi';
+import { logActivity } from '../../../service/auditLogger';
 
 const SalesHistory = () => {
   const navigate = useNavigate();
@@ -184,6 +185,18 @@ const SalesHistory = () => {
 
       const { error: deleteError } = await supabase.from('sales_invoices').delete().eq('id', id);
       if (deleteError) throw deleteError;
+
+      logActivity({
+        action: 'DELETE',
+        tableName: 'sales_invoices',
+        details: {
+          id,
+          invoice_number: invoiceIdentifier,
+          customer_name: targetInvoice?.customer_name,
+          total_amount: targetInvoice?.total_amount,
+          event: `Deleted sales invoice ${invoiceIdentifier} (${targetInvoice?.customer_name || 'Customer'})`
+        }
+      });
 
       toast.success('Invoice deleted cleanly. Stock metrics restored!');
       fetchInvoices();

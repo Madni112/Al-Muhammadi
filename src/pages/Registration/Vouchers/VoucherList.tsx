@@ -7,9 +7,10 @@ import TableActions from '../../../ui/TableActions';
 import { MdReceipt, MdAssignment, MdDelete } from 'react-icons/md';
 import { useAuth } from '../../../Context/Auth';
 import { recalculateInvoiceSettlementStatus } from '../../../service/financialCalculations';
+import { logActivity } from '../../../service/auditLogger';
 
 function VoucherList() {
-  const { tenantId } = useAuth();
+  const { tenantId, user } = useAuth();
   const navigate = useNavigate();
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,7 @@ function VoucherList() {
       // 1. Fetch voucher details to check for linked invoice
       const { data: voucherToDelete } = await supabase
         .from('financial_vouchers')
-        .select('original_invoice_no')
+        .select('*')
         .eq('id', id)
         .maybeSingle();
 
@@ -57,6 +58,19 @@ function VoucherList() {
         .eq('id', id);
 
       if (error) throw error;
+
+      // Log audit activity
+      logActivity({
+        action: 'DELETE',
+        tableName: 'financial_vouchers',
+        details: {
+          voucher_no: voucherToDelete?.voucher_no || id,
+          voucher_type: voucherToDelete?.voucher_type,
+          amount: voucherToDelete?.total_amount,
+          event: 'Deleted Financial Voucher'
+        },
+        performedBy: user?.name || user?.email || 'User'
+      });
 
       // 2. Synchronize invoice settlement status
       if (voucherToDelete?.original_invoice_no) {

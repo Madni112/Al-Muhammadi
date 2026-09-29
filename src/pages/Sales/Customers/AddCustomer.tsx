@@ -6,11 +6,12 @@ import { supabase } from '../../../Context/supabaseClient';
 import { toast } from 'react-hot-toast';
 import Spinner from '../../../ui/Spinner';
 import { useAuth } from '../../../Context/Auth';
+import { logActivity } from '../../../service/auditLogger';
 
 const AddCustomer = () => {
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<any[]>([]);
-  const { tenantId } = useAuth();
+  const { tenantId, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -73,11 +74,37 @@ const AddCustomer = () => {
           .eq('id', editData.id);
 
         if (error) throw error;
+
+        logActivity({
+          action: 'UPDATE',
+          tableName: 'customers',
+          details: {
+            customer_name: values.customerName,
+            customer_code: payload.customer_code,
+            phone: values.primaryPhone,
+            event: 'Updated Customer Profile'
+          },
+          performedBy: user?.name || user?.email || 'User'
+        });
+
         toast.success('Customer profile updated successfully!');
         navigate(`${tenantId ? `/${tenantId}` : ''}/Customers/list`);
       } else {
         const { error } = await supabase.from('customers').insert([payload]);
         if (error) throw error;
+
+        logActivity({
+          action: 'INSERT',
+          tableName: 'customers',
+          details: {
+            customer_name: values.customerName,
+            customer_code: payload.customer_code,
+            phone: values.primaryPhone,
+            event: 'Created Customer Profile'
+          },
+          performedBy: user?.name || user?.email || 'User'
+        });
+
         toast.success('Customer registered successfully!');
         navigate(`${tenantId ? `/${tenantId}` : ''}/Customers/list`);
       }

@@ -6,10 +6,11 @@ import Spinner from '../../../ui/Spinner';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
 import { FiCheckCircle, FiTruck, FiX, FiClock, FiPlusCircle, FiAlertCircle, FiPrinter } from 'react-icons/fi';
+import { logActivity } from '../../../service/auditLogger';
 
 const DeliveryChallanHistory = () => {
   const navigate = useNavigate();
-  const { tenantId, userLocationName } = useAuth();
+  const { tenantId, userLocationName, user } = useAuth();
   const [challans, setChallans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [productsMaster, setProductsMaster] = useState<any[]>([]);
@@ -84,8 +85,23 @@ const DeliveryChallanHistory = () => {
   const handleDelete = async (id: string | number) => {
     if (window.confirm('Are you completely sure you want to delete this delivery challan? This cannot be undone.')) {
       try {
+        const { data: targetChallan } = await supabase.from('delivery_challans').select('*').eq('id', id).maybeSingle();
         const { error } = await supabase.from('delivery_challans').delete().eq('id', id);
         if (error) throw error;
+
+        // Log audit activity
+        logActivity({
+          action: 'DELETE',
+          tableName: 'delivery_challans',
+          details: {
+            challan_no: targetChallan?.challan_no || id,
+            customer_name: targetChallan?.customer_name,
+            amount: targetChallan?.total_net_amount || targetChallan?.total_amount,
+            event: 'Deleted Delivery Challan'
+          },
+          performedBy: user?.name || user?.email || 'User'
+        });
+
         toast.success('Challan deleted successfully');
         fetchChallans();
       } catch (err: any) {

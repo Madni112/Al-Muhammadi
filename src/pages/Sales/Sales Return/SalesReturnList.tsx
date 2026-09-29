@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import Spinner from '../../../ui/Spinner';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
+import { logActivity } from '../../../service/auditLogger';
 
 const SalesReturnList = () => {
   const navigate = useNavigate();
@@ -95,6 +96,18 @@ const SalesReturnList = () => {
 
       const { error: deleteError } = await supabase.from('sales_returns').delete().eq('id', id);
       if (deleteError) throw deleteError;
+
+      logActivity({
+        action: 'DELETE',
+        tableName: 'sales_returns',
+        details: {
+          id,
+          customer_name: targetReturn?.customer_name,
+          return_number: targetReturn?.return_no || `#${id}`,
+          total_amount: targetReturn?.total_amount,
+          event: `Deleted sales return note #${id} (${targetReturn?.customer_name || 'Customer'})`
+        }
+      });
 
       toast.success('Sales Return deleted cleanly. Stock quantities reverted!');
       fetchSalesReturns();

@@ -20,6 +20,7 @@ import {
   MdClear,
   MdKeyboardArrowDown
 } from 'react-icons/md';
+import { logActivity } from '../../../service/auditLogger';
 
 function AddInvoiceReceipt() {
   const { tenantId } = useAuth();
@@ -625,11 +626,41 @@ function AddInvoiceReceipt() {
                 .update(payload)
                 .eq('id', editData.id);
               if (updateErr) throw updateErr;
+
+              logActivity({
+                action: 'UPDATE',
+                tableName: 'invoice_receipts',
+                details: {
+                  id: editData.id,
+                  receipt_number: values.voucherNo,
+                  customer_name: selectedCustomer,
+                  amount: finalAmount,
+                  voucher_type: values.voucherType,
+                  linked_invoice: selectedInvoiceNo || 'General Collection',
+                  event: `Updated customer payment receipt ${values.voucherNo} from ${selectedCustomer}`
+                }
+              });
             } else {
-              const { error: insertErr } = await supabase
+              const { data: insVoucher, error: insertErr } = await supabase
                 .from('financial_vouchers')
-                .insert([payload]);
+                .insert([payload])
+                .select('id')
+                .single();
               if (insertErr) throw insertErr;
+
+              logActivity({
+                action: 'INSERT',
+                tableName: 'invoice_receipts',
+                details: {
+                  id: insVoucher?.id,
+                  receipt_number: values.voucherNo,
+                  customer_name: selectedCustomer,
+                  amount: finalAmount,
+                  voucher_type: values.voucherType,
+                  linked_invoice: selectedInvoiceNo || 'General Collection',
+                  event: `Received customer payment ${values.voucherNo} (Rs. ${finalAmount.toLocaleString()}) from ${selectedCustomer}`
+                }
+              });
             }
 
             // Sync with sales_invoices status if specific invoice was selected

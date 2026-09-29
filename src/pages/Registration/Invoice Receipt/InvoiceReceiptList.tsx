@@ -6,6 +6,7 @@ import Spinner from '../../../ui/Spinner';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
 import { recalculateInvoiceSettlementStatus } from '../../../service/financialCalculations';
+import { logActivity } from '../../../service/auditLogger';
 
 function InvoiceReceiptList() {
   const { tenantId } = useAuth();
@@ -75,6 +76,18 @@ function InvoiceReceiptList() {
         .eq('id', id);
 
       if (error) throw error;
+
+      logActivity({
+        action: 'DELETE',
+        tableName: 'invoice_receipts',
+        details: {
+          id,
+          receipt_number: voucherToDelete?.voucher_no || `#${id}`,
+          customer_name: voucherToDelete?.customer_name,
+          linked_invoice: voucherToDelete?.original_invoice_no,
+          event: `Deleted customer payment receipt #${id}`
+        }
+      });
 
       // 2. Synchronously recalculate parent sales invoice receipt_status
       if (voucherToDelete?.original_invoice_no) {

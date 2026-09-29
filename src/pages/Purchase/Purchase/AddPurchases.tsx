@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import Spinner from '../../../ui/Spinner';
 import { useAuth } from '../../../Context/Auth';
 import { FiTrash2, FiPlus, FiArrowLeft, FiCheckCircle, FiPrinter } from 'react-icons/fi';
+import { logActivity } from '../../../service/auditLogger';
 
 const AddPurchases = () => {
   const { tenantId } = useAuth();
@@ -412,6 +413,20 @@ const AddPurchases = () => {
                 const { error } = await supabase.from('supplier_purchases').update(databasePayload).eq('id', editData.id);
                 if (error) throw error;
 
+                logActivity({
+                  action: 'UPDATE',
+                  tableName: 'supplier_purchases',
+                  details: {
+                    id: editData.id,
+                    purchase_number: values.purchaseNo,
+                    supplier_name: values.supplierName,
+                    total_amount: calculatedGrandTotal,
+                    item_count: (values.items || []).length,
+                    warehouse: values.targetWarehouse,
+                    event: `Updated procurement batch ${values.purchaseNo} from ${values.supplierName}`
+                  }
+                });
+
                 // Sync updated items back to linked GRN so Inward Challan stays accurate
                 const linkedGrnId = values.grnId || editData?.metadata?.grn_id || editData?.grn_id || null;
                 if (linkedGrnId) {
@@ -469,6 +484,20 @@ const AddPurchases = () => {
               } else {
                 const { data: insertedData, error } = await supabase.from('supplier_purchases').insert([databasePayload]).select('id').single();
                 if (error) throw error;
+
+                logActivity({
+                  action: 'INSERT',
+                  tableName: 'supplier_purchases',
+                  details: {
+                    id: insertedData?.id,
+                    purchase_number: values.purchaseNo,
+                    supplier_name: values.supplierName,
+                    total_amount: calculatedGrandTotal,
+                    item_count: (values.items || []).length,
+                    warehouse: values.targetWarehouse,
+                    event: `Recorded procurement batch ${values.purchaseNo} from ${values.supplierName}`
+                  }
+                });
                 // If the purchase was imported from an existing GRN, mark that GRN as Billed.
                 // If it was auto-generated (values.grnId is null), we leave it as Pending Inward for approval.
                 if (values.grnId) {

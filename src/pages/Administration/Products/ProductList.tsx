@@ -7,8 +7,11 @@ import { MdSearch, MdAdd, MdWarning, MdClose, MdInfoOutline } from 'react-icons/
 import TableActions from '../../../ui/TableActions';
 import SearchableDropdown from '../../../components/SearchableDropdown';
 import { getDetailedBreakdown } from '../../../utils/stockCalculator';
+import { useAuth } from '../../../Context/Auth';
+import { logActivity } from '../../../service/auditLogger';
 
 const ProductList = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -481,8 +484,22 @@ const ProductList = () => {
   const handleDeleteProduct = async (id: string | number) => {
     if (!window.confirm('Are you certain you want to delete this product catalog entry?')) return;
     try {
+      const targetProd = products.find((p) => String(p.id) === String(id));
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) throw error;
+
+      logActivity({
+        action: 'DELETE',
+        tableName: 'products',
+        details: {
+          product_name: targetProd?.product_name || id,
+          item_code: targetProd?.item_sr_no,
+          category: targetProd?.category,
+          event: 'Deleted Product Master'
+        },
+        performedBy: user?.name || user?.email || 'User'
+      });
+
       toast.success('Product removed from database catalog successfully.');
       if (serverMode) {
         const remainingOnPage = products.length - 1;

@@ -23,6 +23,7 @@ import {
   MdPrint
 } from 'react-icons/md';
 import { FiPrinter } from 'react-icons/fi';
+import { logActivity } from '../../../service/auditLogger';
 
 const DropdownPortal = ({ children, anchorEl, isOpen, minWidth = 280, maxWidth }: any) => {
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -56,7 +57,7 @@ const DropdownPortal = ({ children, anchorEl, isOpen, minWidth = 280, maxWidth }
 };
 
 const AddPurchaseReturn = () => {
-  const { tenantId } = useAuth();
+  const { tenantId, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -660,6 +661,20 @@ const AddPurchaseReturn = () => {
                   .eq('id', editData.id);
                 if (updateErr) throw updateErr;
 
+                // Log audit activity
+                logActivity({
+                  action: 'UPDATE',
+                  tableName: 'purchase_returns',
+                  details: {
+                    return_no: values.returnNo || editData.id,
+                    vendor_name: selectedVendorName,
+                    amount: totalPayable,
+                    total_amount: totalPayable,
+                    event: 'Updated Purchase Return'
+                  },
+                  performedBy: user?.name || user?.email || 'User'
+                });
+
                 // Deduct new return stock (-)
                 for (const newItem of values.items) {
                   const nQty = Number(newItem.qty || 0);
@@ -683,6 +698,20 @@ const AddPurchaseReturn = () => {
                   .single();
                 if (insertErr) throw insertErr;
                 savedRecordId = insertedRecord?.id;
+
+                // Log audit activity
+                logActivity({
+                  action: 'INSERT',
+                  tableName: 'purchase_returns',
+                  details: {
+                    return_no: values.returnNo || savedRecordId,
+                    vendor_name: selectedVendorName,
+                    amount: totalPayable,
+                    total_amount: totalPayable,
+                    event: 'Created Purchase Return'
+                  },
+                  performedBy: user?.name || user?.email || 'User'
+                });
 
                 // Deduct stock (-)
                 for (const item of values.items) {

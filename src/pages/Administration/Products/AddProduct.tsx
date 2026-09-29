@@ -8,6 +8,7 @@ import Spinner from '../../../ui/Spinner';
 import { useAuth } from '../../../Context/Auth';
 import { MdSquareFoot, MdViewModule, MdAttachMoney, MdLayers, MdClose, MdSave, MdFormatColorFill, MdAdd, MdDelete, MdInfo, MdLabelOutline } from 'react-icons/md';
 import SearchableDropdown from '../../../components/SearchableDropdown';
+import { logActivity } from '../../../service/auditLogger';
 
 interface UomItem {
   id: number;
@@ -18,7 +19,7 @@ interface UomItem {
 }
 
 const AddProduct = () => {
-  const { tenantId } = useAuth();
+  const { tenantId, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [metadataLoading, setMetadataLoading] = useState(true);
   
@@ -282,6 +283,21 @@ const AddProduct = () => {
                   .eq('id', editData.id);
 
                 if (error) throw error;
+
+                logActivity({
+                  action: 'UPDATE',
+                  tableName: 'products',
+                  details: {
+                    product_name: values.productName,
+                    item_code: finalItemSrNo,
+                    category: values.category,
+                    retail_price: values.retailPrice,
+                    purchase_price: values.purchasePrice,
+                    event: 'Updated Product Master'
+                  },
+                  performedBy: user?.name || user?.email || 'User'
+                });
+
                 toast.success('Product updated successfully!');
               } else {
                 const { error } = await supabase
@@ -289,6 +305,21 @@ const AddProduct = () => {
                   .insert([databasePayload]);
 
                 if (error) throw error;
+
+                logActivity({
+                  action: 'INSERT',
+                  tableName: 'products',
+                  details: {
+                    product_name: values.productName,
+                    item_code: finalItemSrNo,
+                    category: values.category,
+                    retail_price: values.retailPrice,
+                    purchase_price: values.purchasePrice,
+                    event: 'Created Product Master'
+                  },
+                  performedBy: user?.name || user?.email || 'User'
+                });
+
                 toast.success('Product saved successfully!');
               }
               navigate('/Administration/Products/List');

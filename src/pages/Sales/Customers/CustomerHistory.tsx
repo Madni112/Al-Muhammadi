@@ -6,9 +6,10 @@ import Spinner from '../../../ui/Spinner';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
 import { MdAccountBalanceWallet, MdAdd, MdEdit, MdClose, MdCheckCircle } from 'react-icons/md';
+import { logActivity } from '../../../service/auditLogger';
 
 const CustomerHistory = () => { 
-  const { tenantId } = useAuth();
+  const { tenantId, user } = useAuth();
   const [customers, setCustomers] = useState<any[]>([]); 
   const [coaAccounts, setCoaAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true); 
@@ -203,8 +204,21 @@ const CustomerHistory = () => {
   const handleDelete = async (id: string) => { 
     if (window.confirm('Are you sure you want to delete this customer? This cannot be undone.')) { 
       try { 
+        const targetCust = customers.find(c => String(c.id) === String(id));
         const { error } = await supabase.from('customers').delete().eq('id', id); 
         if (error) throw error; 
+
+        logActivity({
+          action: 'DELETE',
+          tableName: 'customers',
+          details: {
+            customer_name: targetCust?.customerName || targetCust?.name || id,
+            customer_code: targetCust?.customer_code || targetCust?.customerCode,
+            event: 'Deleted Customer Profile'
+          },
+          performedBy: user?.name || user?.email || 'User'
+        });
+
         toast.success('Customer deleted successfully'); 
         fetchCustomersAndCOA(); 
       } catch (err: any) { 
