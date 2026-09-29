@@ -86,7 +86,8 @@ async function fetchAllStockData() {
   const [
     { data: openStocks },
     { data: purchases },
-    { data: grnReceipts },
+    { data: rData },
+    { data: iData },
     { data: sales },
     { data: sReturns },
     { data: pReturns },
@@ -95,13 +96,26 @@ async function fetchAllStockData() {
   ] = await Promise.all([
     supabase.from('opening_stocks').select('product_name, itemName, quantity, qty, location'),
     supabase.from('supplier_purchases').select('id, purchase_no, items, payment_term, metadata, target_warehouse'),
-    supabase.from('grn_receipts').select('*, grn_items(*)'),
+    supabase.from('grn_receipts').select('*'),
+    supabase.from('grn_items').select('*'),
     supabase.from('sales_invoices').select('items, sale_status, dispatch_warehouse'),
     supabase.from('sales_returns').select('items, status'),
     supabase.from('purchase_returns').select('items, status'),
     supabase.from('stock_transfers').select('items, from_location, to_location, status'),
     supabase.from('delivery_challans').select('items, status, dispatch_warehouse'),
   ]);
+
+  const itemsByGrn: Record<string, any[]> = {};
+  (iData || []).forEach((it: any) => {
+    const gId = String(it.grn_id || '');
+    if (!itemsByGrn[gId]) itemsByGrn[gId] = [];
+    itemsByGrn[gId].push(it);
+  });
+  const grnReceipts = (rData || []).map((g: any) => ({
+    ...g,
+    grn_items: itemsByGrn[String(g.id)] || []
+  }));
+
   return { openStocks, purchases, grnReceipts, sales, sReturns, pReturns, stockTransfers, deliveryChallans };
 }
 

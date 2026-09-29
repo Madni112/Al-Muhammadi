@@ -55,13 +55,26 @@ const InwardChallanList: React.FC<InwardChallanListProps> = ({ locationFilter = 
   const fetchPendingInwards = async () => {
     setLoading(true);
     try {
-      const [ { data, error }, { data: purchases }, { data: productsData } ] = await Promise.all([
-        supabase.from('grn_receipts').select('*, grn_items(*)').order('created_at', { ascending: false }),
+      const [ receiptsRes, itemsRes, { data: purchases }, { data: productsData } ] = await Promise.all([
+        supabase.from('grn_receipts').select('*').order('created_at', { ascending: false }),
+        supabase.from('grn_items').select('*'),
         supabase.from('supplier_purchases').select('id, purchase_no, metadata'),
         supabase.from('products').select('product_name, category, pcs_per_box, pieces_per_box, pieces_per_packing, scenario_name, uom')
       ]);
 
-      if (error) throw error;
+      if (receiptsRes.error) throw receiptsRes.error;
+
+      const itemsByGrn: Record<string, any[]> = {};
+      (itemsRes.data || []).forEach((it: any) => {
+        const gId = String(it.grn_id || '');
+        if (!itemsByGrn[gId]) itemsByGrn[gId] = [];
+        itemsByGrn[gId].push(it);
+      });
+
+      const combinedData = (receiptsRes.data || []).map((g: any) => ({
+        ...g,
+        grn_items: itemsByGrn[String(g.id)] || []
+      }));
 
       const pMap: Record<string, any> = {};
       (productsData || []).forEach((p: any) => {
@@ -69,7 +82,7 @@ const InwardChallanList: React.FC<InwardChallanListProps> = ({ locationFilter = 
       });
       setProductMeta(pMap);
       
-      let filteredData = data || [];
+      let filteredData = combinedData;
       filteredData = filteredData.map(g => {
         const pur = (purchases || []).find(p => p.metadata?.grn_id === g.id || (Array.isArray(p.metadata?.grn_ids) && p.metadata.grn_ids.includes(g.id)) || (p.purchase_no && g.grn_no?.includes(p.purchase_no)));
         return { ...g, purchase_no: pur?.purchase_no || '' };

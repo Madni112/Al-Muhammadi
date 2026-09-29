@@ -221,10 +221,18 @@ const PurchaseList = () => {
           });
 
           // 2. All GRN accepted qty INCLUDING this purchase's GRN
-          const { data: allGrnItems } = await supabase.from('grn_items').select('*, grn_receipts(status)');
+          const [ { data: allGrnItems }, { data: allReceipts } ] = await Promise.all([
+            supabase.from('grn_items').select('*'),
+            supabase.from('grn_receipts').select('id, status')
+          ]);
+          const receiptStatusMap: Record<string, string> = {};
+          (allReceipts || []).forEach((r: any) => {
+            if (r.id) receiptStatusMap[String(r.id)] = r.status || '';
+          });
+
           let totalPurchased = 0;
           (allGrnItems || []).forEach((gi: any) => {
-            const grnStatus = gi.grn_receipts?.status || '';
+            const grnStatus = receiptStatusMap[String(gi.grn_id || '')] || '';
             if (!['Confirm', 'Partially Received', 'Billed'].includes(grnStatus)) return;
             const giName = String(gi.product_name || '').trim().toLowerCase();
             if (giName === pNameLower || giName.includes(pNameLower)) {

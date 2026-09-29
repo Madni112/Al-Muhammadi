@@ -70,8 +70,23 @@ const AddPurchases = () => {
         const { count } = await supabase.from('supplier_purchases').select('*', { count: 'exact', head: true });
         setDefaultPurchaseNo(String((count || 0) + 1).padStart(2, '0'));
 
-        const { data: grnData } = await supabase.from('grn_receipts').select('*, grn_items(*)').in('status', ['Confirm', 'Partially Received']).order('created_at', { ascending: false });
-        if (grnData) setPendingGrns(grnData);
+        const [ { data: rData }, { data: iData } ] = await Promise.all([
+          supabase.from('grn_receipts').select('*').in('status', ['Confirm', 'Partially Received']).order('created_at', { ascending: false }),
+          supabase.from('grn_items').select('*')
+        ]);
+        if (rData) {
+          const itemsByGrn: Record<string, any[]> = {};
+          (iData || []).forEach((it: any) => {
+            const gId = String(it.grn_id || '');
+            if (!itemsByGrn[gId]) itemsByGrn[gId] = [];
+            itemsByGrn[gId].push(it);
+          });
+          const combined = rData.map((g: any) => ({
+            ...g,
+            grn_items: itemsByGrn[String(g.id)] || []
+          }));
+          setPendingGrns(combined);
+        }
 
         if (vendorError) throw vendorError;
 

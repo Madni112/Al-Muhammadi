@@ -20,14 +20,27 @@ const InwardChallanHistory: React.FC<InwardChallanHistoryProps> = ({ onView, loc
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      const [ { data: grns, error }, { data: purchases } ] = await Promise.all([
-        supabase.from('grn_receipts').select('*, grn_items(*)').neq('status', 'Pending Inward').order('created_at', { ascending: false }),
+      const [ receiptsRes, itemsRes, { data: purchases } ] = await Promise.all([
+        supabase.from('grn_receipts').select('*').neq('status', 'Pending Inward').order('created_at', { ascending: false }),
+        supabase.from('grn_items').select('*'),
         supabase.from('supplier_purchases').select('purchase_no, metadata')
       ]);
       
-      if (error) throw error;
+      if (receiptsRes.error) throw receiptsRes.error;
 
-      let filteredGrns = grns || [];
+      const itemsByGrn: Record<string, any[]> = {};
+      (itemsRes.data || []).forEach((it: any) => {
+        const gId = String(it.grn_id || '');
+        if (!itemsByGrn[gId]) itemsByGrn[gId] = [];
+        itemsByGrn[gId].push(it);
+      });
+
+      const combinedGrns = (receiptsRes.data || []).map((g: any) => ({
+        ...g,
+        grn_items: itemsByGrn[String(g.id)] || []
+      }));
+
+      let filteredGrns = combinedGrns || [];
       if (locationFilter && locationFilter !== 'ALL') {
         filteredGrns = filteredGrns.filter(g => {
           const items = g.grn_items || [];

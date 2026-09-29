@@ -93,8 +93,20 @@ const ProductList = () => {
         const { data: sales } = await supabase.from('sales_invoices').select('items, sale_status, receipt_status, dispatch_warehouse');
         const { data: sReturns } = await supabase.from('sales_returns').select('*');
         const { data: pReturns } = await supabase.from('purchase_returns').select('*');
-        const { data: deliveryChallans } = await supabase.from('delivery_challans').select('*').order('created_at', { ascending: false });
-        const { data: grnReceipts } = await supabase.from('grn_receipts').select('*, grn_items(*)');
+        const [ { data: rData }, { data: iData } ] = await Promise.all([
+          supabase.from('grn_receipts').select('*'),
+          supabase.from('grn_items').select('*')
+        ]);
+        const itemsByGrn: Record<string, any[]> = {};
+        (iData || []).forEach((it: any) => {
+          const gId = String(it.grn_id || '');
+          if (!itemsByGrn[gId]) itemsByGrn[gId] = [];
+          itemsByGrn[gId].push(it);
+        });
+        const grnReceipts = (rData || []).map((g: any) => ({
+          ...g,
+          grn_items: itemsByGrn[String(g.id)] || []
+        }));
         const { data: stockTransfers } = await supabase.from('stock_transfers').select('items, from_location, to_location, status');
         const { data: locationsMaster } = await supabase.from('inventory_locations').select('name');
 
