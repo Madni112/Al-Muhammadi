@@ -60,7 +60,7 @@ const StockReport = () => {
           supabase.from('products').select('id, product_name, category, bin, uom'),
           supabase.from('inventory_locations').select('id, name'),
           supabase.from('salesmen').select('id, name'),
-          supabase.from('inventory_uom').select('id, short_code, full_name').eq('tenant_id', tenantId || 'bashir').eq('is_active', true),
+          supabase.from('inventory_uom').select('*').eq('is_active', true),
           supabase.from('inventory_surface_finishes').select('id, name')
         ]);
 

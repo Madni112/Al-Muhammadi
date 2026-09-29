@@ -84,7 +84,6 @@ const AddTileProduct: React.FC = () => {
         const { data: uomData } = await supabase
           .from('inventory_uom')
           .select('*')
-          .eq('tenant_id', activeTenant)
           .eq('is_active', true)
           .order('category', { ascending: true })
           .order('short_code', { ascending: true });
@@ -98,10 +97,11 @@ const AddTileProduct: React.FC = () => {
         }
 
 
-        if (uomData) {
+        if (uomData && uomData.length > 0) {
           const groups = uomData.reduce((acc: { [key: string]: UomItem[] }, curr: UomItem) => {
-            if (!acc[curr.category]) acc[curr.category] = [];
-            acc[curr.category].push(curr);
+            const cat = curr.category || 'General';
+            if (!acc[cat]) acc[cat] = [];
+            acc[cat].push(curr);
             return acc;
           }, {});
           setGroupedUoms(groups);
