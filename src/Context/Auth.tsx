@@ -374,7 +374,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return true;
         }
 
-        return lowerAllowed.some(m => m.endsWith(lp) || lp.endsWith(m));
+        return false;
       };
 
       routes = routes
@@ -396,25 +396,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               lowerAllowed.includes('/dashboard/salesman') ||
               lowerAllowed.includes('/dashboard/warehouse') ||
               lowerAllowed.includes('salesman-dashboard') ||
-              lowerAllowed.includes('warehouse-dashboard') ||
-              lowerAllowed.some(m => m.includes('dashboard'));
+              lowerAllowed.includes('warehouse-dashboard');
             return isAllowed ? route : null;
           }
 
           // 3. Parent Categories with Children (Administration, Registration, Sales, Purchase, Reports)
           if (route.children && Array.isArray(route.children)) {
-            // Filter sub-pages: check path, path with/without leading slash, and label
+            // Filter sub-pages: exact path match or alias match
             const filteredChildren = route.children.filter((child: any) => {
               if (child.hideFromSidebar) return true;
               const childPath = String(child.path || '').toLowerCase().trim();
-              const childLabel = String(child.label || '').toLowerCase().trim();
-
-              const isMatch =
-                matchesPath(childPath) ||
-                lowerAllowed.includes(childLabel) ||
-                lowerAllowed.some(m => m.includes(childLabel) || childLabel.includes(m));
-
-              return isMatch;
+              return matchesPath(childPath);
             });
 
             // If at least one sub-page is permitted, render the parent category with ONLY allowed sub-pages

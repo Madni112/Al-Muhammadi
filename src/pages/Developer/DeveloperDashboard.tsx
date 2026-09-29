@@ -234,6 +234,39 @@ const DEV_PASSWORD = 'admin123';
 const BACKUP_DEV_EMAIL = 'developer@noorhorizontechnologies.com';
 const BACKUP_DEV_PASSWORD = 'NoorHorizon@5923';
 
+export const normalizePermissionId = (id: string) => String(id || '').trim().toLowerCase();
+
+export const isPermissionSelected = (selected: string[], targetId: string) => {
+  const norm = normalizePermissionId(targetId);
+  return (selected || []).some(s => normalizePermissionId(s) === norm);
+};
+
+export const canonicalizePermissions = (rawList: string[]): string[] => {
+  if (!rawList || !Array.isArray(rawList)) return [];
+  const map: Record<string, string> = {};
+  PERMISSION_TREE.forEach(node => {
+    map[normalizePermissionId(node.id)] = node.id;
+    node.children?.forEach(c => {
+      map[normalizePermissionId(c.id)] = c.id;
+    });
+  });
+
+  const res = new Set<string>();
+  rawList.forEach(item => {
+    const norm = normalizePermissionId(item);
+    if (map[norm]) {
+      res.add(map[norm]);
+    }
+  });
+  return Array.from(res);
+};
+
+export const getActivePageCount = (modules: string[]) => {
+  if (!modules || !Array.isArray(modules)) return 0;
+  const parentKeys = new Set(PERMISSION_TREE.map(p => normalizePermissionId(p.id)));
+  return modules.filter(m => !parentKeys.has(normalizePermissionId(m))).length;
+};
+
 /**
  * Hierarchical Permission Tree Selector Component with Group Expand/Collapse & Toggle All
  */
@@ -262,37 +295,51 @@ const PermissionTreeEditor: React.FC<{
   };
 
   const handleToggleParent = (node: PermissionNode) => {
-    if (!node.children) {
-      const isSelected = selectedIds.includes(node.id);
-      onChange(isSelected ? selectedIds.filter(id => id !== node.id) : [...selectedIds, node.id]);
+    const parentNorm = normalizePermissionId(node.id);
+    if (!node.children || node.children.length === 0) {
+      const isSelected = isPermissionSelected(selectedIds, node.id);
+      const next = isSelected
+        ? selectedIds.filter(id => normalizePermissionId(id) !== parentNorm)
+        : [...selectedIds, node.id];
+      onChange(next);
       return;
     }
 
     const childIds = node.children.map(c => c.id);
-    const allSelected = childIds.every(id => selectedIds.includes(id));
+    const childNorms = childIds.map(normalizePermissionId);
+    const allSelected = childIds.every(id => isPermissionSelected(selectedIds, id));
 
     if (allSelected) {
-      onChange(selectedIds.filter(id => id !== node.id && !childIds.includes(id)));
+      onChange(selectedIds.filter(id => {
+        const n = normalizePermissionId(id);
+        return n !== parentNorm && !childNorms.includes(n);
+      }));
     } else {
-      const newIds = Array.from(new Set([...selectedIds, node.id, ...childIds]));
-      onChange(newIds);
+      const remaining = selectedIds.filter(id => {
+        const n = normalizePermissionId(id);
+        return n !== parentNorm && !childNorms.includes(n);
+      });
+      onChange([...remaining, node.id, ...childIds]);
     }
   };
 
   const handleToggleChild = (childId: string, parentNode: PermissionNode) => {
-    const isSelected = selectedIds.includes(childId);
+    const childNorm = normalizePermissionId(childId);
+    const parentNorm = normalizePermissionId(parentNode.id);
+    const isSelected = isPermissionSelected(selectedIds, childId);
+
     let nextIds = isSelected
-      ? selectedIds.filter(id => id !== childId)
+      ? selectedIds.filter(id => normalizePermissionId(id) !== childNorm)
       : [...selectedIds, childId];
 
     if (parentNode.children) {
-      const anyChildActive = parentNode.children.some(c => nextIds.includes(c.id));
+      const anyChildActive = parentNode.children.some(c => isPermissionSelected(nextIds, c.id));
       if (anyChildActive) {
-        if (!nextIds.includes(parentNode.id)) {
+        if (!isPermissionSelected(nextIds, parentNode.id)) {
           nextIds.push(parentNode.id);
         }
       } else {
-        nextIds = nextIds.filter(id => id !== parentNode.id);
+        nextIds = nextIds.filter(id => normalizePermissionId(id) !== parentNorm);
       }
     }
 
@@ -306,7 +353,7 @@ const PermissionTreeEditor: React.FC<{
         const isExpanded = expandedNodes[node.id];
 
         if (!hasChildren) {
-          const isChecked = selectedIds.includes(node.id);
+          const isChecked = isPermissionSelected(selectedIds, node.id);
           return (
             <div
               key={node.id}
@@ -332,7 +379,7 @@ const PermissionTreeEditor: React.FC<{
         }
 
         const childIds = node.children!.map(c => c.id);
-        const selectedChildrenCount = childIds.filter(id => selectedIds.includes(id)).length;
+        const selectedChildrenCount = childIds.filter(id => isPermissionSelected(selectedIds, id)).length;
         const totalChildren = childIds.length;
         const allSelected = selectedChildrenCount === totalChildren && totalChildren > 0;
         const partiallySelected = selectedChildrenCount > 0 && selectedChildrenCount < totalChildren;
@@ -385,7 +432,7 @@ const PermissionTreeEditor: React.FC<{
             {isExpanded && (
               <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 bg-gray-50/50 dark:bg-meta-4/10">
                 {node.children!.map(child => {
-                  const isChildChecked = selectedIds.includes(child.id);
+                  const isChildChecked = isPermissionSelected(selectedIds, child.id);
                   return (
                     <div
                       key={child.id}
@@ -689,7 +736,7 @@ const DeveloperDashboard: React.FC = () => {
     setEditingEmployee(emp);
     setEditName(emp.name || '');
     setEditRole(emp.role || 'Warehouse Manager');
-    setEditModules(emp.allowed_modules || getAllPermissionIds());
+    setEditModules(canonicalizePermissions(emp.allowed_modules || getAllPermissionIds()));
   };
 
   const handleSaveEmployeePermissions = async () => {
@@ -1938,7 +1985,7 @@ const DeveloperDashboard: React.FC = () => {
                 </p>
               </div>
               <span className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] px-3 py-1 rounded-md font-mono font-bold border border-emerald-200 dark:border-emerald-800/60">
-                {editModules.length} Pages Permitted
+                {getActivePageCount(editModules)} Pages Permitted
               </span>
             </div>
 
