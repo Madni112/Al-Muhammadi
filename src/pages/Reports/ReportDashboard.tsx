@@ -534,7 +534,40 @@ const getInitialCategories = () => {
 
 const ReportDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { tenantId, businessName } = useAuth();
+  const { tenantId, businessName, role, allowedModules } = useAuth();
+
+  const isReportAllowed = (report: ReportItem): boolean => {
+    if (!role || role.toLowerCase().includes('admin')) return true;
+    if (!allowedModules || !Array.isArray(allowedModules)) return true;
+
+    const lowerAllowed = allowedModules.map(m => String(m).toLowerCase().trim());
+
+    // 1. Direct report id matching (e.g. 'report:category-wise-sales' or 'category-wise-sales')
+    if (lowerAllowed.includes(`report:${report.id.toLowerCase()}`) || lowerAllowed.includes(report.id.toLowerCase())) {
+      return true;
+    }
+
+    // 2. Category group matching
+    const categoryGroupMap: Record<string, string[]> = {
+      sales: ['reports_sales', '/reports/sales-report', 'sales'],
+      purchases: ['reports_purchases', '/reports/purchase-report', 'purchases'],
+      inventory: ['reports_inventory', '/reports/stock-report', '/reports/holding-report', 'inventory'],
+      accounts: ['reports_accounts', '/reports/account-report', 'accounts'],
+      business: ['reports_business', '/reports/balance-sheet', 'business']
+    };
+
+    const groupKeys = categoryGroupMap[report.category] || [];
+    if (groupKeys.some(k => lowerAllowed.includes(k))) {
+      return true;
+    }
+
+    // 3. Fallback: direct path matching
+    if (report.path && lowerAllowed.includes(report.path.toLowerCase())) {
+      return true;
+    }
+
+    return false;
+  };
 
   const [reportsList, setReportsList] = useState<ReportItem[]>(getInitialReports);
   const [categoriesList, setCategoriesList] = useState(getInitialCategories);
@@ -607,9 +640,14 @@ const ReportDashboard: React.FC = () => {
     }));
   };
 
-  // Filtered reports using reportsList order (filtered by search query across all categories)
+  // Permitted reports based on employee role/modules
+  const permittedReports = useMemo(() => {
+    return reportsList.filter(isReportAllowed);
+  }, [reportsList, role, allowedModules]);
+
+  // Filtered reports using permitted list and search query
   const filteredReports = useMemo(() => {
-    return reportsList.filter((item) => {
+    return permittedReports.filter((item) => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesTitle = item.title.toLowerCase().includes(q);
@@ -619,15 +657,20 @@ const ReportDashboard: React.FC = () => {
       }
       return true;
     });
-  }, [reportsList, searchQuery]);
+  }, [permittedReports, searchQuery]);
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: reportsList.length };
-    reportsList.forEach((r) => {
+    const counts: Record<string, number> = { all: permittedReports.length };
+    permittedReports.forEach((r) => {
       counts[r.category] = (counts[r.category] || 0) + 1;
     });
     return counts;
-  }, [reportsList]);
+  }, [permittedReports]);
+
+  // Filter category list to only show categories that have at least one permitted report
+  const visibleCategoriesList = useMemo(() => {
+    return categoriesList.filter((cat) => (categoryCounts[cat.key] || 0) > 0);
+  }, [categoriesList, categoryCounts]);
 
   // Reference to always read latest list order on drag end
   const reportsListRef = React.useRef(reportsList);
@@ -885,7 +928,7 @@ const ReportDashboard: React.FC = () => {
           </span>
         </button>
 
-        {categoriesList.map((cat) => {
+        {visibleCategoriesList.map((cat) => {
           const CatIcon = cat.icon || MdAssessment;
           return (
             <button
@@ -1099,7 +1142,7 @@ const ReportDashboard: React.FC = () => {
       ) : (
         /* All Categories Overview Grid with Responsive CSS Columns (Zero vertical gaps) */
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 animate-expand-container">
-          {categoriesList.map((category, catIdx) => {
+          {visibleCategoriesList.map((category, catIdx) => {
             const categoryReports = filteredReports.filter((r) => r.category === category.key);
             if (categoryReports.length === 0 && searchQuery) return null;
             const isCatDragging = draggedCatKey === category.key;
