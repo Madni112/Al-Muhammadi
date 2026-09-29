@@ -168,14 +168,6 @@ const SalesmanHistory = () => {
           <h4 className="text-xl font-semibold text-black dark:text-white">Sales Team Directory</h4> 
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage salesmen and their assigned invoice display names.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate('/Sales/Salesman/Add')}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-        >
-          <MdPersonAdd size={16} />
-          <span>Add New Salesman</span>
-        </button>
       </div> 
 
       {/* Filter and Input line controllers */}
