@@ -69,7 +69,7 @@ export const PERMISSION_TREE: PermissionNode[] = [
   },
   {
     id: 'administration',
-    label: 'Administration',
+    label: 'Control Panel',
     children: [
       { id: '/Administration/Categories/List', label: 'Categories' },
       { id: '/Administration/Surface-Finish', label: 'Brand / Surface Finish' },
@@ -84,7 +84,7 @@ export const PERMISSION_TREE: PermissionNode[] = [
   },
   {
     id: 'registration',
-    label: 'Registration',
+    label: 'Finance',
     children: [
       { id: '/Registration/Chart-of-Account/List', label: 'Chart of Account' },
       { id: '/Registration/Vouchers/List', label: 'Financial Vouchers' },

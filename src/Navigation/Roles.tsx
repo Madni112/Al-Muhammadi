@@ -6,7 +6,9 @@ import {
   MdLaptopChromebook, MdMan, MdRequestPage, MdOutlineRequestPage, MdPageview,
   MdSpaceDashboard, MdOutlineLaptop, MdTexture, MdPayment, MdAssignmentReturn,
   MdAssessment, MdDashboardCustomize, MdTrendingUp, MdBarChart, MdAccountBalanceWallet,
-  MdBalance, MdPauseCircleFilled, MdInbox, MdPointOfSale, MdWarehouse
+  MdBalance, MdPauseCircleFilled, MdInbox, MdPointOfSale, MdWarehouse,
+  MdTune, MdPayments, MdPriceCheck, MdCloudUpload, MdStore, MdAssignmentReturned,
+  MdLocalMall, MdCorporateFare, MdStorefront
 } from 'react-icons/md';
 import HoldingReport from '../pages/Reports/Holding Report/HoldingReport';
 import HoldingReportPrint from '../pages/Reports/Holding Report/HoldingReportPrint';
@@ -111,8 +113,8 @@ export const adminRoutes = [
     hideFromSidebar: true,
   },
   {
-    label: 'Administation',
-    icon: MdAdminPanelSettings,
+    label: 'Control Panel',
+    icon: MdTune,
     children: [
       {
         path: '/Administration/Categories/List',
@@ -142,13 +144,13 @@ export const adminRoutes = [
       */
       {
         label: 'Products',
-        icon: MdDashboard,
+        icon: MdInventory2,
         path: '/Administration/Products/List',
         component: <ProductList />,
       },
       {
         label: 'Bulk Upload',
-        icon: MdDashboard,
+        icon: MdCloudUpload,
         path: '/Administration/Products/Bulk-Upload',
         component: <BulkProductUpload />,
       },
@@ -181,8 +183,8 @@ export const adminRoutes = [
     ]
   },
   {
-    label: 'REGISTRATION',
-    icon: MdFormatListBulleted,
+    label: 'Finance',
+    icon: MdAccountBalanceWallet,
     children: [
       {
         path: '/Registration/Chart-of-Account/List',
@@ -212,7 +214,7 @@ export const adminRoutes = [
   },
   {
     label: 'Sales',
-    icon: MdReceipt,
+    icon: MdPointOfSale,
     children: [
       {
         label: 'Invoice',
@@ -224,17 +226,17 @@ export const adminRoutes = [
         path: '/Sales/InvoiceReceipt/List',
         component: <InvoiceReceiptList />,
         label: 'Invoice Receipt',
-        icon: MdReceipt
+        icon: MdPayments
       },
       {
         label: 'Sales Return',
-        icon: MdEdit,
+        icon: MdAssignmentReturn,
         path: '/Sales/Sales-Return/List',
         component: <SalesReturnList />,
       },
       {
         label: 'Sales Return Receipt',
-        icon: MdEdit,
+        icon: MdPriceCheck,
         path: '/Sales/Sales-Return-Receipt/List',
         component: <SaleReturnReceiptList />
       },
@@ -248,19 +250,19 @@ export const adminRoutes = [
         label: 'Salesman',
         path: '/Sales/Salesman/List',
         component: <SalesmanHistory />,
-        icon: MdPeople,
+        icon: MdBadge,
       },
       {
         label: 'Delivery Challan',
         path: '/Sales/Delivery-Challan/List',
         component: <DeliveryChallanHistory />,
-        icon: MdEmojiTransportation,
+        icon: MdLocalShipping,
       },
       {
         label: 'Shop Dispatch Queue (SDQ)',
         path: '/Sales/Shop-Dispatch/List',
         component: <ShopDispatchQueue />,
-        icon: MdEmojiTransportation,
+        icon: MdStore,
       },
       {
         label: 'Return Challan',
@@ -272,19 +274,19 @@ export const adminRoutes = [
         label: 'Shop Return Queue',
         path: '/Warehouse/Shop-Return',
         component: <ReturnChallanList locationFilter="SHOP" />,
-        icon: MdAssignmentReturn
+        icon: MdAssignmentReturned
       }
     ],
   },
   {
     label: 'Purchase',
-    icon: MdLaptop,
+    icon: MdLocalMall,
     children: [
       {
         label: 'Purchases',
         path: '/Purchase/Purchases/List',
         component: <PurchaseList />,
-        icon: MdLaptopChromebook
+        icon: MdShoppingCart
       },
 
       {
@@ -297,7 +299,7 @@ export const adminRoutes = [
         label: 'Shop Receiving Queue',
         path: '/Purchase/Shop-Receiving',
         component: <InwardChallanList locationFilter="SHOP" />,
-        icon: MdInbox
+        icon: MdStorefront
       },
 
       {
@@ -322,7 +324,7 @@ export const adminRoutes = [
         label: 'Vendor',
         path: '/Purchase/Vendor/List',
         component: <VendorList />,
-        icon: MdPeople
+        icon: MdCorporateFare
       }
 
     ]

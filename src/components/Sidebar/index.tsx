@@ -27,7 +27,10 @@ const FlyoutSubMenu = ({ item, pathname, handleLinkClick, getTenantPath }: any) 
         onMouseLeave={() => setShowSubFlyout(false)}
       >
         <div className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs font-medium duration-150 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer pr-4">
-          <span className="truncate">{item.label}</span>
+          <div className="flex items-center gap-2 truncate">
+            {item.icon && <item.icon className="text-sm shrink-0" />}
+            <span className="truncate">{item.label}</span>
+          </div>
           <AiOutlineRight size={10} className="shrink-0 text-slate-400" />
         </div>
 
@@ -68,7 +71,8 @@ const FlyoutSubMenu = ({ item, pathname, handleLinkClick, getTenantPath }: any) 
             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800'
         }`}
       >
-        {item.label}
+        {item.icon && <item.icon className="text-sm shrink-0" />}
+        <span>{item.label}</span>
       </NavLink>
     </li>
   );
