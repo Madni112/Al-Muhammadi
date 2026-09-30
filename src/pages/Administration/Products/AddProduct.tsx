@@ -156,8 +156,8 @@ const AddProduct = () => {
             itemSrNo: editData.item_sr_no || '',
             sroScheduleNo: editData.sro_schedule_no || '',
             // Tile specific fields
-            tileHeight: 60,
-            tileWidth: 60,
+            tileHeight: 24,
+            tileWidth: 24,
             tileThickness: '',
             piecesPerBox: (() => {
               const raw = Number(editData.pieces_per_box || editData.pcs_per_box || editData.pieces_per_packing || 0);
@@ -188,8 +188,8 @@ const AddProduct = () => {
             itemSrNo: '',
             sroScheduleNo: '',
             // Tile specific defaults
-            tileHeight: 60,
-            tileWidth: 60,
+            tileHeight: 24,
+            tileWidth: 24,
             tileThickness: '',
             piecesPerBox: 4,
             finishType: '',
@@ -217,11 +217,12 @@ const AddProduct = () => {
             if (isTileCategory) {
               const h = Number(values.tileHeight) || 0;
               const w = Number(values.tileWidth) || 0;
-              const sqMetersPerTile = (h * w) / 10000;
+              // 1 inch = 0.025 meters; exact sq.m = (h * 0.025) * (w * 0.025)
+              const sqMetersPerTile = (h > 0 && w > 0) ? (h * 0.025) * (w * 0.025) : 0;
               const totalSqMetersPerBox = sqMetersPerTile * pcs;
-              const tileSizeFormatted = `${h} × ${w} cm`;
+              const tileSizeFormatted = `${h} × ${w} in`;
 
-              finalDescription = `[TILE PRODUCT] Size: ${tileSizeFormatted} | Box: ${pcs} pcs (${totalSqMetersPerBox.toFixed(2)} sq.m / box) | Finish: ${values.finishType}${values.tileThickness ? ` | Thickness: ${values.tileThickness}` : ''}${values.weightPerBox ? ` | Wt: ${values.weightPerBox}kg` : ''}`;
+              finalDescription = `[TILE PRODUCT] Size: ${tileSizeFormatted} | Box: ${pcs} pcs (${totalSqMetersPerBox.toFixed(4)} sq.m / box) | Finish: ${values.finishType}${values.tileThickness ? ` | Thickness: ${values.tileThickness}` : ''}${values.weightPerBox ? ` | Wt: ${values.weightPerBox}kg` : ''}`;
               finalUom = values.uom || 'BOX';
               finalHsCode = values.hsCode?.trim() || '6907.2100';
               finalItemSrNo = values.itemSrNo?.trim() || tileSizeFormatted;
@@ -333,13 +334,14 @@ const AddProduct = () => {
           {({ handleChange, values, errors, touched, setFieldValue }) => {
             const isTileCategory = String(values.subSubCategory || '').trim().toLowerCase().includes('tile');
 
-            // Tile Live Calculations
+            // Tile Live Calculations (Inches to sq.m)
             const tileH = Number(values.tileHeight) || 0;
             const tileW = Number(values.tileWidth) || 0;
             const tilePcs = Number(values.piecesPerBox) || 1;
-            const sqMetersPerTile = tileH > 0 && tileW > 0 ? (tileH * tileW) / 10000 : 0;
+            // 1 inch = 0.025 meters; exact sq.m = (h * 0.025) * (w * 0.025)
+            const sqMetersPerTile = (tileH > 0 && tileW > 0) ? (tileH * 0.025) * (tileW * 0.025) : 0;
             const totalSqMetersPerBox = sqMetersPerTile * tilePcs;
-            const tileSizeFormatted = `${tileH} × ${tileW} cm`;
+            const tileSizeFormatted = `${tileH} × ${tileW} in`;
 
             const numSale = Number(values.retailPrice) || 0;
             const numPurchase = Number(values.purchasePrice) || 0;
@@ -697,9 +699,9 @@ const AddProduct = () => {
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                       <div className="flex items-center gap-2 text-teal-700 dark:text-teal-400 font-bold text-sm">
                         <MdSquareFoot className="text-xl" />
-                        <span>Tile Sizing (Centimeters) & Box Packaging Setup</span>
+                        <span>Tile Sizing (Inches) & Box Packaging Setup</span>
                       </div>
-                      <span className="text-xs text-slate-400 font-mono">Unit: Centimeters (cm) | Area: Square Meters (sq.m)</span>
+                      <span className="text-xs text-slate-400 font-mono">Unit: Inches (in) | Area: Square Meters (sq.m)</span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -711,15 +713,15 @@ const AddProduct = () => {
                         <input
                           type="text"
                           readOnly
-                          value="Centimeters (cm)"
+                          value="Inches (in)"
                           className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-100 dark:bg-slate-800 outline-none text-xs font-bold text-teal-700 dark:text-teal-400 cursor-not-allowed"
                         />
                       </div>
 
-                      {/* Height (cm) */}
+                      {/* Height (in) */}
                       <div>
                         <label className="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">
-                          Tile Height (cm) *
+                          Tile Height (in) *
                         </label>
                         <input
                           type="number"
@@ -728,15 +730,15 @@ const AddProduct = () => {
                           name="tileHeight"
                           value={values.tileHeight}
                           onChange={handleChange}
-                          placeholder="e.g. 60"
+                          placeholder="e.g. 12 or 24"
                           className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-50/50 dark:bg-slate-800/80 outline-none focus:border-teal-600 text-xs font-mono font-bold text-slate-900 dark:text-white"
                         />
                       </div>
 
-                      {/* Width (cm) */}
+                      {/* Width (in) */}
                       <div>
                         <label className="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">
-                          Tile Width (cm) *
+                          Tile Width (in) *
                         </label>
                         <input
                           type="number"
@@ -745,7 +747,7 @@ const AddProduct = () => {
                           name="tileWidth"
                           value={values.tileWidth}
                           onChange={handleChange}
-                          placeholder="e.g. 60 or 120"
+                          placeholder="e.g. 24 or 48"
                           className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-50/50 dark:bg-slate-800/80 outline-none focus:border-teal-600 text-xs font-mono font-bold text-slate-900 dark:text-white"
                         />
                       </div>
@@ -761,7 +763,7 @@ const AddProduct = () => {
                           name="piecesPerBox"
                           value={values.piecesPerBox}
                           onChange={handleChange}
-                          placeholder="e.g. 4"
+                          placeholder="e.g. 4 or 8"
                           className="w-full rounded-xl border border-teal-500/50 dark:border-teal-500/50 p-2.5 bg-teal-50/30 dark:bg-teal-950/20 outline-none focus:border-teal-600 text-xs font-mono font-black text-teal-800 dark:text-teal-300"
                         />
                       </div>
@@ -804,7 +806,7 @@ const AddProduct = () => {
                           Total Coverage Per Box:
                         </span>
                         <strong className="text-teal-800 dark:text-teal-300 font-mono font-black text-lg">
-                          {totalSqMetersPerBox.toFixed(2)} sq.m
+                          {totalSqMetersPerBox.toFixed(4)} sq.m
                         </strong>
                         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono ml-2">
                           / Box

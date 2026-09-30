@@ -880,12 +880,12 @@ const NewInvoice = () => {
           const { data: existing } = await supabase
             .from('customers')
             .select('id')
-            .ilike('customername', cleanName)
+            .ilike('customerName', cleanName)
             .maybeSingle();
 
           if (!existing) {
             const { error: custErr } = await supabase.from('customers').insert([{
-              customername: cleanName,
+              customerName: cleanName,
               customer_code: null,
               customercode: null,
               primaryphone: cleanPhone || '-',

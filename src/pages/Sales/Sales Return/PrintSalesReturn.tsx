@@ -81,7 +81,7 @@ const PrintSalesReturn: React.FC = () => {
           const { data: cData } = await supabase
             .from('customers')
             .select('*')
-            .or(`customername.ilike.${cName},customerName.ilike.${cName},company.ilike.${cName}`)
+            .or(`customerName.ilike.${cName},company.ilike.${cName}`)
             .maybeSingle();
           if (cData) setCustomerInfo(cData);
         }

@@ -50,9 +50,9 @@ const AddTileProduct: React.FC = () => {
   const [scenarioName, setScenarioName] = useState(editData?.scenario_name || 'Standard Tile');
   const [finishType, setFinishType] = useState('Glazed Polished');
 
-  // Tile Specific Dimensions & Box Packing State (Fixed in Centimeters)
-  const [tileHeight, setTileHeight] = useState<number | string>(60);
-  const [tileWidth, setTileWidth] = useState<number | string>(60);
+  // Tile Specific Dimensions & Box Packing State (Inches to sq.m)
+  const [tileHeight, setTileHeight] = useState<number | string>(24);
+  const [tileWidth, setTileWidth] = useState<number | string>(24);
   const [tileThickness, setTileThickness] = useState('');
   const [piecesPerBox, setPiecesPerBox] = useState<number | string>(
     (() => {
@@ -116,13 +116,13 @@ const AddTileProduct: React.FC = () => {
     fetchMasterMetadata();
   }, []);
 
-  // Compute Area per Tile in Square Meters (Dimensions in Centimeters)
-  // Height (cm) * Width (cm) / 10,000 = Square Meters
+  // Compute Area per Tile in Square Meters (Dimensions in Inches)
+  // 1 inch = 0.025 m; Area = (h * 0.025) * (w * 0.025) sq.m
   const sqMetersPerTile = useMemo(() => {
     const h = Number(tileHeight) || 0;
     const w = Number(tileWidth) || 0;
     if (h <= 0 || w <= 0) return 0;
-    return (h * w) / 10000;
+    return (h * 0.025) * (w * 0.025);
   }, [tileHeight, tileWidth]);
 
   // Total Coverage per Box in Square Meters
@@ -131,9 +131,9 @@ const AddTileProduct: React.FC = () => {
     return sqMetersPerTile * pcs;
   }, [sqMetersPerTile, piecesPerBox]);
 
-  // Auto-formatted Tile Size String in Centimeters (e.g. 60 × 60 cm)
+  // Auto-formatted Tile Size String in Inches (e.g. 24 × 24 in)
   const tileSizeFormatted = useMemo(() => {
-    return `${tileHeight} × ${tileWidth} cm`;
+    return `${tileHeight} × ${tileWidth} in`;
   }, [tileHeight, tileWidth]);
 
   // Auto-generate Description if empty
@@ -175,12 +175,13 @@ const AddTileProduct: React.FC = () => {
       setLoading(true);
 
       const tileDetailsSummary = `[TILE PRODUCT] Size: ${tileSizeFormatted} | Box: ${piecesPerBox} pcs (${totalSqMetersPerBox.toFixed(
-        2
+        4
       )} sq.m / box) | Finish: ${finishType}${tileThickness ? ` | Thickness: ${tileThickness}` : ''}${
         weightPerBox ? ` | Wt: ${weightPerBox}kg` : ''
       }`;
 
       const databasePayload: any = {
+        item_type: 'goods',
         product_name: productName.trim(),
         category: category,
         sub_category: subCategory,
@@ -271,11 +272,11 @@ const AddTileProduct: React.FC = () => {
                 {isEditMode ? `Edit Tile Item: ${editData.product_name}` : 'Add New Tile Master Product'}
               </h2>
               <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-teal-500/30 uppercase tracking-wider">
-                Centimeter & Square Meter Engine
+                Inches & Square Meter Engine
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Tile Dimensions (cm), Packaging (Pieces/Box), Square Meter Coverage & Box Costing
+              Tile Dimensions (in), Packaging (Pieces/Box), Square Meter Coverage & Box Costing
             </p>
           </div>
         </div>
@@ -296,14 +297,14 @@ const AddTileProduct: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2 text-teal-700 dark:text-teal-400 font-bold text-sm">
               <MdSquareFoot className="text-xl" />
-              <span>1. Tile Sizing (Centimeters) & Box Packaging Setup</span>
+              <span>1. Tile Sizing (Inches) & Box Packaging Setup</span>
             </div>
-            <span className="text-xs text-slate-400 font-mono">Unit: Centimeters (cm) | Area: Square Meters (m²)</span>
+            <span className="text-xs text-slate-400 font-mono">Unit: Inches (in) | Area: Square Meters (m²)</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             
-            {/* Dimension Unit - Fixed / Static Centimeters */}
+            {/* Dimension Unit - Fixed / Static Inches */}
             <div>
               <label className="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">
                 Dimension Unit
@@ -311,15 +312,15 @@ const AddTileProduct: React.FC = () => {
               <input
                 type="text"
                 readOnly
-                value="Centimeters (cm)"
+                value="Inches (in)"
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-100 dark:bg-slate-800 outline-none text-xs font-bold text-teal-700 dark:text-teal-400 cursor-not-allowed"
               />
             </div>
 
-            {/* Height / Length (cm) */}
+            {/* Height / Length (in) */}
             <div>
               <label className="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">
-                Tile Height (cm) *
+                Tile Height (in) *
               </label>
               <input
                 type="number"
@@ -328,15 +329,15 @@ const AddTileProduct: React.FC = () => {
                 required
                 value={tileHeight}
                 onChange={e => setTileHeight(e.target.value)}
-                placeholder="e.g. 60"
+                placeholder="e.g. 12 or 24"
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-50/50 dark:bg-slate-800/80 outline-none focus:border-teal-600 text-xs font-mono font-bold text-slate-900 dark:text-white"
               />
             </div>
 
-            {/* Width (cm) */}
+            {/* Width (in) */}
             <div>
               <label className="block text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">
-                Tile Width (cm) *
+                Tile Width (in) *
               </label>
               <input
                 type="number"
@@ -345,7 +346,7 @@ const AddTileProduct: React.FC = () => {
                 required
                 value={tileWidth}
                 onChange={e => setTileWidth(e.target.value)}
-                placeholder="e.g. 60 or 120"
+                placeholder="e.g. 24 or 48"
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-50/50 dark:bg-slate-800/80 outline-none focus:border-teal-600 text-xs font-mono font-bold text-slate-900 dark:text-white"
               />
             </div>
@@ -423,7 +424,7 @@ const AddTileProduct: React.FC = () => {
                 Total Coverage Per Box:
               </span>
               <strong className="text-teal-800 dark:text-teal-300 font-mono font-black text-lg">
-                {totalSqMetersPerBox.toFixed(2)} sq.m
+                {totalSqMetersPerBox.toFixed(4)} sq.m
               </strong>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono ml-2">
                 / Box

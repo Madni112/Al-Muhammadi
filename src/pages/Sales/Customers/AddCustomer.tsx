@@ -29,7 +29,7 @@ const AddCustomer = () => {
 
   const validationSchema = Yup.object().shape({
     customerName: Yup.string().required('Customer / Business Name is required'),
-    primaryPhone: Yup.string().required('Primary Contact Phone is required'),
+    primaryPhone: Yup.string().nullable(),
   });
 
   const handleSubmit = async (values: any) => {
@@ -56,15 +56,27 @@ const AddCustomer = () => {
         return;
       }
 
-      const payload = {
-        ...values,
+      const cleanCode = values.customer_code ? values.customer_code.trim() : '';
+      const cleanPhone = values.primaryPhone ? values.primaryPhone.trim() : '-';
+
+      const payload: Record<string, any> = {
         customerName: values.customerName.trim(),
-        customer_code: values.customer_code ? values.customer_code.trim() : (values.customerCode ? values.customerCode.trim() : ''),
-        customerCode: values.customer_code ? values.customer_code.trim() : (values.customerCode ? values.customerCode.trim() : ''),
-        ntnNo: values.ntnNo ? values.ntnNo.trim() : '',
-        cnicNo: values.cnicNo ? values.cnicNo.trim() : '',
-        stRegNo: values.stRegNo ? values.stRegNo.trim() : '',
-        address: values.address ? values.address.trim() : '',
+        customer_code: cleanCode || null,
+        customercode: cleanCode || null,
+        phone: cleanPhone,
+        primaryphone: cleanPhone,
+        registrationtype: values.registrationType || 'Retail / General',
+        ntnno: values.ntnNo ? values.ntnNo.trim() : null,
+        cnicno: values.cnicNo ? values.cnicNo.trim() : null,
+        cnicNo: values.cnicNo ? values.cnicNo.trim() : null,
+        stregno: values.stRegNo ? values.stRegNo.trim() : null,
+        address: values.address ? values.address.trim() : null,
+        province: values.province || 'Sindh',
+        company: values.company || null,
+        email: values.email ? values.email.trim() : null,
+        website: values.website ? values.website.trim() : null,
+        notes: values.notes ? values.notes.trim() : null,
+        followupdate: values.followUpDate || null,
       };
 
       if (isEditMode) {
@@ -195,7 +207,7 @@ const AddCustomer = () => {
                   <input
                     name="customer_code"
                     onChange={handleChange}
-                    value={values.customer_code || values.customerCode || ''}
+                    value={values.customer_code || ''}
                     placeholder="e.g. CUST-001 or 1020-001"
                     className="w-full rounded border border-stroke dark:border-strokedark bg-transparent text-black dark:text-white p-3 outline-none text-xs font-mono focus:border-primary"
                   />
