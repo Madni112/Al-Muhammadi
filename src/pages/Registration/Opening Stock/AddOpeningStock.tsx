@@ -148,12 +148,11 @@ const AddOpeningStock = () => {
             const quantity = Number(r.qty) || 0;
             const totalValuation = quantity * unitCost;
             return {
-                stockNo: stockNoValue,
-                skuCode: r.itemCode || '',
+                stock_no: stockNoValue,
+                stockno: stockNoValue,
                 item_code: r.itemCode || '',
-                itemName: r.itemName,
                 product_name: r.itemName,
-                batchNumber: header.batchNumber,
+                batch_number: header.batchNumber,
                 location: header.location,
                 qty: quantity,
                 quantity: quantity,
@@ -161,8 +160,8 @@ const AddOpeningStock = () => {
                 rate: unitCost,
                 amount: totalValuation,
                 total_amount: totalValuation,
-                openingDate: header.openingDate,
-                expiryDate: r.expiryDate ? r.expiryDate : null
+                opening_date: header.openingDate,
+                expiry_date: r.expiryDate ? r.expiryDate : null
             };
         });
 
@@ -704,12 +703,11 @@ const AddOpeningStock = () => {
                     const totalValuation = quantity * unitCost;
 
                     const finalValues = {
-                        stockNo: values.stockNo,
-                        skuCode: values.skuCode,
+                        stock_no: values.stockNo,
+                        stockno: values.stockNo,
                         item_code: values.skuCode,
-                        itemName: values.itemName,
                         product_name: values.itemName,
-                        batchNumber: values.batchNumber,
+                        batch_number: values.batchNumber,
                         location: values.location,
                         qty: quantity,
                         quantity: quantity,
@@ -717,8 +715,8 @@ const AddOpeningStock = () => {
                         rate: unitCost,
                         amount: totalValuation,
                         total_amount: totalValuation,
-                        openingDate: values.openingDate,
-                        expiryDate: values.expiryDate === "" ? null : values.expiryDate
+                        opening_date: values.openingDate,
+                        expiry_date: values.expiryDate === "" ? null : values.expiryDate
                     };
 
                     const oldQty = Number(editData.qty || editData.quantity) || 0;
