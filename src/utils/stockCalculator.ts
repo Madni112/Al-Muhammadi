@@ -94,7 +94,7 @@ async function fetchAllStockData() {
     { data: stockTransfers },
     { data: deliveryChallans },
   ] = await Promise.all([
-    supabase.from('opening_stocks').select('product_name, itemName, quantity, qty, location'),
+    supabase.from('opening_stocks').select('product_name, itemname, quantity, qty, location, item_code, skucode'),
     supabase.from('supplier_purchases').select('id, purchase_no, items, payment_term, metadata, target_warehouse'),
     supabase.from('grn_receipts').select('*'),
     supabase.from('grn_items').select('*'),
@@ -135,8 +135,9 @@ function buildBreakdown(
   // 1. Opening stocks
   let totalOpening = 0;
   (openStocks || []).forEach((os: any) => {
-    const osName = String(os.product_name || os.itemName || '').trim().toLowerCase();
-    if (osName === name || osName.includes(name) || name.includes(osName)) {
+    const osName = String(os.product_name || os.itemname || os.itemName || '').trim().toLowerCase();
+    const osCode = String(os.item_code || os.skucode || '').trim().toLowerCase();
+    if (osName === name || osName.includes(name) || name.includes(osName) || (osCode && osCode === name)) {
       const qty = Number(os.quantity || os.qty || 0);
       totalOpening += qty;
       getWh(os.location || 'Global / Unassigned').opening += qty;
