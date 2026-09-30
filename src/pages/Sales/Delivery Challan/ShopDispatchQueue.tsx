@@ -101,14 +101,33 @@ const ShopDispatchQueue = () => {
   const fetchChallans = async () => {
     setLoading(true);
     try {
+      // 1. Fetch location types to identify all Sale Points (Shops/Showrooms)
+      const { data: locs } = await supabase.from('inventory_locations').select('name, location_type');
+      const shopNames = new Set(
+        (locs || [])
+          .filter(l => {
+            const t = String(l.location_type || '').toLowerCase();
+            return t.includes('sale') || t.includes('shop') || t.includes('showroom') || t.includes('counter');
+          })
+          .map(l => String(l.name || '').trim().toLowerCase())
+      );
+
       const { data, error } = await supabase
         .from('delivery_challans')
         .select('*')
-        .ilike('dispatch_warehouse', 'SHOP')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setChallans(data || []);
+
+      // Filter to only include Shop / Showroom / Sale Point locations
+      const shopOnly = (data || []).filter(dc => {
+        const whName = String(dc.dispatch_warehouse || '').trim().toLowerCase();
+        if (whName === 'shop' || whName.includes('showroom') || whName.includes('shop')) return true;
+        if (shopNames.has(whName)) return true;
+        return false;
+      });
+
+      setChallans(shopOnly);
     } catch (err: any) {
       toast.error(err.message);
     } finally {

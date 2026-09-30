@@ -60,21 +60,39 @@ const DeliveryChallanHistory = () => {
   const fetchChallans = async () => {
     setLoading(true);
     try {
+      // 1. Fetch location types to identify all Sale Points (Shops/Showrooms)
+      const { data: locs } = await supabase.from('inventory_locations').select('name, location_type');
+      const shopNames = new Set(
+        (locs || [])
+          .filter(l => {
+            const t = String(l.location_type || '').toLowerCase();
+            return t.includes('sale') || t.includes('shop') || t.includes('showroom') || t.includes('counter');
+          })
+          .map(l => String(l.name || '').trim().toLowerCase())
+      );
+
       let query = supabase
         .from('delivery_challans')
         .select('*');
 
-      // Restrict Warehouse Managers to their assigned location, else filter SHOP for regular users (if that was the intention)
+      // Restrict Warehouse Managers to their assigned location
       if (userLocationName) {
         query = query.eq('dispatch_warehouse', userLocationName);
-      } else {
-        query = query.neq('dispatch_warehouse', 'SHOP');
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      setChallans(data || []);
+
+      // Filter to only include Storage Points (Warehouses/Godowns)
+      const warehouseOnly = (data || []).filter(dc => {
+        const whName = String(dc.dispatch_warehouse || '').trim().toLowerCase();
+        if (whName === 'shop' || whName.includes('showroom')) return false;
+        if (shopNames.has(whName)) return false;
+        return true;
+      });
+
+      setChallans(warehouseOnly);
     } catch (err: any) {
       toast.error(err.message);
     } finally {

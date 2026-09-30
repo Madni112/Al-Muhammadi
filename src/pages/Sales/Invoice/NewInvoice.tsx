@@ -504,10 +504,11 @@ const NewInvoice = () => {
         
         if (dcErr) throw dcErr;
 
-        const activeDCs = (dcs || []).filter(dc => dc.status !== 'Pending Approval');
-        const pendingDCs = (dcs || []).filter(dc => dc.status === 'Pending Approval');
+        const isPendingStatus = (st: string) => /pending/i.test(st || '');
+        const activeDCs = (dcs || []).filter(dc => !isPendingStatus(dc.status));
+        const pendingDCs = (dcs || []).filter(dc => isPendingStatus(dc.status));
 
-        // Track covered quantities by sku_warehouse
+        // Track covered quantities by sku_warehouse from already approved DCs
         const coveredQtys: Record<string, number> = {};
         activeDCs.forEach(dc => {
           (dc.items || []).forEach((i: any) => {
@@ -534,7 +535,7 @@ const NewInvoice = () => {
           return displayQty;
         };
 
-        // 2. Validate
+        // 2. Validate against approved DCs
         for (const item of values.items) {
           const wh = (item.warehouse || values.dispatchWarehouse || 'Main Warehouse').trim();
           const key = `${item.skuCode}_${wh}`;
@@ -581,7 +582,6 @@ const NewInvoice = () => {
         });
 
         // 4. Update products.current_stock (Restore old, Deduct new)
-        // warehouse_inventory is no longer the source of truth — formula-based
         const oldItems = typeof editData.items === 'string' ? JSON.parse(editData.items || '[]') : (editData.items || []);
         for (const oldItem of oldItems) {
           const { data: prod } = await supabase.from('products').select('id, current_stock').ilike('product_name', oldItem.itemName).maybeSingle();
@@ -592,14 +592,8 @@ const NewInvoice = () => {
           if (prod) await supabase.from('products').update({ current_stock: Number(prod.current_stock) - Number(newItem.qty || 0) }).eq('id', prod.id);
         }
 
-        // 5. Sync DCs (Delete pending, create new for remaining quantities)
-        if (pendingDCs.length > 0) {
-          const pendingIds = pendingDCs.map(d => d.id);
-          const { error: delErr } = await supabase.from('delivery_challans').delete().in('id', pendingIds);
-          if (delErr) console.error('Error deleting pending DCs:', delErr);
-        }
-
-        const itemsByWarehouse: Record<string, any[]> = {};
+        // 5. Sync DCs (Recalculate remaining uncovered quantities, delete old pending, create new only if needed)
+        const remainingItemsByWarehouse: Record<string, any[]> = {};
         for (const item of values.items) {
           const wh = (item.warehouse || values.dispatchWarehouse || 'Main Warehouse').trim();
           const key = `${item.skuCode}_${wh}`;
@@ -607,13 +601,13 @@ const NewInvoice = () => {
           const remaining = Number(item.qty) - covered;
 
           if (remaining > 0) {
-            if (!itemsByWarehouse[wh]) itemsByWarehouse[wh] = [];
+            if (!remainingItemsByWarehouse[wh]) remainingItemsByWarehouse[wh] = [];
             
             // Prorate discount if any
             const origQty = Number(item.qty) || 1;
             const proratedDisAmt = (Number(item.discountAmt) || 0) * (remaining / origQty);
 
-            itemsByWarehouse[wh].push({
+            remainingItemsByWarehouse[wh].push({
               poNoSub: values.clientPoNumber || '',
               pDescription: item.itemName || 'Product',
               skuCode: item.skuCode || '',
@@ -628,55 +622,69 @@ const NewInvoice = () => {
           }
         }
 
-        const { data: existingDcs } = await supabase
+        // Delete old pending DCs so they are replaced cleanly with the adjusted lines (or removed entirely if items deleted)
+        if (pendingDCs.length > 0) {
+          const pendingIds = pendingDCs.map(d => d.id);
+          const { error: delErr } = await supabase.from('delivery_challans').delete().in('id', pendingIds);
+          if (delErr) console.error('Error deleting pending DCs:', delErr);
+        }
+
+        // Check current active DCs to compute appropriate challan code
+        const { data: currentActiveDcs } = await supabase
           .from('delivery_challans')
           .select('id, challan_no, dispatch_warehouse')
           .eq('invoice_no', formattedInvCode)
           .order('id', { ascending: true });
 
-        for (const [whName, whItems] of Object.entries(itemsByWarehouse)) {
+        for (const [whName, whItems] of Object.entries(remainingItemsByWarehouse)) {
+          if (whItems.length === 0) continue;
           const whQty = whItems.reduce((acc, i) => acc + Number(i.qty || 0), 0);
+          if (whQty <= 0) continue;
+
           const whBaseAmt = whItems.reduce((acc, i) => acc + (Number(i.rate || 0) * Number(i.qty || 0)), 0);
           const whDiscAmt = whItems.reduce((acc, i) => acc + Number(i.disAmt || 0), 0);
           const whNetAmt = whBaseAmt - whDiscAmt;
 
           let nextChallanNo = undefined;
-          if (existingDcs && existingDcs.length > 0) {
-            const whDcs = existingDcs.filter(dc => dc.dispatch_warehouse === whName);
-            if (whDcs.length > 0) {
-              const baseDc = whDcs[0];
-              const baseCode = (baseDc.challan_no || `DC-${String(baseDc.id).padStart(4, '0')}`).replace(/-[A-Z]+$/, '');
-              const existingSubCount = existingDcs.filter(c => (c.challan_no || `DC-${String(c.id).padStart(4, '0')}`).startsWith(baseCode)).length;
-              let nextLetter = '';
-              if (existingSubCount < 26) {
-                nextLetter = String.fromCharCode(65 + existingSubCount);
-              } else {
-                nextLetter = String.fromCharCode(65 + (existingSubCount % 26)).repeat(Math.floor(existingSubCount / 26) + 1);
-              }
-              nextChallanNo = `${baseCode}-${nextLetter}`;
+          const activeWhDcs = (currentActiveDcs || []).filter(dc => dc.dispatch_warehouse === whName);
+          if (activeWhDcs.length > 0) {
+            const baseDc = activeWhDcs[0];
+            const baseCode = (baseDc.challan_no || `DC-${String(baseDc.id).padStart(4, '0')}`).replace(/-[A-Z]+$/, '');
+            const existingSubCount = (currentActiveDcs || []).filter(c => (c.challan_no || `DC-${String(c.id).padStart(4, '0')}`).startsWith(baseCode)).length;
+            let nextLetter = '';
+            if (existingSubCount < 26) {
+              nextLetter = String.fromCharCode(65 + existingSubCount);
+            } else {
+              nextLetter = String.fromCharCode(65 + (existingSubCount % 26)).repeat(Math.floor(existingSubCount / 26) + 1);
             }
+            nextChallanNo = `${baseCode}-${nextLetter}`;
           }
 
           if (!nextChallanNo) {
-            const safePrefix = whName.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            const { data: allDcs } = await supabase
-              .from('delivery_challans')
-              .select('challan_no')
-              .ilike('challan_no', `${safePrefix}-%`);
+            const prevPending = pendingDCs.find(d => d.dispatch_warehouse === whName);
+            if (prevPending && prevPending.challan_no && !activeWhDcs.length) {
+              nextChallanNo = prevPending.challan_no.replace(/-[A-Z]+$/, '');
+            } else {
+              const safePrefix = whName.toUpperCase().replace(/[^A-Z0-9]/g, '');
+              const { data: allDcs } = await supabase
+                .from('delivery_challans')
+                .select('challan_no')
+                .ilike('challan_no', `${safePrefix}-%`);
 
-            let nextNum = 1;
-            if (allDcs && allDcs.length > 0) {
-              const maxNum = allDcs.reduce((max, dc) => {
-                const match = (dc.challan_no || '').match(new RegExp(`^${safePrefix}-(\\d+)`));
-                if (match && match[1]) {
-                  const num = parseInt(match[1], 10);
-                  return num > max ? num : max;
-                }
-                return max;
-              }, 0);
-              nextNum = maxNum + 1;
+              let nextNum = 1;
+              if (allDcs && allDcs.length > 0) {
+                const maxNum = allDcs.reduce((max, dc) => {
+                  const match = (dc.challan_no || '').match(new RegExp(`^${safePrefix}-(\\d+)`));
+                  if (match && match[1]) {
+                    const num = parseInt(match[1], 10);
+                    return num > max ? num : max;
+                  }
+                  return max;
+                }, 0);
+                nextNum = maxNum + 1;
+              }
+              nextChallanNo = `${safePrefix}-${String(nextNum).padStart(4, '0')}`;
             }
-            nextChallanNo = `${safePrefix}-${String(nextNum).padStart(4, '0')}`;
           }
 
           await supabase.from('delivery_challans').insert([{
@@ -696,7 +704,7 @@ const NewInvoice = () => {
             total_amount: whBaseAmt,
             total_discount: whDiscAmt,
             total_net_amount: whNetAmt,
-            status: 'Pending Approval',
+            status: 'Pending',
             items: whItems.map(i => ({
               ...i,
               orderQty: Number(i.qty || 0),
@@ -799,7 +807,7 @@ const NewInvoice = () => {
               total_amount: whBaseAmt,
               total_discount: whDiscAmt,
               total_net_amount: whNetAmt,
-              status: 'Pending Approval',
+              status: 'Pending',
               items: whItems.map(i => ({
                 ...i,
                 orderQty: Number(i.qty || 0),
@@ -836,6 +844,17 @@ const NewInvoice = () => {
   const handleFinalCustomerModalSubmit = async () => {
     if (!pendingFormValues) return;
 
+    // Calculate if sale is on credit
+    const currentSubtotal = (pendingFormValues.items || []).reduce((acc: number, item: any) => {
+      return acc + calculateLineTotals(item, pendingFormValues.taxScenario, pendingFormValues.applyFbrTax).netTotal;
+    }, 0) + Number(pendingFormValues.transportCharges || 0) + Number(pendingFormValues.additionalCharges || 0);
+
+    const totalPaidNow = pendingFormValues.settlementMode === 'Cash'
+      ? Number(pendingFormValues.cashAmountPaid || 0)
+      : (pendingFormValues.settlementMode === 'Bank' ? Number(pendingFormValues.bankAmountPaid || 0) : (Number(pendingFormValues.cashAmountPaid || 0) + Number(pendingFormValues.bankAmountPaid || 0)));
+    const remainingBal = Math.max(0, currentSubtotal - totalPaidNow);
+    const isOnCredit = remainingBal > 0.01;
+
     let finalCustomerName = '';
 
     if (customerModalType === 'recorded') {
@@ -845,24 +864,32 @@ const NewInvoice = () => {
       }
       finalCustomerName = selectedRecordedCustomer;
     } else {
-      const cleanName = walkinName.trim() || 'Walk-in Customer';
+      const cleanName = walkinName.trim();
       const cleanPhone = walkinPhone.trim();
-      finalCustomerName = cleanName;
 
-      if (recordWalkinCustomer && cleanName && cleanName.toLowerCase() !== 'walk-in customer') {
+      if (isOnCredit && (!cleanName || cleanName.toLowerCase() === 'walk-in customer')) {
+        toast.error(`Customer Name is required for credit sales (Outstanding balance: Rs. ${remainingBal.toLocaleString()}) to maintain customer directory record.`);
+        return;
+      }
+
+      finalCustomerName = cleanName || 'Walk-in Customer';
+
+      // Always save to directory if on credit or if checkbox is ticked
+      if ((recordWalkinCustomer || isOnCredit) && cleanName && cleanName.toLowerCase() !== 'walk-in customer') {
         try {
           const { data: existing } = await supabase
             .from('customers')
             .select('id')
-            .ilike('customerName', cleanName)
+            .ilike('customername', cleanName)
             .maybeSingle();
 
           if (!existing) {
             const { error: custErr } = await supabase.from('customers').insert([{
-              customerName: cleanName,
               customername: cleanName,
-              primaryPhone: cleanPhone || 'N/A',
-              phone: cleanPhone || 'N/A',
+              customer_code: null,
+              customercode: null,
+              primaryphone: cleanPhone || '-',
+              phone: cleanPhone || '-',
               company: 'Retail Walk-in'
             }]);
 
@@ -886,49 +913,103 @@ const NewInvoice = () => {
   return (
     <div className="mx-auto max-w-7xl text-black dark:text-bodydark text-xs font-sans relative">
       {/* CUSTOMER CHECKOUT MODAL */}
-      {showCustomerModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-boxdark w-full max-w-lg rounded-2xl shadow-2xl p-6 border border-stroke dark:border-strokedark animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-black dark:text-white flex items-center gap-2"><FiUserCheck className="text-emerald-500" /> Checkout Customer</h2>
-              <button onClick={() => setShowCustomerModal(false)}><FiX className="text-xl text-gray-400 hover:text-black dark:hover:text-white" /></button>
-            </div>
+      {showCustomerModal && (() => {
+        const modalSubtotal = pendingFormValues ? (pendingFormValues.items || []).reduce((acc: number, item: any) => {
+          return acc + calculateLineTotals(item, pendingFormValues.taxScenario, pendingFormValues.applyFbrTax).netTotal;
+        }, 0) + Number(pendingFormValues.transportCharges || 0) + Number(pendingFormValues.additionalCharges || 0) : 0;
 
-            <div className="flex gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-              <button onClick={() => setCustomerModalType('walkin')} className={`flex-1 py-2 text-xs font-bold rounded-md transition ${customerModalType === 'walkin' ? 'bg-white dark:bg-boxdark shadow-sm text-primary' : 'text-gray-500'}`}>Walk-in Sale</button>
-              <button onClick={() => setCustomerModalType('recorded')} className={`flex-1 py-2 text-xs font-bold rounded-md transition ${customerModalType === 'recorded' ? 'bg-white dark:bg-boxdark shadow-sm text-primary' : 'text-gray-500'}`}>Recorded Client</button>
-            </div>
+        const modalPaid = pendingFormValues ? (
+          pendingFormValues.settlementMode === 'Cash'
+            ? Number(pendingFormValues.cashAmountPaid || 0)
+            : (pendingFormValues.settlementMode === 'Bank' ? Number(pendingFormValues.bankAmountPaid || 0) : (Number(pendingFormValues.cashAmountPaid || 0) + Number(pendingFormValues.bankAmountPaid || 0)))
+        ) : 0;
 
-            {customerModalType === 'walkin' ? (
-              <div className="space-y-4">
-                <input type="text" placeholder="Customer Name (Optional)" value={walkinName} onChange={(e) => setWalkinName(e.target.value)} className="w-full p-3 border rounded-lg bg-transparent dark:border-strokedark" />
-                <input type="text" placeholder="Phone Number (Optional)" value={walkinPhone} onChange={(e) => setWalkinPhone(e.target.value)} className="w-full p-3 border rounded-lg bg-transparent dark:border-strokedark" />
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-400">
-                  <input type="checkbox" checked={recordWalkinCustomer} onChange={(e) => setRecordWalkinCustomer(e.target.checked)} />
-                  Save this customer to directory
-                </label>
+        const modalRemainingBal = Math.max(0, modalSubtotal - modalPaid);
+        const isModalOnCredit = modalRemainingBal > 0.01;
+
+        return (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-boxdark w-full max-w-lg rounded-2xl shadow-2xl p-6 border border-stroke dark:border-strokedark animate-in fade-in zoom-in duration-200">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold text-black dark:text-white flex items-center gap-2">
+                  <FiUserCheck className="text-emerald-500" /> Checkout Customer
+                </h2>
+                <button onClick={() => setShowCustomerModal(false)}>
+                  <FiX className="text-xl text-gray-400 hover:text-black dark:hover:text-white" />
+                </button>
               </div>
-            ) : (
-              <select value={selectedRecordedCustomer} onChange={(e) => setSelectedRecordedCustomer(e.target.value)} className="w-full p-3 border rounded-lg bg-transparent dark:border-strokedark">
-                <option value="">-- Search Customer --</option>
-                {customersList.map(c => {
-                  const code = c.customer_code || c.customerCode;
-                  return (
-                    <option key={c.id} value={c.customerName}>
-                      {code ? `[${code}] ${c.customerName}` : c.customerName}
-                    </option>
-                  );
-                })}
-              </select>
-            )}
 
-            <div className="mt-8 flex gap-3">
-              <button onClick={() => setShowCustomerModal(false)} className="flex-1 py-2.5 rounded-lg border border-stroke font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
-              <button onClick={handleFinalCustomerModalSubmit} disabled={loading} className="flex-1 py-2.5 rounded-lg bg-primary text-white font-bold text-xs shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"><FiCheck /> {loading ? 'Processing...' : 'Finalize & Log'}</button>
+              {isModalOnCredit && (
+                <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2">
+                  <span>ℹ️</span>
+                  <span>
+                    <strong>Credit Sale (Remaining: Rs. {modalRemainingBal.toLocaleString(undefined, { minimumFractionDigits: 2 })}):</strong> Customer account will be saved to directory.
+                  </span>
+                </div>
+              )}
+
+              <div className="flex gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                <button onClick={() => setCustomerModalType('walkin')} className={`flex-1 py-2 text-xs font-bold rounded-md transition ${customerModalType === 'walkin' ? 'bg-white dark:bg-boxdark shadow-sm text-primary' : 'text-gray-500'}`}>Walk-in Sale</button>
+                <button onClick={() => setCustomerModalType('recorded')} className={`flex-1 py-2 text-xs font-bold rounded-md transition ${customerModalType === 'recorded' ? 'bg-white dark:bg-boxdark shadow-sm text-primary' : 'text-gray-500'}`}>Recorded Client</button>
+              </div>
+
+              {customerModalType === 'walkin' ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                      Customer Name {isModalOnCredit ? <span className="text-red-500 font-extrabold">*</span> : '(Optional)'}
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder={isModalOnCredit ? "Customer Name *" : "Customer Name (Optional)"} 
+                      value={walkinName} 
+                      onChange={(e) => setWalkinName(e.target.value)} 
+                      className={`w-full p-3 border rounded-lg bg-transparent dark:border-strokedark outline-none text-xs font-bold text-black dark:text-white ${
+                        isModalOnCredit && !walkinName.trim() ? 'border-amber-500 focus:border-amber-600 bg-amber-50/5' : 'focus:border-primary'
+                      }`} 
+                    />
+                    {isModalOnCredit && !walkinName.trim() && (
+                      <p className="text-amber-600 dark:text-amber-400 text-[10px] font-semibold mt-1">
+                        * Required for credit sale
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 mb-1">Phone Number (Optional)</label>
+                    <input type="text" placeholder="Phone Number (Optional)" value={walkinPhone} onChange={(e) => setWalkinPhone(e.target.value)} className="w-full p-3 border rounded-lg bg-transparent dark:border-strokedark outline-none text-xs text-black dark:text-white focus:border-primary" />
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-400">
+                    <input 
+                      type="checkbox" 
+                      checked={recordWalkinCustomer || isModalOnCredit} 
+                      disabled={isModalOnCredit}
+                      onChange={(e) => setRecordWalkinCustomer(e.target.checked)} 
+                    />
+                    <span>Save this customer to directory {isModalOnCredit && <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">(Auto-enabled for credit)</span>}</span>
+                  </label>
+                </div>
+              ) : (
+                <select value={selectedRecordedCustomer} onChange={(e) => setSelectedRecordedCustomer(e.target.value)} className="w-full p-3 border rounded-lg bg-transparent dark:border-strokedark outline-none text-xs font-bold text-black dark:text-white focus:border-primary">
+                  <option value="">-- Search Customer --</option>
+                  {customersList.map(c => {
+                    const code = c.customer_code || c.customerCode;
+                    return (
+                      <option key={c.id} value={c.customerName}>
+                        {code ? `[${code}] ${c.customerName}` : c.customerName}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
+
+              <div className="mt-8 flex gap-3">
+                <button onClick={() => setShowCustomerModal(false)} className="flex-1 py-2.5 rounded-lg border border-stroke font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
+                <button onClick={handleFinalCustomerModalSubmit} disabled={loading} className="flex-1 py-2.5 rounded-lg bg-primary text-white font-bold text-xs shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"><FiCheck /> {loading ? 'Processing...' : 'Finalize & Log'}</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark p-6">
         <div className="flex items-center justify-between border-b border-stroke pb-4 mb-6 dark:border-strokedark">
