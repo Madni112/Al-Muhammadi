@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import Spinner from '../../../ui/Spinner';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
-import { FiCheckCircle, FiTruck, FiX, FiClock, FiPlusCircle, FiAlertCircle, FiPrinter } from 'react-icons/fi';
+import { FiCheckCircle, FiTruck, FiX, FiClock, FiPlusCircle, FiAlertCircle, FiPrinter, FiCalendar } from 'react-icons/fi';
 
 const ShopDispatchQueue = () => {
   const navigate = useNavigate();
@@ -279,15 +279,16 @@ const ShopDispatchQueue = () => {
         finalStatus = 'Dispatched';
       }
 
-      const processedItems = approvalItems.map(i => ({
+      const freightNum = Number(approvalFreightCharges) || 0;
+
+      // Current challan records only the approved/dispatched quantity
+      const processedApprovalItems = approvalItems.map(i => ({
         ...i,
         qty: Number(i.dispatchedQty || 0),
         dispatchedQty: Number(i.dispatchedQty || 0),
         orderQty: Number(i.orderQty || 0),
         holdQty: Number(i.holdQty || 0)
       }));
-
-      const freightNum = Number(approvalFreightCharges) || 0;
 
       const { error } = await supabase
         .from('delivery_challans')
@@ -298,19 +299,19 @@ const ShopDispatchQueue = () => {
           freight_payment_status: freightNum > 0 ? 'Pending Approval' : 'Free / Direct',
           vehicle_no: approvalVehicle.trim() || 'Counter Delivery',
           driver_name: approvalDriver.trim() || 'Direct Handover',
-          remarks: approvalRemarks.trim() || `Approved by Warehouse Manager (${finalStatus})`,
+          remarks: approvalRemarks.trim() || `Approved by Warehouse Manager (Dispatched ${totalDispatchedQty} pcs)`,
           total_quantity: totalDispatchedQty,
           total_amount: baseAmount,
           total_discount: totalDisc,
           total_net_amount: netAmount,
-          status: finalStatus,
-          items: processedItems
+          status: 'Dispatched',
+          items: processedApprovalItems
         })
         .eq('id', selectedChallanForApproval.id);
 
       if (error) throw error;
 
-      toast.success(`Challan #${selectedChallanForApproval.challan_no || selectedChallanForApproval.id} approved: ${finalStatus}`);
+      toast.success(`Challan #${selectedChallanForApproval.challan_no || selectedChallanForApproval.id} approved: Dispatched ${totalDispatchedQty} pcs`);
       setSelectedChallanForApproval(null);
       fetchChallans();
     } catch (err: any) {
@@ -504,7 +505,18 @@ const ShopDispatchQueue = () => {
                 </div>
               </div>
 
-              {/* Items Verification Table */}
+                            {/* Locked Dispatch Date Banner (Pakistan Standard Time) */}
+              <div className="flex items-center justify-between bg-slate-50 dark:bg-meta-4/20 p-3 rounded-xl border border-stroke dark:border-strokedark">
+                <div className="flex items-center gap-2">
+                  <FiCalendar className="text-primary text-base" />
+                  <span className="font-bold text-black dark:text-white">Dispatch Date (PK Time):</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white dark:bg-boxdark border border-stroke dark:border-strokedark rounded-lg px-3 py-1 font-mono font-bold text-xs text-slate-700 dark:text-slate-300 shadow-xs">
+                  <span>🔒 {getPakistanDate()}</span>
+                </div>
+              </div>
+
+{/* Items Verification Table */}
               <div className="border border-stroke dark:border-strokedark rounded-xl overflow-hidden shadow-xs">
                 <div className="bg-slate-100 dark:bg-slate-800 px-3 py-2 flex justify-between items-center border-b border-stroke dark:border-strokedark">
                   <span className="font-bold text-[11px] uppercase tracking-wide text-slate-700 dark:text-slate-300">Items Fulfillment List</span>
@@ -1003,34 +1015,30 @@ const ShopDispatchQueue = () => {
                                 <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800">
                                   <FiClock /> Pending
                                 </span>
-                              ) : isPartial ? (
-                                <span className="inline-flex flex-col items-center gap-0.5 rounded-3xl py-1 px-3 text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800 text-center leading-none">
-                                  <span className="inline-flex items-center gap-1"><FiAlertCircle /> Partial</span>
-                                  <span className="text-[9px] font-bold opacity-80 normal-case">({sumGroupQty({ challans: [c] }, 'hold')} Hold)</span>
-                                </span>
-                              ) : isDispatched ? (
-                                <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800">
-                                  <FiCheckCircle /> Dispatched
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
-                                  {String(c.status || '').toUpperCase()}
-                                </span>
-                              )}
+                              ) : null}
                             </td>
 
                             <td className="py-3 px-4 text-right pr-6">
                               <div className="flex items-center justify-end gap-2">
-                                {/* APPROVE BUTTON */}
-                                {!c.is_printed && (
+                                {/* APPROVE BUTTON (When Pending) */}
+                                {isPending && (
                                   <button
                                     type="button"
                                     onClick={() => openApprovalModal(c)}
-                                    className={`inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold text-white shadow-xs transition duration-150 cursor-pointer ${
-                                      isPending ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-700 hover:bg-slate-800'
-                                    }`}
+                                    className="inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold text-white shadow-xs transition duration-150 cursor-pointer bg-emerald-600 hover:bg-emerald-700"
                                   >
-                                    <FiTruck size={12} /> {isPending ? 'Approve Items' : 'Edit Dispatch'}
+                                    <FiTruck size={12} /> Approve Items
+                                  </button>
+                                )}
+
+                                {/* EDIT DISPATCH BUTTON (Only shown before printing; disappears once printed) */}
+                                {!isPending && !c.is_printed && (
+                                  <button
+                                    type="button"
+                                    onClick={() => openApprovalModal(c)}
+                                    className="inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold text-white shadow-xs transition duration-150 cursor-pointer bg-slate-700 hover:bg-slate-800"
+                                  >
+                                    <FiTruck size={12} /> Edit Dispatch
                                   </button>
                                 )}
 
@@ -1046,20 +1054,22 @@ const ShopDispatchQueue = () => {
                                   </button>
                                 )}
 
-                                {/* PRINT GATE PASS - Always available for any challan */}
-                                <button
-                                  type="button"
-                                  onClick={async () => {
-                                    if (!c.is_printed) {
-                                      await supabase.from('delivery_challans').update({ is_printed: true }).eq('id', c.id);
-                                    }
-                                    navigate(`${tenantId ? `/${tenantId}` : ''}/Sales/Delivery-Challan/Print/${c.id}`);
-                                  }}
-                                  className="inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 transition shadow-xs cursor-pointer"
-                                  title="Print Official Gate Pass / Delivery Voucher"
-                                >
-                                  🖨️ Print Gate Pass
-                                </button>
+                                {/* PRINT GATE PASS - Only available after approval/dispatch */}
+                                {!isPending && (
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      if (!c.is_printed) {
+                                        await supabase.from('delivery_challans').update({ is_printed: true }).eq('id', c.id);
+                                      }
+                                      navigate(`${tenantId ? `/${tenantId}` : ''}/Sales/Delivery-Challan/Print/${c.id}`);
+                                    }}
+                                    className="inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 transition shadow-xs cursor-pointer"
+                                    title="Print Official Gate Pass / Delivery Voucher"
+                                  >
+                                    🖨️ Print Gate Pass
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
