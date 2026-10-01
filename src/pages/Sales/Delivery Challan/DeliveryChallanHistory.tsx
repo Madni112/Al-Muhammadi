@@ -1063,7 +1063,11 @@ const DeliveryChallanHistory = () => {
                                 </td>
 
                                 <td className="py-3 px-4 text-center">
-                                  {isPending ? (
+                                  {c.is_printed ? (
+                                    <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800">
+                                      <FiPrinter /> Printed
+                                    </span>
+                                  ) : isPending ? (
                                     <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800">
                                       <FiClock /> Pending
                                     </span>
@@ -1073,7 +1077,7 @@ const DeliveryChallanHistory = () => {
                                       <span className="text-[9px] font-bold opacity-80 normal-case">({holdDisplay} Hold)</span>
                                     </span>
                                   ) : isDispatched ? (
-                                    <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800">
+                                    <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800">
                                       <FiCheckCircle /> Dispatched
                                     </span>
                                   ) : (

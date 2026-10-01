@@ -950,14 +950,26 @@ const NewInvoice = () => {
               )}
 
               <div className="flex gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                <button onClick={() => setCustomerModalType('walkin')} className={`flex-1 py-2 text-xs font-bold rounded-md transition ${customerModalType === 'walkin' ? 'bg-white dark:bg-boxdark shadow-sm text-primary' : 'text-gray-500'}`}>Walk-in Sale</button>
-                <button onClick={() => setCustomerModalType('recorded')} className={`flex-1 py-2 text-xs font-bold rounded-md transition ${customerModalType === 'recorded' ? 'bg-white dark:bg-boxdark shadow-sm text-primary' : 'text-gray-500'}`}>Recorded Client</button>
+                <button 
+                  type="button"
+                  onClick={() => setCustomerModalType('walkin')} 
+                  className={`flex-1 py-2 text-xs font-bold rounded-md transition ${customerModalType === 'walkin' ? 'bg-white dark:bg-boxdark shadow-sm text-primary dark:text-teal-400' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
+                >
+                  Walk-in Sale
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setCustomerModalType('recorded')} 
+                  className={`flex-1 py-2 text-xs font-bold rounded-md transition ${customerModalType === 'recorded' ? 'bg-white dark:bg-boxdark shadow-sm text-primary dark:text-teal-400' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
+                >
+                  Recorded Client
+                </button>
               </div>
 
               {customerModalType === 'walkin' ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                    <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
                       Customer Name {isModalOnCredit ? <span className="text-red-500 font-extrabold">*</span> : '(Optional)'}
                     </label>
                     <input 
@@ -965,7 +977,7 @@ const NewInvoice = () => {
                       placeholder={isModalOnCredit ? "Customer Name *" : "Customer Name (Optional)"} 
                       value={walkinName} 
                       onChange={(e) => setWalkinName(e.target.value)} 
-                      className={`w-full p-3 border rounded-lg bg-transparent dark:border-strokedark outline-none text-xs font-bold text-black dark:text-white ${
+                      className={`w-full p-3 border rounded-lg bg-white dark:bg-boxdark dark:border-strokedark outline-none text-xs font-bold text-black dark:text-white ${
                         isModalOnCredit && !walkinName.trim() ? 'border-amber-500 focus:border-amber-600 bg-amber-50/5' : 'focus:border-primary'
                       }`} 
                     />
@@ -976,8 +988,14 @@ const NewInvoice = () => {
                     )}
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 mb-1">Phone Number (Optional)</label>
-                    <input type="text" placeholder="Phone Number (Optional)" value={walkinPhone} onChange={(e) => setWalkinPhone(e.target.value)} className="w-full p-3 border rounded-lg bg-transparent dark:border-strokedark outline-none text-xs text-black dark:text-white focus:border-primary" />
+                    <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Phone Number (Optional)</label>
+                    <input 
+                      type="text" 
+                      placeholder="Phone Number (Optional)" 
+                      value={walkinPhone} 
+                      onChange={(e) => setWalkinPhone(e.target.value)} 
+                      className="w-full p-3 border rounded-lg bg-white dark:bg-boxdark dark:border-strokedark outline-none text-xs text-black dark:text-white focus:border-primary" 
+                    />
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-400">
                     <input 
@@ -990,22 +1008,29 @@ const NewInvoice = () => {
                   </label>
                 </div>
               ) : (
-                <select value={selectedRecordedCustomer} onChange={(e) => setSelectedRecordedCustomer(e.target.value)} className="w-full p-3 border rounded-lg bg-transparent dark:border-strokedark outline-none text-xs font-bold text-black dark:text-white focus:border-primary">
-                  <option value="">-- Search Customer --</option>
-                  {customersList.map(c => {
-                    const code = c.customer_code || c.customerCode;
-                    return (
-                      <option key={c.id} value={c.customerName}>
-                        {code ? `[${code}] ${c.customerName}` : c.customerName}
-                      </option>
-                    );
-                  })}
-                </select>
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">Select Customer Profile</label>
+                  <select 
+                    value={selectedRecordedCustomer} 
+                    onChange={(e) => setSelectedRecordedCustomer(e.target.value)} 
+                    className="w-full p-3 border rounded-lg bg-white dark:bg-boxdark dark:border-strokedark outline-none text-xs font-bold text-black dark:text-white focus:border-primary"
+                  >
+                    <option value="" className="bg-white dark:bg-boxdark text-black dark:text-white">-- Search Customer --</option>
+                    {customersList.map(c => {
+                      const code = c.customer_code || c.customerCode;
+                      return (
+                        <option key={c.id} value={c.customerName} className="bg-white dark:bg-boxdark text-black dark:text-white">
+                          {code ? `[${code}] ${c.customerName}` : c.customerName}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
               )}
 
               <div className="mt-8 flex gap-3">
-                <button onClick={() => setShowCustomerModal(false)} className="flex-1 py-2.5 rounded-lg border border-stroke font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
-                <button onClick={handleFinalCustomerModalSubmit} disabled={loading} className="flex-1 py-2.5 rounded-lg bg-primary text-white font-bold text-xs shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"><FiCheck /> {loading ? 'Processing...' : 'Finalize & Log'}</button>
+                <button type="button" onClick={() => setShowCustomerModal(false)} className="flex-1 py-2.5 rounded-lg border border-stroke dark:border-strokedark font-bold text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
+                <button type="button" onClick={handleFinalCustomerModalSubmit} disabled={loading} className="flex-1 py-2.5 rounded-lg bg-primary text-white font-bold text-xs shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"><FiCheck /> {loading ? 'Processing...' : 'Finalize & Log'}</button>
               </div>
             </div>
           </div>

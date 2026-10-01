@@ -995,7 +995,11 @@ const ShopDispatchQueue = () => {
                             </td>
 
                             <td className="py-3 px-4 text-center">
-                              {isPending ? (
+                              {c.is_printed ? (
+                                <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800">
+                                  <FiPrinter /> Printed
+                                </span>
+                              ) : isPending ? (
                                 <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800">
                                   <FiClock /> Pending
                                 </span>
@@ -1005,7 +1009,7 @@ const ShopDispatchQueue = () => {
                                   <span className="text-[9px] font-bold opacity-80 normal-case">({sumGroupQty({ challans: [c] }, 'hold')} Hold)</span>
                                 </span>
                               ) : isDispatched ? (
-                                <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800">
+                                <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800">
                                   <FiCheckCircle /> Dispatched
                                 </span>
                               ) : (
@@ -1055,7 +1059,12 @@ const ShopDispatchQueue = () => {
                                 ) : (
                                   <button
                                     type="button"
-                                    onClick={() => navigate(`${tenantId ? `/${tenantId}` : ''}/Sales/Delivery-Challan/Print/${c.id}`)}
+                                    onClick={async () => {
+                                      if (!c.is_printed) {
+                                        await supabase.from('delivery_challans').update({ is_printed: true }).eq('id', c.id);
+                                      }
+                                      navigate(`${tenantId ? `/${tenantId}` : ''}/Sales/Delivery-Challan/Print/${c.id}`);
+                                    }}
                                     className="inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 transition shadow-xs cursor-pointer"
                                     title="Print Official Gate Pass / Delivery Voucher"
                                   >

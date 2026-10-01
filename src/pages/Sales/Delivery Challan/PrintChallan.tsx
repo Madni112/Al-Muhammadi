@@ -155,7 +155,12 @@ const PrintChallan = () => {
           ← Return to History
         </button>
         <button
-          onClick={() => window.print()}
+          onClick={async () => {
+            if (challan?.id && !challan.is_printed) {
+              await supabase.from('delivery_challans').update({ is_printed: true }).eq('id', challan.id);
+            }
+            window.print();
+          }}
           className="flex items-center gap-2 rounded bg-emerald-600 py-2 px-5 text-sm font-bold text-white hover:bg-emerald-700 transition shadow-sm cursor-pointer"
         >
           🖨️ Print Gate Pass Document
@@ -237,14 +242,17 @@ const PrintChallan = () => {
               </thead>
               <tbody>
                 {(() => {
-                  const printedItems = challan.items ? challan.items.filter((item: any) => Number(item.dispatchedQty ?? item.qty ?? 0) > 0) : [];
+                  const printedItems = challan.items ? challan.items.filter((item: any) => {
+                    const q = Number(item.dispatchedQty > 0 ? item.dispatchedQty : (item.qty || item.orderQty || 0));
+                    return q > 0;
+                  }) : [];
                   return (
                     <>
                       {printedItems.map((item: any, idx: number) => {
-                        const dispatchedQty = Number(item.dispatchedQty ?? item.qty ?? 0);
+                        const effectiveQty = Number(item.dispatchedQty > 0 ? item.dispatchedQty : (item.qty || item.orderQty || 0));
                         
                         let pcsPerBox = 1;
-                        const prodName = String(item.pDescription || item.itemName || '').trim().toLowerCase();
+                        const prodName = String(item.pDescription || item.itemName || item.product_name || '').trim().toLowerCase();
                         const prod = productsMaster.find(p => String(p?.product_name || '').trim().toLowerCase() === prodName);
                         if (prod) {
                            const rawPcs = Number(prod.pieces_per_box || prod.pcs_per_box || prod.pieces_per_packing || 0);
@@ -254,9 +262,9 @@ const PrintChallan = () => {
                            }
                         }
 
-                        let displayQty = String(dispatchedQty);
+                        let displayQty = String(effectiveQty);
                         if (pcsPerBox > 1) {
-                          const totPcs = Math.round(dispatchedQty * pcsPerBox);
+                          const totPcs = Math.round(effectiveQty * pcsPerBox);
                           const b = Math.floor(totPcs / pcsPerBox);
                           const p = totPcs % pcsPerBox;
                           totalBoxes += b;
@@ -265,15 +273,15 @@ const PrintChallan = () => {
                           else if (b === 0) displayQty = `${p} Pcs`;
                           else displayQty = `${b} Boxes + ${p} Pcs`;
                         } else {
-                          totalBoxes += dispatchedQty;
-                          displayQty = String(dispatchedQty);
+                          totalBoxes += effectiveQty;
+                          displayQty = String(effectiveQty);
                         }
 
                         return (
                           <tr key={idx} className="font-medium text-center">
                             <td className="border border-gray-300 p-2 text-center bg-gray-50/50">{idx + 1}</td>
-                            <td className="border border-gray-300 p-2 text-center font-mono">{item.skuCode || item.pCode}</td>
-                            <td className="border border-gray-300 p-2 text-black font-semibold text-left">{item.pDescription}</td>
+                            <td className="border border-gray-300 p-2 text-center font-mono">{item.skuCode || item.pCode || item.item_code || '-'}</td>
+                            <td className="border border-gray-300 p-2 text-black font-semibold text-left">{item.pDescription || item.itemName || item.product_name}</td>
                             <td className="border border-gray-300 p-2 text-center font-black text-sm text-black bg-gray-100 font-mono">
                               {displayQty}
                             </td>
