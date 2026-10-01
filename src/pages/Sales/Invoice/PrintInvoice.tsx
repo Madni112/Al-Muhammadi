@@ -150,18 +150,29 @@ const PrintInvoice = () => {
       const boxes = Math.floor(qty);
       const loose = Math.round((qty - boxes) * pcsPerBox);
 
-      let tileWidthCm = 60;
-      let tileHeightCm = 60;
-      const desc = prodMeta?.product_description || '';
-      const sku = prodMeta?.item_sr_no || item.skuCode || '';
-      const sizeMatch = desc.match(/Size:\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*cm/i) ||
+      const sqmBoxMatch = desc.match(/(\d+(?:\.\d+)?)\s*sq\.m\s*\/\s*box/i);
+      if (sqmBoxMatch) {
+        perBoxSqm = Number(sqmBoxMatch[1]);
+        perPieceSqm = pcsPerBox > 0 ? perBoxSqm / pcsPerBox : 0;
+      } else {
+        const inMatch = desc.match(/Size:\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*in/i);
+        const cmMatch = desc.match(/Size:\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*cm/i) ||
                         sku.match(/(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)/i);
-      if (sizeMatch) {
-        tileHeightCm = Number(sizeMatch[1]) || 60;
-        tileWidthCm = Number(sizeMatch[2]) || 60;
+        if (inMatch) {
+          const hIn = Number(inMatch[1]) || 24;
+          const wIn = Number(inMatch[2]) || 24;
+          perPieceSqm = (hIn * 0.025) * (wIn * 0.025);
+          perBoxSqm = perPieceSqm * pcsPerBox;
+        } else if (cmMatch) {
+          const hCm = Number(cmMatch[1]) || 60;
+          const wCm = Number(cmMatch[2]) || 60;
+          perPieceSqm = (hCm * wCm) / 10000;
+          perBoxSqm = perPieceSqm * pcsPerBox;
+        } else {
+          perPieceSqm = (24 * 0.025) * (24 * 0.025);
+          perBoxSqm = perPieceSqm * pcsPerBox;
+        }
       }
-      perPieceSqm = (tileHeightCm * tileWidthCm) / 10000;
-      perBoxSqm = perPieceSqm * pcsPerBox;
       totalLineSqm = (boxes * perBoxSqm) + (loose * perPieceSqm);
 
       if (boxes > 0 && loose > 0) {

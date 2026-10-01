@@ -178,30 +178,30 @@ const PrintChallan = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 border-b border-gray-300 pb-4 mb-6 text-xs uppercase tracking-wider font-semibold">
-            <div>
-              <span className="text-gray-500 block mb-0.5">System DC #:</span>
-              <strong className="text-sm font-black text-black font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 border-b border-gray-300 pb-4 mb-6 text-xs uppercase tracking-wider font-semibold">
+            <div className="min-w-0 pr-2">
+              <span className="text-gray-500 block mb-0.5 text-[11px]">System DC #:</span>
+              <strong className="text-xs font-black text-black font-mono break-all block leading-tight">
                 {challanTitle}
               </strong>
             </div>
-            <div>
-              <span className="text-gray-500 block mb-0.5">Gate Pass #:</span>
-              <strong className="text-sm font-black text-emerald-800 font-mono">
+            <div className="min-w-0 pr-2">
+              <span className="text-gray-500 block mb-0.5 text-[11px]">Gate Pass #:</span>
+              <strong className="text-xs font-black text-emerald-800 font-mono break-all block leading-tight">
                 {challan.gate_pass_no || challanTitle}
               </strong>
             </div>
-            <div>
-              <span className="text-gray-500 block mb-0.5">Linked Invoice:</span>
-              <span className="text-red-600 text-sm font-mono font-black">{challan.invoice_no || 'N/A'}</span>
+            <div className="min-w-0 pr-2">
+              <span className="text-gray-500 block mb-0.5 text-[11px]">Linked Invoice:</span>
+              <span className="text-red-600 text-xs font-mono font-black break-all block leading-tight">{challan.invoice_no || 'N/A'}</span>
             </div>
-            <div>
-              <span className="text-gray-500 block mb-0.5">Dispatch Date:</span>
-              <span className="text-black text-sm font-bold">{formatPrintDate(challan.dc_date || challan.created_at)}</span>
+            <div className="min-w-0 pr-2">
+              <span className="text-gray-500 block mb-0.5 text-[11px]">Dispatch Date:</span>
+              <span className="text-black text-xs font-bold block leading-tight">{formatPrintDate(challan.dc_date || challan.created_at)}</span>
             </div>
-            <div>
-              <span className="text-gray-500 block mb-0.5">Vehicle Plate:</span>
-              <strong className="text-black text-sm font-bold">{challan.vehicle_no || 'Direct Handover'}</strong>
+            <div className="min-w-0">
+              <span className="text-gray-500 block mb-0.5 text-[11px]">Vehicle Plate:</span>
+              <strong className="text-black text-xs font-bold break-words block leading-tight">{challan.vehicle_no || 'Direct Handover'}</strong>
             </div>
           </div>
 
