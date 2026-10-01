@@ -942,8 +942,8 @@ const ShopDispatchQueue = () => {
                         const isPartial = c.status === 'Partially Dispatched';
                         const isDispatched = c.status === 'Dispatched' || c.status === 'Fully Dispatched';
 
-                        // "Send Rest" only appears IF the challan was actually approved & has hold units
-                        const canSendRest = isPartial && totalHoldUnits > 0 && !isPending;
+                        // "Send Rest" appears whenever there are remaining hold items to dispatch (even after printing gate pass or with 0 initial dispatch)
+                        const canSendRest = totalHoldUnits > 0 && (!isPending || c.is_printed);
 
                         return (
                           <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
@@ -996,7 +996,7 @@ const ShopDispatchQueue = () => {
 
                             <td className="py-3 px-4 text-center">
                               {c.is_printed ? (
-                                <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800">
+                                <span className="inline-flex items-center gap-1 rounded-full py-0.5 px-2.5 text-[10px] font-black uppercase tracking-wider bg-green-50 text-green-600 border border-green-300 dark:bg-green-950/60 dark:text-green-400 dark:border-green-700">
                                   <FiPrinter /> Printed
                                 </span>
                               ) : isPending ? (
