@@ -6,6 +6,16 @@ import Spinner from '../../../ui/Spinner';
 import TableActions from '../../../ui/TableActions';
 import { useAuth } from '../../../Context/Auth';
 import { FiCheckCircle, FiTruck, FiX, FiClock, FiPlusCircle, FiAlertCircle, FiPrinter, FiCalendar } from 'react-icons/fi';
+
+// Helper to get exact date in Pakistan Time (YYYY-MM-DD)
+const getPakistanDate = () => {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(new Date());
+  } catch (e) {
+    return new Date().toISOString().split('T')[0];
+  }
+};
+
 import { logActivity } from '../../../service/auditLogger';
 
 const DeliveryChallanHistory = () => {
