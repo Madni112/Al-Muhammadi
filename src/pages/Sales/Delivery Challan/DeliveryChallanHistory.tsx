@@ -1113,26 +1113,15 @@ const DeliveryChallanHistory = () => {
                                       </button>
                                     )}
 
-                                    {/* PRINT GATE PASS */}
-                                    {isPending ? (
-                                      <button
-                                        type="button"
-                                        disabled
-                                        className="inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600 border border-slate-200 dark:border-slate-800 cursor-not-allowed opacity-60"
-                                        title="Approve items first to enable printing of Official Gate Pass"
-                                      >
-                                        🔒 Print Locked
-                                      </button>
-                                    ) : (
-                                      <button
-                                        type="button"
-                                        onClick={() => handlePrintClick(c)}
-                                        className="inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 transition shadow-xs cursor-pointer"
-                                        title="Print Official Gate Pass / Delivery Voucher"
-                                      >
-                                        🖨️ Print Gate Pass
-                                      </button>
-                                    )}
+                                    {/* PRINT GATE PASS - Always available for any challan */}
+                                    <button
+                                      type="button"
+                                      onClick={() => handlePrintClick(c)}
+                                      className="inline-flex items-center gap-1 py-1 px-2.5 rounded text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 transition shadow-xs cursor-pointer"
+                                      title="Print Official Gate Pass / Delivery Voucher"
+                                    >
+                                      🖨️ Print Gate Pass
+                                    </button>
                                   </div>
                                 </td>
                               </tr>
