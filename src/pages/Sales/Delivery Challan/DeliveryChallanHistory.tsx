@@ -982,11 +982,11 @@ const DeliveryChallanHistory = () => {
                             // Simplify overflow pcs (e.g., 5 pcs when 4 per box -> 1 box 1 pc) - rough approximation if mixed pcsPerBox, but usually fine per invoice
                             const holdDisplay = totalHoldPcs > 0 ? `${totalHoldBoxes} + ${totalHoldPcs} Pcs` : `${totalHoldBoxes}`;
 
-                            const isPending = c.status === 'Pending Approval';
-                            const isPartial = c.status === 'Partially Dispatched';
+                            const isPending = !c.status || c.status === 'Pending' || c.status === 'Pending Approval' || c.status === 'Pending Dispatch';
+                            const isPartial = c.status === 'Partially Dispatched' || String(c.status || '').toLowerCase().includes('partial');
                             const isDispatched = c.status === 'Dispatched' || c.status === 'Fully Dispatched';
 
-                            // "Send Rest" appears whenever there are remaining hold items to dispatch (even after printing gate pass or with 0 initial dispatch)
+                            // "Send Rest" appears whenever there are remaining hold items on an approved/printed challan
                             const canSendRest = (totalHoldBoxes > 0 || totalHoldPcs > 0) && (!isPending || c.is_printed);
 
                             return (
