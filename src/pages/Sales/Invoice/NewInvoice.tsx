@@ -49,6 +49,7 @@ const NewInvoice = () => {
   const [recordWalkinCustomer, setRecordWalkinCustomer] = useState<boolean>(true);
   const [selectedRecordedCustomer, setSelectedRecordedCustomer] = useState<string>('');
   const [pendingFormValues, setPendingFormValues] = useState<any>(null);
+  const [isOpeningCustomerModal, setIsOpeningCustomerModal] = useState<boolean>(false);
   const [serverToday, setServerToday] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -1048,11 +1049,13 @@ const NewInvoice = () => {
               setWalkinPhone('');
               setRecordWalkinCustomer(true);
             }
+            setIsOpeningCustomerModal(false);
             setShowCustomerModal(true);
           }}
         >
-          {({ values, handleChange, setFieldValue, errors, touched, submitCount, submitForm }) => {
+          {({ values, handleChange, setFieldValue, errors, touched, submitCount, submitForm, isSubmitting, isValidating }) => {
             const hasAttempted = submitCount > 0;
+            const isModalLoading = isOpeningCustomerModal || isSubmitting || isValidating;
             const currentSubtotalValue = values.items.reduce((acc: number, item: any) => {
               return acc + calculateLineTotals(item, values.taxScenario, values.applyFbrTax).netTotal;
             }, 0) + Number(values.transportCharges || 0) + Number(values.additionalCharges || 0);
@@ -2254,14 +2257,26 @@ const NewInvoice = () => {
                               return;
                             }
                             setSubmitAction('print');
-                            submitForm();
+                            setIsOpeningCustomerModal(true);
+                            submitForm().finally(() => {
+                              setTimeout(() => setIsOpeningCustomerModal(false), 1200);
+                            });
                           }}
-                          disabled={loading || isOverpaid}
+                          disabled={loading || isModalLoading || isOverpaid}
                           className={`rounded-xl py-3 px-6 font-bold text-white transition shadow-md text-xs cursor-pointer flex items-center gap-2 ${
-                            isOverpaid ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-teal-600 hover:bg-teal-700'
+                            isOverpaid || isModalLoading ? 'bg-gray-400 cursor-not-allowed opacity-75' : 'bg-teal-600 hover:bg-teal-700'
                           }`}
                         >
-                          <FiPrinter size={15} /> <span>Save & Print</span>
+                          {isModalLoading && submitAction === 'print' ? (
+                            <>
+                              <Spinner color="border-white" size="w-4 h-4" />
+                              <span>Validating...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FiPrinter size={15} /> <span>Save & Print</span>
+                            </>
+                          )}
                         </button>
 
                         <button
@@ -2272,19 +2287,43 @@ const NewInvoice = () => {
                               return;
                             }
                             setSubmitAction('save');
-                            submitForm();
+                            setIsOpeningCustomerModal(true);
+                            submitForm().finally(() => {
+                              setTimeout(() => setIsOpeningCustomerModal(false), 1200);
+                            });
                           }}
-                          disabled={loading || isOverpaid}
+                          disabled={loading || isModalLoading || isOverpaid}
                           className={`rounded-xl py-3 px-8 font-bold text-white transition shadow-md text-xs cursor-pointer flex items-center gap-2 ${
-                            isOverpaid ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-emerald-600 hover:bg-emerald-700'
+                            isOverpaid || isModalLoading ? 'bg-gray-400 cursor-not-allowed opacity-75' : 'bg-emerald-600 hover:bg-emerald-700'
                           }`}
                         >
-                          {loading ? <Spinner color="border-white" size="w-4 h-4" /> : <><FiCheck size={15} /> <span>{editData ? 'Apply Updates' : 'Log Invoice'}</span></>}
+                          {isModalLoading && submitAction === 'save' ? (
+                            <>
+                              <Spinner color="border-white" size="w-4 h-4" />
+                              <span>Validating...</span>
+                            </>
+                          ) : loading ? (
+                            <Spinner color="border-white" size="w-4 h-4" />
+                          ) : (
+                            <>
+                              <FiCheck size={15} /> <span>{editData ? 'Apply Updates' : 'Log Invoice'}</span>
+                            </>
+                          )}
                         </button>
                       </>
                     );
                   })()}
                 </div>
+
+                {/* MODAL OPENING TOAST INDICATOR */}
+                {isModalLoading && !showCustomerModal && (
+                  <div className="fixed bottom-6 right-6 z-[9998] flex items-center gap-3 bg-white dark:bg-boxdark border border-teal-500/40 shadow-2xl py-3 px-5 rounded-xl animate-fade-in pointer-events-none">
+                    <Spinner color="border-teal-600" size="w-4 h-4" />
+                    <span className="text-xs font-bold text-slate-800 dark:text-white">
+                      Validating invoice & opening client checkout...
+                    </span>
+                  </div>
+                )}
               </Form>
             );
           }}
