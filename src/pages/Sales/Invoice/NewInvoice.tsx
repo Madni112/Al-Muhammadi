@@ -2242,7 +2242,7 @@ const NewInvoice = () => {
                   <div className="w-full md:w-1/3 space-y-2 font-mono font-bold text-xs text-black dark:text-white">
                     <div className="flex justify-between border-b pb-1 dark:border-strokedark">
                       <span>Net Invoice Value Total:</span>
-                      <span>Rs. {currentSubtotalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      <span>Rs. {grossSubtotalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
 
                     {values.showOverallDiscount && (
@@ -2261,6 +2261,13 @@ const NewInvoice = () => {
                           placeholder="0.00"
                           className="w-28 text-right font-black bg-amber-50/40 dark:bg-amber-900/10 border border-amber-300 dark:border-amber-700 rounded p-1 text-xs outline-none focus:border-amber-500 text-amber-700 dark:text-amber-300"
                         />
+                      </div>
+                    )}
+
+                    {values.showOverallDiscount && (
+                      <div className="flex justify-between border-b pb-1 dark:border-strokedark text-green-600 dark:text-green-400 font-black">
+                        <span>Net Invoice Total (After Discount):</span>
+                        <span>Rs. {currentSubtotalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
                     )}
 
