@@ -473,6 +473,18 @@ export const adminRoutes = [
     hideFromSidebar: true
   },
   {
+    path: '/Sales/Invoice/edit/:id',
+    component: <NewInvoice />,
+    label: 'Edit Invoice',
+    hideFromSidebar: true
+  },
+  {
+    path: '/sales/invoice/edit/:id',
+    component: <NewInvoice />,
+    label: 'Edit Invoice',
+    hideFromSidebar: true
+  },
+  {
     path: '/sales/invoice/list',
     component: <SalesHistory />,
     hideFromSidebar: true

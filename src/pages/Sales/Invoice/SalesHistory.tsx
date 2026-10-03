@@ -821,7 +821,7 @@ const SalesHistory = () => {
                   onClick={() => {
                     const invId = previewInvoice.id;
                     setPreviewInvoiceIndex(null);
-                    navigate(`${tenantId ? `/${tenantId}` : ''}/Sales/Invoice/edit/${invId}`);
+                    navigate(`${tenantId ? `/${tenantId}` : ''}/Sales/Invoice/Add`, { state: { invoice: previewInvoice } });
                   }}
                   className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
                 >
