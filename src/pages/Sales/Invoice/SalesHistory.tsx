@@ -29,6 +29,7 @@ const SalesHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [returnedInvoiceNos, setReturnedInvoiceNos] = useState<string[]>([]);
   const [deliveryChallansMap, setDeliveryChallansMap] = useState<Record<string, any[]>>({});
+  const [invoiceBalances, setInvoiceBalances] = useState<Record<string, { received: number; remaining: number }>>({});
 
   // 🌟 Realtime Delivery Challan & Freight Approval Modal State
   const [selectedDcForModal, setSelectedDcForModal] = useState<any | null>(null);
@@ -80,9 +81,13 @@ const SalesHistory = () => {
 
       if (invError) throw invError;
 
+      const { data: vouchersData } = await supabase
+        .from('financial_vouchers')
+        .select('*');
+
       const { data: returnsData, error: retError } = await supabase
         .from('sales_returns')
-        .select('original_invoice_no');
+        .select('*');
 
       if (!retError && returnsData) {
         const cleanList = returnsData
@@ -104,6 +109,150 @@ const SalesHistory = () => {
         }
       });
       setDeliveryChallansMap(dcMap);
+
+      // Group invoices by normalized customer name
+      const customerInvoicesMap: Record<string, any[]> = {};
+      (invoicesData || []).forEach((inv: any) => {
+        const cKey = String(inv.customer_name || inv.customerName || 'walk-in').trim().toLowerCase();
+        if (!customerInvoicesMap[cKey]) customerInvoicesMap[cKey] = [];
+        customerInvoicesMap[cKey].push(inv);
+      });
+
+      // Group vouchers by normalized customer name
+      const customerVouchersMap: Record<string, any[]> = {};
+      (vouchersData || []).forEach((v: any) => {
+        const cKey = String(v.customer_name || v.customerName || v.metadata?.customerName || v.metadata?.customer_name || '').trim().toLowerCase();
+        if (cKey) {
+          if (!customerVouchersMap[cKey]) customerVouchersMap[cKey] = [];
+          customerVouchersMap[cKey].push(v);
+        }
+      });
+
+      // Compute Real-time (Live) Received and Remaining Balances per Invoice (FIFO)
+      const balanceMap: Record<string, { received: number; remaining: number }> = {};
+
+      Object.keys(customerInvoicesMap).forEach((cKey) => {
+        const custInvs = customerInvoicesMap[cKey] || [];
+        // Sort chronologically oldest first for FIFO general clearing
+        const sortedInvs = [...custInvs].sort((a, b) => {
+          const tA = new Date(a.sale_date || a.invoice_date || a.created_at || 0).getTime();
+          const tB = new Date(b.sale_date || b.invoice_date || b.created_at || 0).getTime();
+          return tA - tB || (Number(a.id) - Number(b.id));
+        });
+
+        const custVouchers = customerVouchersMap[cKey] || [];
+
+        // Allocations structure for each invoice
+        const invAlloc: Record<string, { gross: number; upfront: number; specificVouchers: number; generalAllocated: number; specificReturns: number }> = {};
+
+        sortedInvs.forEach((inv) => {
+          const invId = String(inv.id);
+          const gross = Number(inv.total_amount || 0);
+          const upfront = Number(inv.cash_amount_paid || 0) + Number(inv.bank_amount || 0);
+          invAlloc[invId] = {
+            gross,
+            upfront,
+            specificVouchers: 0,
+            generalAllocated: 0,
+            specificReturns: 0
+          };
+        });
+
+        let unallocatedGeneralVouchers = 0;
+
+        // 1. Assign specific vouchers or accumulate general
+        custVouchers.forEach((v) => {
+          const vAmt = Number(v.total_amount || 0);
+          const vRef = String(v.original_invoice_no || v.metadata?.linkedInvoiceNo || '').trim().toLowerCase();
+
+          if (Array.isArray(v.metadata?.invoices) && v.metadata.invoices.length > 0) {
+            v.metadata.invoices.forEach((mi: any) => {
+              const miRef = String(mi.invoice_id || mi.invoice_no || '').trim().toLowerCase();
+              const matched = sortedInvs.find(i => 
+                String(i.id) === miRef ||
+                String(i.invoice_no || '').trim().toLowerCase() === miRef ||
+                `inv-${String(i.id).padStart(4, '0')}`.toLowerCase() === miRef
+              );
+              if (matched && invAlloc[String(matched.id)]) {
+                invAlloc[String(matched.id)].specificVouchers += Number(mi.amount_paid || mi.received_amount || mi.amountToAllocate || 0);
+              }
+            });
+          } else if (Array.isArray(v.metadata?.allocations) && v.metadata.allocations.length > 0) {
+            v.metadata.allocations.forEach((al: any) => {
+              const alRef = String(al.invoiceId || al.invoiceNo || '').trim().toLowerCase();
+              const matched = sortedInvs.find(i => 
+                String(i.id) === alRef ||
+                String(i.invoice_no || '').trim().toLowerCase() === alRef ||
+                `inv-${String(i.id).padStart(4, '0')}`.toLowerCase() === alRef
+              );
+              if (matched && invAlloc[String(matched.id)]) {
+                invAlloc[String(matched.id)].specificVouchers += Number(al.amountToAllocate || al.amount || 0);
+              }
+            });
+          } else if (vRef && !vRef.includes('general')) {
+            const cleanRef = vRef.replace(/\D/g, '');
+            const matched = sortedInvs.find(i => 
+              String(i.invoice_no || '').trim().toLowerCase() === vRef ||
+              String(i.id) === vRef ||
+              (cleanRef && String(i.id) === cleanRef) ||
+              `inv-${String(i.id).padStart(4, '0')}`.toLowerCase() === vRef
+            );
+            if (matched && invAlloc[String(matched.id)]) {
+              invAlloc[String(matched.id)].specificVouchers += vAmt;
+            } else {
+              unallocatedGeneralVouchers += vAmt;
+            }
+          } else {
+            unallocatedGeneralVouchers += vAmt;
+          }
+        });
+
+        // 2. Assign specific returns
+        (returnsData || []).forEach((r: any) => {
+          const rRef = String(r.original_invoice_no || '').trim().toLowerCase();
+          if (rRef) {
+            const cleanRef = rRef.replace(/\D/g, '');
+            const matched = sortedInvs.find(i => 
+              String(i.invoice_no || '').trim().toLowerCase() === rRef ||
+              String(i.id) === rRef ||
+              (cleanRef && String(i.id) === cleanRef) ||
+              `inv-${String(i.id).padStart(4, '0')}`.toLowerCase() === rRef
+            );
+            if (matched && invAlloc[String(matched.id)]) {
+              invAlloc[String(matched.id)].specificReturns += Number(r.total_amount || 0);
+            }
+          }
+        });
+
+        // 3. FIFO distribution of general unallocated vouchers
+        let pool = unallocatedGeneralVouchers;
+        sortedInvs.forEach((inv) => {
+          const invId = String(inv.id);
+          const alloc = invAlloc[invId];
+          if (alloc && pool > 0) {
+            const dueBeforeGen = Math.max(0, alloc.gross - alloc.upfront - alloc.specificReturns - alloc.specificVouchers);
+            if (dueBeforeGen > 0) {
+              const take = Math.min(dueBeforeGen, pool);
+              alloc.generalAllocated += take;
+              pool -= take;
+            }
+          }
+        });
+
+        // 4. Save to balanceMap
+        sortedInvs.forEach((inv) => {
+          const invId = String(inv.id);
+          const alloc = invAlloc[invId];
+          const totalReceived = alloc.upfront + alloc.specificVouchers + alloc.generalAllocated;
+          const remaining = Math.max(0, alloc.gross - totalReceived - alloc.specificReturns);
+          balanceMap[invId] = {
+            received: totalReceived,
+            remaining: remaining
+          };
+        });
+      });
+
+      setInvoiceBalances(balanceMap);
 
       setInvoices(invoicesData || []);
     } catch (err: any) {
@@ -229,7 +378,13 @@ const SalesHistory = () => {
             bVal = b.sale_date || b.created_at;
         }
 
-        if (['total_amount', 'cash_amount_paid', 'bank_amount', 'id'].includes(sortConfig.key)) {
+        if (sortConfig.key === 'cash_amount_paid' || sortConfig.key === 'amount_received') {
+          aVal = invoiceBalances[String(a.id)]?.received ?? Number(a.cash_amount_paid || 0);
+          bVal = invoiceBalances[String(b.id)]?.received ?? Number(b.cash_amount_paid || 0);
+        } else if (sortConfig.key === 'remaining') {
+          aVal = invoiceBalances[String(a.id)]?.remaining ?? Math.max(0, Number(a.total_amount || 0) - Number(a.cash_amount_paid || 0));
+          bVal = invoiceBalances[String(b.id)]?.remaining ?? Math.max(0, Number(b.total_amount || 0) - Number(b.cash_amount_paid || 0));
+        } else if (['total_amount', 'bank_amount', 'id'].includes(sortConfig.key)) {
           aVal = Number(aVal) || 0;
           bVal = Number(bVal) || 0;
         } else if (typeof aVal === 'string') {
@@ -243,7 +398,7 @@ const SalesHistory = () => {
       });
     }
     return result;
-  }, [invoices, searchTerm, sortConfig]);
+  }, [invoices, searchTerm, sortConfig, invoiceBalances]);
 
   const handlePrevInvoice = () => {
     if (previewInvoiceIndex !== null && previewInvoiceIndex > 0) {
@@ -771,7 +926,7 @@ const SalesHistory = () => {
                   </p>
                 </div>
 
-                <div className="w-full sm:w-72 bg-slate-50 dark:bg-meta-4/20 p-3.5 rounded-xl border border-stroke dark:border-strokedark space-y-2 text-xs">
+                <div className="w-full sm:w-80 bg-slate-50 dark:bg-meta-4/20 p-3.5 rounded-xl border border-stroke dark:border-strokedark space-y-2 text-xs">
                   <div className="flex justify-between text-slate-500 dark:text-slate-400">
                     <span>Gross Amount:</span>
                     <span className="font-mono font-bold text-black dark:text-white">
@@ -786,8 +941,20 @@ const SalesHistory = () => {
                   )}
                   <div className="border-t border-stroke dark:border-strokedark pt-2 flex justify-between items-center">
                     <span className="font-bold text-black dark:text-white text-sm">Grand Total:</span>
-                    <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-base">
-                      Rs. {Number(previewInvoice.total_amount || 0).toLocaleString()}
+                    <span className="font-mono font-black text-slate-900 dark:text-white text-sm">
+                      Rs. {Number(previewInvoice.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400 font-bold">
+                    <span>Amount Received (Live):</span>
+                    <span className="font-mono font-black">
+                      Rs. {(invoiceBalances[String(previewInvoice.id)]?.received ?? (Number(previewInvoice.cash_amount_paid || 0) + Number(previewInvoice.bank_amount || 0))).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center font-bold">
+                    <span className="text-slate-700 dark:text-slate-300">Remaining Balance (Live):</span>
+                    <span className={`font-mono font-black ${(invoiceBalances[String(previewInvoice.id)]?.remaining ?? 0) > 0.01 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                      Rs. {(invoiceBalances[String(previewInvoice.id)]?.remaining ?? Math.max(0, Number(previewInvoice.total_amount || 0) - (Number(previewInvoice.cash_amount_paid || 0) + Number(previewInvoice.bank_amount || 0)))).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
@@ -897,13 +1064,14 @@ const SalesHistory = () => {
                 <th className="py-3.5 px-4 text-center cursor-pointer select-none whitespace-nowrap" onClick={() => handleSort('receipt_status')}>Status <span className={sortConfig?.key === 'receipt_status' ? 'opacity-100' : 'opacity-0'}>{sortConfig?.key === 'receipt_status' && sortConfig.direction === 'desc' ? '↓' : '↑'}</span></th>
                 <th className="py-3.5 px-4 text-right pr-3 cursor-pointer select-none whitespace-nowrap" onClick={() => handleSort('cash_amount_paid')}>Amount Received <span className={sortConfig?.key === 'cash_amount_paid' ? 'opacity-100' : 'opacity-0'}>{sortConfig?.key === 'cash_amount_paid' && sortConfig.direction === 'desc' ? '↓' : '↑'}</span></th>
                 <th className="py-3.5 px-4 text-right pr-3 cursor-pointer select-none whitespace-nowrap" onClick={() => handleSort('total_amount')}>Total Net Amount <span className={sortConfig?.key === 'total_amount' ? 'opacity-100' : 'opacity-0'}>{sortConfig?.key === 'total_amount' && sortConfig.direction === 'desc' ? '↓' : '↑'}</span></th>
+                <th className="py-3.5 px-4 text-right pr-3 cursor-pointer select-none whitespace-nowrap" onClick={() => handleSort('remaining')}>Remaining <span className={sortConfig?.key === 'remaining' ? 'opacity-100' : 'opacity-0'}>{sortConfig?.key === 'remaining' && sortConfig.direction === 'desc' ? '↓' : '↑'}</span></th>
                 <th className="py-3.5 px-4 text-center w-14">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="text-center py-14">
+                  <td colSpan={11} className="text-center py-14">
                     <div className="flex flex-col items-center justify-center gap-2.5">
                       <Spinner size="w-8 h-8" color="border-primary" />
                       <span className="text-xs font-bold text-slate-500 dark:text-slate-400 animate-pulse">
@@ -913,7 +1081,7 @@ const SalesHistory = () => {
                   </td>
                 </tr>
               ) : paginatedInvoices.length === 0 ? (
-                <tr><td colSpan={10} className="text-center py-10 text-xs text-slate-400 italic">No invoice records found.</td></tr>
+                <tr><td colSpan={11} className="text-center py-10 text-xs text-slate-400 italic">No invoice records found.</td></tr>
               ) : (
                 paginatedInvoices.map((inv) => {
                   const rawInvoiceIdString = String(inv.id).trim().toLowerCase();
@@ -931,6 +1099,14 @@ const SalesHistory = () => {
                   const invoiceKey = `inv-${paddedInvoiceIdString}`;
                   const customInvKey = String(inv.invoice_no || '').trim().toLowerCase();
                   const linkedDCs = deliveryChallansMap[customInvKey] || deliveryChallansMap[invoiceKey] || deliveryChallansMap[`inv-${inv.id}`] || [];
+
+                  const balanceInfo = invoiceBalances[String(inv.id)] || {
+                    received: Number(inv.cash_amount_paid || 0) + Number(inv.bank_amount || 0),
+                    remaining: Math.max(0, Number(inv.total_amount || 0) - (Number(inv.cash_amount_paid || 0) + Number(inv.bank_amount || 0)))
+                  };
+                  const liveReceived = balanceInfo.received;
+                  const liveRemaining = balanceInfo.remaining;
+                  const isFullyPaid = liveRemaining <= 0.01 || String(inv.receipt_status || '').toLowerCase() === 'paid' || String(inv.payment_term || '').toLowerCase() === 'cash';
 
                   return (
                     <tr key={inv.id} className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 duration-150">
@@ -1001,30 +1177,41 @@ const SalesHistory = () => {
                       </td>
                       <td className="py-3 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">{inv.sale_date || new Date(inv.created_at).toLocaleDateString()}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className={`inline-flex rounded-full py-0.5 px-2.5 text-[10px] font-bold uppercase tracking-wide ${inv.payment_term === 'Cash' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'}`}>
-                          {inv.payment_term === 'Cash' ? 'Cash' : 'On Credit'}
-                        </span>
+                        {(() => {
+                          const term = String(inv.payment_term || '').toLowerCase();
+                          const isCashOrBank = term.includes('cash') || term.includes('bank');
+                          return (
+                            <span className={`inline-flex rounded-full py-0.5 px-2.5 text-[10px] font-bold uppercase tracking-wide border ${isCashOrBank ? 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'}`}>
+                              {inv.payment_term || 'On Credit'}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap">{inv.salesman || 'General'}</td>
                       <td className="py-3 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">{inv.customer_name}</td>
 
                       <td className="py-3 px-4 text-center">
                         {isReturned ? (
-                          <span className="text-[10px] font-black uppercase tracking-wide bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
+                          <span className="text-[10px] font-black uppercase tracking-wide bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
                             Returned
                           </span>
                         ) : (
-                          <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${inv.receipt_status === 'Paid' || inv.receipt_status === 'Confirm' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'}`}>
-                            {inv.receipt_status || 'Unpaid'}
+                          <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border ${isFullyPaid ? 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30' : liveReceived > 0 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'}`}>
+                            {isFullyPaid ? 'Paid' : liveReceived > 0 ? 'Partial' : (inv.receipt_status || 'On Credit')}
                           </span>
                         )}
                       </td>
 
-                      <td className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400 font-mono pr-3">
-                        Rs. {Number(inv.cash_amount_paid || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      <td className="py-3 px-4 text-right font-bold text-slate-800 dark:text-slate-200 font-mono pr-3">
+                        Rs. {liveReceived.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                       <td className="py-3 px-4 text-right font-black text-slate-900 dark:text-white font-mono pr-3">
                         Rs. {Number(inv.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-3 px-4 text-right font-black font-mono pr-3">
+                        <span className={isFullyPaid ? 'text-green-600 dark:text-green-400 font-bold' : liveReceived > 0 ? 'text-amber-500 dark:text-amber-400 font-bold' : 'text-rose-600 dark:text-rose-400 font-bold'}>
+                          Rs. {(isFullyPaid ? 0 : liveRemaining).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
                       </td>
                       <td className="py-3 px-4 text-center">
                         <TableActions
