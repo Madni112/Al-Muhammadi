@@ -246,9 +246,14 @@ const Categories = () => {
                             <SearchableDropdown
                                 value={parentCategories.find(c => c.id.toString() === selectedParentId.toString())?.name || ''}
                                 onChange={(val) => {
+                                    if (!val) {
+                                        setSelectedParentId('');
+                                        setSelectedSubId('');
+                                        return;
+                                    }
                                     const cat = parentCategories.find(c => c.name === val);
                                     setSelectedParentId(cat ? cat.id.toString() : '');
-                                    setSelectedSubId(''); // Manually cascade reset
+                                    setSelectedSubId('');
                                 }}
                                 options={parentCategories.map(c => c.name)}
                                 placeholder="Parent Category"
@@ -276,6 +281,10 @@ const Categories = () => {
                             <SearchableDropdown
                                 value={subCategories.find(c => c.id.toString() === selectedSubId.toString())?.name || ''}
                                 onChange={(val) => {
+                                    if (!val) {
+                                        setSelectedSubId('');
+                                        return;
+                                    }
                                     const cat = subCategories.find(c => c.name === val);
                                     setSelectedSubId(cat ? cat.id.toString() : '');
                                 }}

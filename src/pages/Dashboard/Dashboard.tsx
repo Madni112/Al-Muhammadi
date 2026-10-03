@@ -179,6 +179,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialView = 'executive' }) => {
   const [selectedWarehouseGuy, setSelectedWarehouseGuy] = useState<string>('All');
   const [selectedHoldingInvoice, setSelectedHoldingInvoice] = useState<string>('All');
   const [liquidityTab, setLiquidityTab] = useState<'bank' | 'cash'>('bank');
+  const [stockModalView, setStockModalView] = useState<'allTime' | 'thisMonth'>('allTime');
   const [activeBreakdownModal, setActiveBreakdownModal] = useState<'cash' | 'bank' | 'receivables' | 'stock' | null>(null);
 
   // Customer Sales Graph Data
@@ -1498,53 +1499,177 @@ const Dashboard: React.FC<DashboardProps> = ({ initialView = 'executive' }) => {
               {activeBreakdownModal === 'stock' && (
                 <div className="space-y-4">
                   {/* Big Hero Card */}
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white shadow-md">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-emerald-100">Current Physical Stock Valuation</span>
-                    <div className="text-3xl font-black mt-1 font-mono tracking-tight">
-                      Rs. {metrics.inventoryAssetValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 text-white shadow-md relative overflow-hidden">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">Current Physical Stock Valuation</span>
+                        <div className="text-3xl font-black mt-1 font-mono tracking-tight text-white">
+                          Rs. {metrics.inventoryAssetValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 block">Total Inventory</span>
+                        <span className="font-mono font-black text-lg text-white">
+                          {(metrics.totalStockUnits || 0).toLocaleString()} Units
+                        </span>
+                      </div>
                     </div>
-                    <span className="inline-block mt-2 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/20 text-white">
-                      100% Synced with Stock Valuation Registry
-                    </span>
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/20 text-white">
+                        ✓ 100% Synced with Live Stock Registry
+                      </span>
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">
+                        Evaluated at Selling Price
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Math Audit Trail */}
-                  <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 p-4 space-y-3 font-mono text-xs">
-                    <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
-                      <span className="text-slate-600 dark:text-slate-300">1. Month Opening Stock (Sept 1st):</span>
-                      <span className="font-bold text-slate-900 dark:text-white font-mono">
-                        Rs. {metrics.monthOpeningStockValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
-                      <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                        <span>➕</span> Month Purchases (Inflow):
-                      </span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                        +Rs. {metrics.thisMonthStockInflowVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
-                      <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                        <span>➖</span> Month Sales (Dispatches):
-                      </span>
-                      <span className="font-bold text-rose-600 dark:text-rose-400 font-mono">
-                        -Rs. {metrics.thisMonthStockOutflowVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans bg-slate-100/70 dark:bg-slate-700/30 px-2 rounded-lg">
-                      <span className="text-slate-700 dark:text-slate-200 font-bold">Month-to-Date Net Movement:</span>
-                      <span className={`font-black font-mono ${metrics.thisMonthStockMovement < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                        {metrics.thisMonthStockMovement < 0 ? '-' : '+'}Rs. {Math.abs(metrics.thisMonthStockMovement).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center pt-2 font-sans font-bold text-sm">
-                      <span className="text-slate-900 dark:text-white">Current Physical Stock:</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-mono text-base font-black">
-                        Rs. {metrics.inventoryAssetValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
+                  {/* 2 Tabs Switcher */}
+                  <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <button
+                      type="button"
+                      onClick={() => setStockModalView('allTime')}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                        stockModalView === 'allTime'
+                          ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <span>📦 All-Time Inventory Audit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStockModalView('thisMonth')}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                        stockModalView === 'thisMonth'
+                          ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <span>🗓️ This Month ({new Date().toLocaleString('default', { month: 'short' })}) Movement</span>
+                    </button>
                   </div>
+
+                  {/* TAB 1: ALL-TIME AUDIT TRAIL */}
+                  {stockModalView === 'allTime' && (
+                    <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 p-4 space-y-2.5 font-mono text-xs">
+                      <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
+                        <span className="text-slate-600 dark:text-slate-300 font-medium">1. Initial Opening Stock (Registered):</span>
+                        <span className="font-bold text-slate-900 dark:text-white font-mono">
+                          Rs. {(metrics.baseOpeningStockValue || metrics.monthOpeningStockValue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                          <span>➕</span> Total Supplier Purchases (Inflow):
+                        </span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                          +Rs. {(metrics.totalPurchasesStockVal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
+                        <span className="text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
+                          <span>➖</span> Total Sales Invoices (Outflow):
+                        </span>
+                        <span className="font-bold text-rose-600 dark:text-rose-400 font-mono">
+                          -Rs. {(metrics.totalSalesStockVal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      {Number(metrics.totalSalesReturnsStockVal || 0) > 0 && (
+                        <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                            <span>🔄</span> Total Sales Returns (Restored):
+                          </span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                            +Rs. {(metrics.totalSalesReturnsStockVal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center pt-2 font-sans font-bold text-sm bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40">
+                        <span className="text-slate-900 dark:text-white">Current Physical Stock:</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-mono text-base font-black">
+                          Rs. {metrics.inventoryAssetValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 2: THIS MONTH'S MOVEMENT */}
+                  {stockModalView === 'thisMonth' && (
+                    <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 p-4 space-y-2.5 font-mono text-xs">
+                      <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
+                        <span className="text-slate-600 dark:text-slate-300 font-medium">1. Month Opening Stock ({new Date().toLocaleString('default', { month: 'short' })} 1st):</span>
+                        <span className="font-bold text-slate-900 dark:text-white font-mono">
+                          Rs. {metrics.monthOpeningStockValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                          <span>➕</span> Month Purchases (Inflow):
+                        </span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                          +Rs. {metrics.thisMonthStockInflowVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans">
+                        <span className="text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
+                          <span>➖</span> Month Sales (Dispatches):
+                        </span>
+                        <span className="font-bold text-rose-600 dark:text-rose-400 font-mono">
+                          -Rs. {metrics.thisMonthStockOutflowVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-sans bg-slate-100/70 dark:bg-slate-700/30 px-2 rounded-lg">
+                        <span className="text-slate-700 dark:text-slate-200 font-bold">Month-to-Date Net Movement:</span>
+                        <span className={`font-black font-mono ${metrics.thisMonthStockMovement < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                          {metrics.thisMonthStockMovement < 0 ? '-' : '+'}Rs. {Math.abs(metrics.thisMonthStockMovement).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 font-sans font-bold text-sm bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40">
+                        <span className="text-slate-900 dark:text-white">Current Physical Stock:</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-mono text-base font-black">
+                          Rs. {metrics.inventoryAssetValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Top Inventory Valuation Assets List */}
+                  {metrics.topStockProducts && metrics.topStockProducts.length > 0 && (
+                    <div className="border border-slate-200 dark:border-slate-700/60 rounded-2xl p-3 bg-white dark:bg-slate-800/40 space-y-2">
+                      <div className="flex justify-between items-center pb-1 border-b border-slate-100 dark:border-slate-700">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Top Stock Assets (By Value)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveBreakdownModal(null);
+                            navigate(`${tenantId ? `/${tenantId}` : ''}/Reports/Stock Report`);
+                          }}
+                          className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          Full Report →
+                        </button>
+                      </div>
+                      <div className="space-y-1.5 text-xs">
+                        {metrics.topStockProducts.map((p: any, idx: number) => (
+                          <div key={idx} className="flex justify-between items-center py-1 px-2 rounded-lg bg-slate-50 dark:bg-slate-700/30">
+                            <div className="flex items-center gap-2 truncate pr-2">
+                              <span className="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-600 text-[10px] font-bold flex items-center justify-center text-slate-700 dark:text-slate-200 shrink-0">
+                                {idx + 1}
+                              </span>
+                              <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{p.name}</span>
+                              <span className="text-[10px] text-slate-400 font-mono shrink-0">({p.qty} pcs @ Rs. {p.unitPrice})</span>
+                            </div>
+                            <span className="font-mono font-black text-slate-900 dark:text-white shrink-0">
+                              Rs. {p.totalValuation.toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MdSearch } from 'react-icons/md';
+import { MdSearch, MdClose, MdKeyboardArrowDown } from 'react-icons/md';
 
 interface SearchableDropdownProps {
   label?: string;
@@ -10,6 +10,7 @@ interface SearchableDropdownProps {
   className?: string;
   allLabel?: string;
   allowAll?: boolean;
+  allowClear?: boolean;
   disabled?: boolean;
 }
 
@@ -22,6 +23,7 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   className = '',
   allLabel,
   allowAll = true,
+  allowClear = true,
   disabled = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +57,10 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
       ? placeholder
       : `All ${placeholder.endsWith('y') ? placeholder.slice(0, -1) + 'ies' : placeholder.endsWith('s') ? placeholder : placeholder + 's'}`
   );
-  const totalCount = allowAll ? filtered.length + 1 : filtered.length;
+
+  const showDeselect = !allowAll && allowClear;
+  const extraTopItemsCount = allowAll ? 1 : showDeselect ? 1 : 0;
+  const totalCount = filtered.length + extraTopItemsCount;
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen || disabled) {
@@ -68,16 +73,18 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightedIndex(prev => (prev + 1) % totalCount);
+      setHighlightedIndex(prev => (prev + 1) % (totalCount || 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setHighlightedIndex(prev => (prev - 1 + totalCount) % totalCount);
+      setHighlightedIndex(prev => (prev - 1 + (totalCount || 1)) % (totalCount || 1));
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (allowAll && highlightedIndex === 0) {
         onChange('All');
+      } else if (showDeselect && highlightedIndex === 0) {
+        onChange('');
       } else {
-        const offset = allowAll ? 1 : 0;
+        const offset = extraTopItemsCount;
         const selectedOpt = filtered[highlightedIndex - offset];
         if (selectedOpt) onChange(selectedOpt);
       }
@@ -106,9 +113,26 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
         tabIndex={disabled ? -1 : 0}
         className={`w-full rounded-lg border border-stroke dark:border-strokedark bg-transparent p-2 font-semibold text-xs text-black dark:text-white flex justify-between items-center transition select-none min-h-[34px] outline-none ${disabled ? 'bg-slate-50 dark:bg-slate-800' : 'cursor-pointer hover:border-primary focus:border-primary'}`}
       >
-        <span className="truncate">
+        <span className={`truncate flex-1 ${!value ? 'text-gray-400 font-normal' : ''}`}>
           {value === 'All' && allowAll ? `${defaultAllText} (${options.length})` : value || `-- Select ${placeholder} --`}
         </span>
+        <div className="flex items-center gap-1 shrink-0 ml-1.5">
+          {value && !disabled && allowClear && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange('');
+                setQuery('');
+              }}
+              className="text-gray-400 hover:text-rose-500 p-0.5 rounded transition cursor-pointer"
+              title="Deselect / Clear selection"
+            >
+              <MdClose size={15} />
+            </button>
+          )}
+          <MdKeyboardArrowDown className={`transition-transform duration-200 text-gray-400 ${isOpen ? 'rotate-180' : ''}`} size={18} />
+        </div>
       </div>
 
       {isOpen && !disabled && (
@@ -140,9 +164,23 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
               </div>
             )}
 
+            {showDeselect && (
+              <div
+                onClick={() => { onChange(''); setIsOpen(false); setQuery(''); }}
+                className={`p-2 rounded-lg cursor-pointer text-xs flex items-center gap-1.5 transition italic ${
+                  highlightedIndex === 0 || !value
+                    ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-bold'
+                    : 'hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-500 dark:text-rose-400'
+                }`}
+              >
+                <MdClose size={13} className="shrink-0" />
+                <span>-- None / Deselect --</span>
+              </div>
+            )}
+
             {filtered.length > 0 ? (
               filtered.map((opt, idx) => {
-                const offset = allowAll ? 1 : 0;
+                const offset = extraTopItemsCount;
                 const isHighlighted = highlightedIndex === idx + offset;
                 const isSelected = value === opt;
                 return (

@@ -11,7 +11,22 @@ export interface BankBalanceItem {
   netBalance: number;
 }
 
+export interface TopStockProduct {
+  id: string | number;
+  name: string;
+  qty: number;
+  unitPrice: number;
+  totalValuation: number;
+}
+
 export interface FinancialSummary {
+  baseOpeningStockValue: number;
+  totalPurchasesStockVal: number;
+  totalSalesStockVal: number;
+  totalSalesReturnsStockVal: number;
+  totalPurchaseReturnsStockVal: number;
+  totalStockUnits: number;
+  topStockProducts: TopStockProduct[];
   cashBalance: number;
   totalCashInflow: number;
   totalCashOutflow: number;
@@ -432,44 +447,138 @@ export const fetchFinancialMetrics = async (): Promise<FinancialSummary> => {
     let thisMonthStockOutflowVal = 0;
     let thisMonthStockMovement = 0;
 
+    let baseOpeningStockValue = 0;
+    let totalPurchasesStockVal = 0;
+    let totalSalesStockVal = 0;
+    let totalSalesReturnsStockVal = 0;
+    let totalPurchaseReturnsStockVal = 0;
+    let totalStockUnits = 0;
+    const productValuationList: TopStockProduct[] = [];
+
     const priceMap: Record<string, number> = {};
     productsList.forEach((p: any) => {
       const nameKey = String(p.product_name || p.name || '').trim().toLowerCase();
       priceMap[nameKey] = Number(p.retail_price || p.sale_price || 0);
     });
 
-    if (dynamicStockList.length > 0) {
-      dynamicStockList.forEach((stock: any) => {
-        const nameKey = String(stock.product_name || '').trim().toLowerCase();
-        const unitPrice = priceMap[nameKey] || 0;
-        const computedOpening = Number(stock.opening_stock || 0) + Number(stock.prior_in || 0) - Number(stock.prior_out || 0);
-        const purchases = Number(stock.period_purchases || 0);
-        const salesReturns = Number(stock.period_sales_returns || 0);
-        const sales = Number(stock.period_sales || 0);
-        const purchaseReturns = Number(stock.period_purchase_returns || 0);
+    // Compute comprehensive stock valuation across all products
+    (productsList || []).forEach((p: any) => {
+      const pName = String(p.product_name || p.name || '').trim().toLowerCase();
+      const unitPrice = priceMap[pName] || Number(p.retail_price || p.sale_price || 0);
 
-        const netStockIn = purchases + salesReturns;
-        const netStockOut = sales + purchaseReturns;
-        const remainingStock = computedOpening + (netStockIn - netStockOut);
+      // 1. Initial Opening Stock from opening_stocks table
+      const prodOs = (openStocksList || []).filter((o: any) => String(o.product_name || o.item_name || o.itemName || '').trim().toLowerCase() === pName);
+      const osQty = prodOs.reduce((acc: number, o: any) => acc + Number(o.quantity || o.qty || 0), 0);
 
-        inventoryAssetValue += (remainingStock * unitPrice);
-        monthOpeningStockValue += (computedOpening * unitPrice);
-        thisMonthStockInflowVal += (netStockIn * unitPrice);
-        thisMonthStockOutflowVal += (netStockOut * unitPrice);
-        thisMonthStockMovement += ((netStockIn - netStockOut) * unitPrice);
+      // 2. Purchases Prior vs This Month
+      let priorPurchases = 0;
+      let thisMonthPurchases = 0;
+      (purchasesList || []).forEach((pur: any) => {
+        const pDate = String(pur.created_at || pur.purchase_date || '').split('T')[0];
+        const items = Array.isArray(pur.items) ? pur.items : (typeof pur.items === 'string' ? JSON.parse(pur.items || '[]') : []);
+        items.forEach((it: any) => {
+          const itName = String(it.product_name || it.itemName || it.itemDetails || '').trim().toLowerCase();
+          if (itName === pName) {
+            const q = Number(it.quantity || it.qty || 0);
+            if (pDate && pDate < startOfCurrentMonthStr) {
+              priorPurchases += q;
+            } else {
+              thisMonthPurchases += q;
+            }
+          }
+        });
       });
-    } else {
-      openStocksList.forEach((invItem: any) => {
-        const qty = Number(invItem.quantity || invItem.qty || 0);
-        const pName = String(invItem.product_name || invItem.itemName || '').trim().toLowerCase();
-        const unitPrice = priceMap[pName] || Number(invItem.retail_price || invItem.sale_price || 0);
-        inventoryAssetValue += (qty * unitPrice);
+
+      // 3. Sales Prior vs This Month
+      let priorSales = 0;
+      let thisMonthSales = 0;
+      (invoicesList || []).forEach((inv: any) => {
+        const iDate = String(inv.created_at || inv.sale_date || inv.invoice_date || '').split('T')[0];
+        const items = Array.isArray(inv.items) ? inv.items : (typeof inv.items === 'string' ? JSON.parse(inv.items || '[]') : []);
+        items.forEach((it: any) => {
+          const itName = String(it.product_name || it.itemName || it.pDescription || '').trim().toLowerCase();
+          if (itName === pName) {
+            const q = Number(it.qty || it.quantity || 0);
+            if (iDate && iDate < startOfCurrentMonthStr) {
+              priorSales += q;
+            } else {
+              thisMonthSales += q;
+            }
+          }
+        });
       });
-      monthOpeningStockValue = inventoryAssetValue;
-      thisMonthStockInflowVal = thisMonthPurchases;
-      thisMonthStockOutflowVal = thisMonthSales;
-      thisMonthStockMovement = thisMonthPurchases - thisMonthSales;
-    }
+
+      // 4. Sales Returns Prior vs This Month
+      let priorSalesReturns = 0;
+      let thisMonthSalesReturns = 0;
+      (salesReturnsList || []).forEach((sr: any) => {
+        const rDate = String(sr.created_at || sr.return_date || '').split('T')[0];
+        const items = Array.isArray(sr.items) ? sr.items : (typeof sr.items === 'string' ? JSON.parse(sr.items || '[]') : []);
+        items.forEach((it: any) => {
+          const itName = String(it.product_name || it.item_name || it.itemName || '').trim().toLowerCase();
+          if (itName === pName) {
+            const q = Number(it.quantity || it.qty || 0);
+            if (rDate && rDate < startOfCurrentMonthStr) {
+              priorSalesReturns += q;
+            } else {
+              thisMonthSalesReturns += q;
+            }
+          }
+        });
+      });
+
+      // 5. Purchase Returns Prior vs This Month
+      let priorPurchaseReturns = 0;
+      let thisMonthPurchaseReturns = 0;
+      (purchaseReturnsList || []).forEach((pr: any) => {
+        const prDate = String(pr.created_at || pr.return_date || '').split('T')[0];
+        const items = Array.isArray(pr.items) ? pr.items : (typeof pr.items === 'string' ? JSON.parse(pr.items || '[]') : []);
+        items.forEach((it: any) => {
+          const itName = String(it.product_name || it.item_name || it.itemName || '').trim().toLowerCase();
+          if (itName === pName) {
+            const q = Number(it.quantity || it.qty || 0);
+            if (prDate && prDate < startOfCurrentMonthStr) {
+              priorPurchaseReturns += q;
+            } else {
+              thisMonthPurchaseReturns += q;
+            }
+          }
+        });
+      });
+
+      // Formula: Opening Stock at month start = Initial OS + Prior In - Prior Out
+      const monthOpeningQty = osQty + priorPurchases - priorSales + priorSalesReturns - priorPurchaseReturns;
+      const netThisMonthIn = thisMonthPurchases + thisMonthSalesReturns;
+      const netThisMonthOut = thisMonthSales + thisMonthPurchaseReturns;
+      const currentPhysicalQty = monthOpeningQty + netThisMonthIn - netThisMonthOut;
+
+      // Monthly Accumulations
+      monthOpeningStockValue += (monthOpeningQty * unitPrice);
+      thisMonthStockInflowVal += (netThisMonthIn * unitPrice);
+      thisMonthStockOutflowVal += (netThisMonthOut * unitPrice);
+      inventoryAssetValue += (currentPhysicalQty * unitPrice);
+
+      // All-Time / Lifecycle Accumulations
+      baseOpeningStockValue += (osQty * unitPrice);
+      totalPurchasesStockVal += ((priorPurchases + thisMonthPurchases) * unitPrice);
+      totalSalesStockVal += ((priorSales + thisMonthSales) * unitPrice);
+      totalSalesReturnsStockVal += ((priorSalesReturns + thisMonthSalesReturns) * unitPrice);
+      totalPurchaseReturnsStockVal += ((priorPurchaseReturns + thisMonthPurchaseReturns) * unitPrice);
+      totalStockUnits += currentPhysicalQty;
+
+      if (currentPhysicalQty > 0) {
+        productValuationList.push({
+          id: p.id || pName,
+          name: p.product_name || pName,
+          qty: currentPhysicalQty,
+          unitPrice,
+          totalValuation: currentPhysicalQty * unitPrice
+        });
+      }
+    });
+
+    thisMonthStockMovement = thisMonthStockInflowVal - thisMonthStockOutflowVal;
+    const topStockProducts = productValuationList.sort((a, b) => b.totalValuation - a.totalValuation).slice(0, 4);
 
     // --- 6. Balance Sheet Equation Totals ---
     const totalAssets = netCashBalance + totalBankBalance + totalReceivables + inventoryAssetValue;
@@ -571,6 +680,13 @@ export const fetchFinancialMetrics = async (): Promise<FinancialSummary> => {
       thisMonthStockInflowVal,
       thisMonthStockOutflowVal,
       thisMonthStockMovement,
+      baseOpeningStockValue,
+      totalPurchasesStockVal,
+      totalSalesStockVal,
+      totalSalesReturnsStockVal,
+      totalPurchaseReturnsStockVal,
+      totalStockUnits,
+      topStockProducts,
       totalAssets,
       thisMonthAssets,
       totalLiabilities,
