@@ -217,7 +217,14 @@ const PrintInvoice = () => {
 
   const freightCharges = Number(invoice.transport_charges || 0);
   const additionalCharges = Number(invoice.additional_charges || 0);
-  const grandTotal = computedTotalNet + freightCharges + additionalCharges;
+  const parsedItemsList = Array.isArray(invoice.items) ? invoice.items : (typeof invoice.items === 'string' ? JSON.parse(invoice.items || '[]') : []);
+  const overallDiscount = Number(
+    (invoice as any).overall_discount ||
+    (invoice as any).discount_amount ||
+    parsedItemsList.find((i: any) => i._overallDiscount !== undefined)?._overallDiscount ||
+    0
+  );
+  const grandTotal = Math.max(0, computedTotalNet + freightCharges + additionalCharges - overallDiscount);
   const cashPaid = Number(invoice.cash_amount_paid || 0);
   const bankPaid = Number(invoice.bank_amount || 0);
   const totalPaid = (cashPaid > 0 && bankPaid > 0) ? (cashPaid + bankPaid) : (cashPaid > 0 ? cashPaid : (bankPaid > 0 ? bankPaid : Number(invoice.cash_amount_paid || invoice.bank_amount || 0)));
@@ -480,8 +487,15 @@ const PrintInvoice = () => {
 
             {computedTotalDiscount > 0 && (
               <div className="flex justify-between text-amber-700 font-semibold">
-                <span>Total Discount Allowed:</span>
+                <span>Item Discounts Allowed:</span>
                 <span>- Rs. {computedTotalDiscount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
+
+            {overallDiscount > 0 && (
+              <div className="flex justify-between text-amber-700 font-bold">
+                <span>Overall Bill Discount:</span>
+                <span>- Rs. {overallDiscount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             )}
 

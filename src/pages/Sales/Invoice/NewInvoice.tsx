@@ -181,6 +181,10 @@ const NewInvoice = () => {
         })(),
         shippingAddress: editData.shipping_address || '',
         showDiscount: parsedItems.some((i: any) => Number(i.discountAmt || i.discount_amt || i.discount || 0) > 0),
+        showOverallDiscount: Number(editData.overall_discount || editData.discount_amount || parsedItems.find((i: any) => i._overallDiscount !== undefined)?._overallDiscount || 0) > 0,
+        overallDiscount: Number(editData.overall_discount || editData.discount_amount || parsedItems.find((i: any) => i._overallDiscount !== undefined)?._overallDiscount || 0),
+        showAdditionalCharges: Number(editData.additional_charges || 0) > 0,
+        additionalCharges: Number(editData.additional_charges || 0),
         items: parsedItems.map((it: any) => ({
           ...it,
           warehouse: it.warehouse || editData.dispatch_warehouse || '',
@@ -191,7 +195,7 @@ const NewInvoice = () => {
     }
     return {
       invoiceNo: '', customerName: '', saleDate: new Date().toISOString().split('T')[0], paymentTerm: 'Cash',
-      dispatchWarehouse: '', applyFbrTax: false, showDiscount: false, showAdditionalCharges: false, additionalCharges: 0, taxScenario: 'Goods at Standard Rate to Registered Buyers',
+      dispatchWarehouse: '', applyFbrTax: false, showDiscount: false, showOverallDiscount: false, overallDiscount: 0, showAdditionalCharges: false, additionalCharges: 0, taxScenario: 'Goods at Standard Rate to Registered Buyers',
       salesman: isSalesman ? (matchedSalesman || currentSalesmanName) : '',
       transportType: 'No Transport (Handover)', transportCharges: 0, settlementMode: 'Cash',
       selectedBankTitle: '', cashAmountPaid: 0, bankAmountPaid: 0,
@@ -444,9 +448,12 @@ const NewInvoice = () => {
         }
       }
 
-      let calculatedGrandTotal = values.items.reduce((acc: number, item: any) => {
-        return acc + calculateLineTotals(item, values.taxScenario, values.applyFbrTax).netTotal;
-      }, 0) + Number(values.transportCharges || 0) + Number(values.additionalCharges || 0);
+      let calculatedGrandTotal = Math.max(
+        0,
+        values.items.reduce((acc: number, item: any) => {
+          return acc + calculateLineTotals(item, values.taxScenario, values.applyFbrTax).netTotal;
+        }, 0) + Number(values.transportCharges || 0) + Number(values.additionalCharges || 0) - Number(values.overallDiscount || 0)
+      );
 
       let paidCash = 0;
       let paidBank = 0;
@@ -470,6 +477,13 @@ const NewInvoice = () => {
       }
       const runningBalanceTerm = totalPaidCombined >= calculatedGrandTotal ? 'Cash' : 'Credit';
 
+      const itemsToSave = (values.items || []).map((it: any, idx: number) => {
+        if (idx === 0) {
+          return { ...it, _overallDiscount: Number(values.overallDiscount || 0) };
+        }
+        return it;
+      });
+
       const databasePayload = {
         invoice_no: values.invoiceNo,
         customer_name: customerFinalName,
@@ -488,7 +502,7 @@ const NewInvoice = () => {
         sale_status: 'Confirm',
         shipping_address: values.shippingAddress,
         gate_pass_no: Object.entries(values.gatePasses || {}).map(([k, v]) => `${k}: ${v}`).join(' | '),
-        items: values.items,
+        items: itemsToSave,
         scenario_type: values.applyFbrTax ? values.taxScenario : 'Standard Retail Sale (No Tax)'
       };
 
@@ -846,9 +860,12 @@ const NewInvoice = () => {
     if (!pendingFormValues) return;
 
     // Calculate if sale is on credit
-    const currentSubtotal = (pendingFormValues.items || []).reduce((acc: number, item: any) => {
-      return acc + calculateLineTotals(item, pendingFormValues.taxScenario, pendingFormValues.applyFbrTax).netTotal;
-    }, 0) + Number(pendingFormValues.transportCharges || 0) + Number(pendingFormValues.additionalCharges || 0);
+    const currentSubtotal = Math.max(
+      0,
+      (pendingFormValues.items || []).reduce((acc: number, item: any) => {
+        return acc + calculateLineTotals(item, pendingFormValues.taxScenario, pendingFormValues.applyFbrTax).netTotal;
+      }, 0) + Number(pendingFormValues.transportCharges || 0) + Number(pendingFormValues.additionalCharges || 0) - Number(pendingFormValues.overallDiscount || 0)
+    );
 
     const totalPaidNow = pendingFormValues.settlementMode === 'Cash'
       ? Number(pendingFormValues.cashAmountPaid || 0)
@@ -915,9 +932,12 @@ const NewInvoice = () => {
     <div className="mx-auto max-w-7xl text-black dark:text-bodydark text-xs font-sans relative">
       {/* CUSTOMER CHECKOUT MODAL */}
       {showCustomerModal && (() => {
-        const modalSubtotal = pendingFormValues ? (pendingFormValues.items || []).reduce((acc: number, item: any) => {
-          return acc + calculateLineTotals(item, pendingFormValues.taxScenario, pendingFormValues.applyFbrTax).netTotal;
-        }, 0) + Number(pendingFormValues.transportCharges || 0) + Number(pendingFormValues.additionalCharges || 0) : 0;
+        const modalSubtotal = pendingFormValues ? Math.max(
+          0,
+          (pendingFormValues.items || []).reduce((acc: number, item: any) => {
+            return acc + calculateLineTotals(item, pendingFormValues.taxScenario, pendingFormValues.applyFbrTax).netTotal;
+          }, 0) + Number(pendingFormValues.transportCharges || 0) + Number(pendingFormValues.additionalCharges || 0) - Number(pendingFormValues.overallDiscount || 0)
+        ) : 0;
 
         const modalPaid = pendingFormValues ? (
           pendingFormValues.settlementMode === 'Cash'
@@ -1081,9 +1101,14 @@ const NewInvoice = () => {
           {({ values, handleChange, setFieldValue, errors, touched, submitCount, submitForm, isSubmitting, isValidating }) => {
             const hasAttempted = submitCount > 0;
             const isModalLoading = isOpeningCustomerModal || isSubmitting || isValidating;
-            const currentSubtotalValue = values.items.reduce((acc: number, item: any) => {
+            const grossSubtotalValue = values.items.reduce((acc: number, item: any) => {
               return acc + calculateLineTotals(item, values.taxScenario, values.applyFbrTax).netTotal;
             }, 0) + Number(values.transportCharges || 0) + Number(values.additionalCharges || 0);
+
+            const currentSubtotalValue = Math.max(
+              0,
+              grossSubtotalValue - Number(values.overallDiscount || 0)
+            );
 
             const currentPrefix = getSalesmanPrefix(values.salesman, salesmenList);
 
@@ -1258,6 +1283,22 @@ const NewInvoice = () => {
                       }`}
                     >
                       Discounts
+                    </div>
+
+                    {/* Overall Bill Discount Toggle */}
+                    <div
+                      onClick={() => {
+                        const isChecked = !values.showOverallDiscount;
+                        setFieldValue('showOverallDiscount', isChecked);
+                        if (!isChecked) setFieldValue('overallDiscount', 0);
+                      }}
+                      className={`cursor-pointer px-3 py-1.5 text-xs font-bold rounded-full transition select-none flex items-center justify-center border ${
+                        values.showOverallDiscount
+                          ? 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/40 dark:text-amber-400 dark:border-amber-800'
+                          : 'bg-white text-slate-500 border-stroke dark:bg-boxdark dark:text-slate-400 dark:border-strokedark hover:bg-slate-50 dark:hover:bg-meta-4'
+                      }`}
+                    >
+                      Overall Discount
                     </div>
 
                     {/* Freight Charges Toggle */}
@@ -2204,15 +2245,38 @@ const NewInvoice = () => {
                       <span>Rs. {currentSubtotalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
 
+                    {values.showOverallDiscount && (
+                      <div className="flex justify-between items-center border-b pb-1 dark:border-strokedark text-amber-600 dark:text-amber-400">
+                        <span className="text-xs">Overall Discount (PKR):</span>
+                        <input
+                          type="number"
+                          min="0"
+                          onKeyDown={blockInvalidChar}
+                          name="overallDiscount"
+                          value={values.overallDiscount === 0 ? '' : values.overallDiscount}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFieldValue('overallDiscount', val === '' ? 0 : Math.max(0, Number(val) || 0));
+                          }}
+                          placeholder="0.00"
+                          className="w-28 text-right font-black bg-amber-50/40 dark:bg-amber-900/10 border border-amber-300 dark:border-amber-700 rounded p-1 text-xs outline-none focus:border-amber-500 text-amber-700 dark:text-amber-300"
+                        />
+                      </div>
+                    )}
+
                     {values.showAdditionalCharges && (
                       <div className="flex justify-between items-center border-b pb-1 dark:border-strokedark text-blue-600 dark:text-blue-400">
                         <span className="text-xs">Freight Charges:</span>
                         <input
                           type="number"
                           min="0"
+                          onKeyDown={blockInvalidChar}
                           name="additionalCharges"
-                          value={values.additionalCharges}
-                          onChange={handleChange}
+                          value={values.additionalCharges === 0 ? '' : values.additionalCharges}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFieldValue('additionalCharges', val === '' ? 0 : Math.max(0, Number(val) || 0));
+                          }}
                           placeholder="0.00"
                           className="w-28 text-right font-black bg-blue-50/40 dark:bg-blue-900/10 border border-blue-300 dark:border-blue-700 rounded p-1 text-xs outline-none focus:border-blue-500 text-blue-700 dark:text-blue-300"
                         />
