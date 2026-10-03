@@ -1,3 +1,26 @@
+// Helper: parse tile dimensions (h × w) from sub_category, description, or SKU
+const parseTileDimensions = (data: any) => {
+  if (!data) return { h: 24, w: 24 };
+  const text = `${data?.sub_category || ''} ${data?.product_description || ''} ${data?.item_sr_no || ''}`;
+  const match = text.match(/(\d+(?:\.\d+)?)\s*(?:[xX×*])\s*(\d+(?:\.\d+)?)/);
+  if (match) {
+    return {
+      h: Number(match[1]) || 24,
+      w: Number(match[2]) || 24
+    };
+  }
+  return { h: 24, w: 24 };
+};
+
+const parsePiecesPerBox = (data: any) => {
+  if (!data) return 4;
+  const raw = Number(data?.pieces_per_box ?? data?.pcs_per_box ?? data?.pieces_per_packing ?? 0);
+  if (raw >= 1) return raw;
+  const match = String(data?.product_description || '').match(/Box:\s*(\d+)\s*pcs/i);
+  if (match && Number(match[1]) > 0) return Number(match[1]);
+  return 4;
+};
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Formik, Form } from 'formik';
@@ -155,18 +178,14 @@ const AddProduct = () => {
             hsCode: editData.hs_code || '',
             itemSrNo: editData.item_sr_no || '',
             sroScheduleNo: editData.sro_schedule_no || '',
-            // Tile specific fields
-            tileHeight: 24,
-            tileWidth: 24,
-            tileThickness: '',
-            piecesPerBox: (() => {
-              const raw = Number(editData.pieces_per_box || editData.pcs_per_box || editData.pieces_per_packing || 0);
-              if (raw > 1) return raw;
-              // Fallback to extract from product_description e.g. "Box: 10 pcs"
-              const match = String(editData.product_description || '').match(/Box:\s*(\d+)\s*pcs/i);
-              if (match && Number(match[1]) > 0) return Number(match[1]);
-              return raw > 0 ? raw : 4;
+                        // Tile specific fields dynamically parsed from existing record
+            tileHeight: parseTileDimensions(editData).h,
+            tileWidth: parseTileDimensions(editData).w,
+            tileThickness: (() => {
+              const match = String(editData?.product_description || '').match(/Thickness:\s*([^|]+)/i);
+              return match ? match[1].trim() : '';
             })(),
+            piecesPerBox: parsePiecesPerBox(editData),
             finishType: editData.bin || '',
             weightPerBox: 28,
           } : {

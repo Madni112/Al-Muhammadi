@@ -79,6 +79,7 @@ const AddOpeningStock = () => {
     };
 
     const emptyItemRow = () => ({
+        productId: null,
         itemCode: '',
         itemName: '',
         qty: 1,
@@ -114,14 +115,18 @@ const AddOpeningStock = () => {
         ).min(1, 'Add at least one product row')
     });
 
-    // Add (positive) or remove (negative) stock on products.current_stock for a product name
-    const updateProductStock = async (nameKey: string, delta: number) => {
-        if (!nameKey || delta === 0) return;
-        const { data: prod } = await supabase
-            .from('products')
-            .select('id, current_stock')
-            .ilike('product_name', nameKey)
-            .maybeSingle();
+    // Add (positive) or remove (negative) stock on products.current_stock identified by code / id / name
+    const updateProductStock = async (prodInfo: { productId?: any; itemCode?: string; itemName: string; qty: number }, delta: number) => {
+        if (!prodInfo || delta === 0) return;
+        let query = supabase.from('products').select('id, current_stock');
+        if (prodInfo.productId) {
+            query = query.eq('id', prodInfo.productId);
+        } else if (prodInfo.itemCode) {
+            query = query.eq('item_sr_no', prodInfo.itemCode);
+        } else if (prodInfo.itemName) {
+            query = query.ilike('product_name', prodInfo.itemName);
+        }
+        const { data: prod } = await query.maybeSingle();
 
         if (prod) {
             const next = Math.max(0, (Number(prod.current_stock) || 0) + delta);
@@ -129,15 +134,16 @@ const AddOpeningStock = () => {
         }
     };
 
-    // Guard: throw a friendly error message when any product repeats across rows
+    // Guard: throw a friendly error message when any item code repeats across rows
     const assertNoDuplicateRows = (rows: any[]): string | null => {
         const seen: Record<string, number> = {};
         for (let i = 0; i < rows.length; i++) {
-            const key = String(rows[i].itemName || '').trim().toLowerCase();
-            if (seen[key] !== undefined) {
-                return `Cannot save — "${rows[i].itemName}" is added in both row ${seen[key] + 1} and row ${i + 1}. Please remove the duplicate line.`;
+            const codeKey = String(rows[i].itemCode || rows[i].productId || rows[i].itemName || '').trim().toLowerCase();
+            if (seen[codeKey] !== undefined) {
+                const codeLabel = rows[i].itemCode ? ` (Code: ${rows[i].itemCode})` : '';
+                return `Cannot save — "${rows[i].itemName}"${codeLabel} is added in both row ${seen[codeKey] + 1} and row ${i + 1}. Please remove the duplicate line.`;
             }
-            seen[key] = i;
+            seen[codeKey] = i;
         }
         return null;
     };
@@ -165,14 +171,19 @@ const AddOpeningStock = () => {
             };
         });
 
-    // Aggregate per-product quantity across rows for current_stock updates
-    const aggregateByProduct = (rows: any[]): Record<string, number> => {
-        const map: Record<string, number> = {};
+    // Aggregate per-product quantity across rows for current_stock updates (grouped by unique itemCode / id)
+    const aggregateByProduct = (rows: any[]): Array<{ productId?: any; itemCode?: string; itemName: string; qty: number }> => {
+        const map: Record<string, { productId?: any; itemCode?: string; itemName: string; qty: number }> = {};
         rows.forEach((r: any) => {
-            const key = String(r.itemName || '').trim().toLowerCase();
-            if (key) map[key] = (map[key] || 0) + (Number(r.qty) || 0);
+            const key = String(r.itemCode || r.productId || r.itemName || '').trim().toLowerCase();
+            if (key) {
+                if (!map[key]) {
+                    map[key] = { productId: r.productId, itemCode: r.itemCode, itemName: r.itemName, qty: 0 };
+                }
+                map[key].qty += (Number(r.qty) || 0);
+            }
         });
-        return map;
+        return Object.values(map);
     };
 
     const handleMultiSubmit = async (values: any) => {
@@ -196,9 +207,9 @@ const AddOpeningStock = () => {
             const { error: stockError } = await supabase.from('opening_stocks').insert(payloads);
             if (stockError) throw stockError;
 
-            // Increase products.current_stock once per distinct product (aggregated qty)
-            for (const [nameKey, totalQty] of Object.entries(aggregateByProduct(rows))) {
-                await updateProductStock(nameKey, totalQty);
+            // Increase products.current_stock once per distinct product (aggregated qty by code)
+            for (const agg of aggregateByProduct(rows)) {
+                await updateProductStock(agg, agg.qty);
             }
 
             // Record in audit_logs
@@ -265,8 +276,13 @@ const AddOpeningStock = () => {
             }
 
             // 1. Revert stock added by the old batch
-            for (const [nameKey, qty] of Object.entries(aggregateByProduct(stockBatch))) {
-                await updateProductStock(nameKey, -qty);
+            for (const agg of aggregateByProduct(stockBatch.map((r: any) => ({
+                productId: r.product_id || r.productId,
+                itemCode: r.item_code || r.itemCode || r.skuCode,
+                itemName: r.product_name || r.itemName,
+                qty: r.qty ?? r.quantity
+            })))) {
+                await updateProductStock(agg, -agg.qty);
             }
 
             // 2. Remove old lines
@@ -282,8 +298,8 @@ const AddOpeningStock = () => {
             if (insError) throw insError;
 
             // 4. Re-apply stock for the new lines
-            for (const [nameKey, qty] of Object.entries(aggregateByProduct(rows))) {
-                await updateProductStock(nameKey, qty);
+            for (const agg of aggregateByProduct(rows)) {
+                await updateProductStock(agg, agg.qty);
             }
 
             // Record batch update in audit_logs
@@ -330,10 +346,10 @@ const AddOpeningStock = () => {
                     0
                 );
 
-                // Duplicate product detection across rows (case-insensitive, trimmed)
+                // Duplicate product detection by Item Code / SKU (case-insensitive, trimmed)
                 const productCounts: Record<string, number> = {};
                 (values.items || []).forEach((r: any) => {
-                    const k = String(r.itemName || '').trim().toLowerCase();
+                    const k = String(r.itemCode || r.productId || r.itemName || '').trim().toLowerCase();
                     if (k) productCounts[k] = (productCounts[k] || 0) + 1;
                 });
                 const duplicateProductKeys = new Set(
@@ -344,6 +360,7 @@ const AddOpeningStock = () => {
                     const updated = [...values.items];
                     updated[index] = {
                         ...updated[index],
+                        productId: p.id,
                         itemName: p.product_name,
                         itemCode: p.item_sr_no || `SKU-${p.id}`,
                         purchasePrice: Number(p.purchase_price) || 0
@@ -432,13 +449,13 @@ const AddOpeningStock = () => {
                                                     const lineError = (errors as any)?.items?.[index];
                                                     const lineTouched = (touched as any)?.items?.[index];
 
-                                                    const rowProductKey = String(item.itemName || '').trim().toLowerCase();
+                                                    const rowProductKey = String(item.itemCode || item.productId || item.itemName || '').trim().toLowerCase();
                                                     const isDuplicateRow = !!rowProductKey && duplicateProductKeys.has(rowProductKey);
                                                     const firstDupRowIndex = isDuplicateRow
                                                         ? (values.items || []).findIndex(
                                                             (r: any, j: number) =>
                                                                 j !== index &&
-                                                                String(r.itemName || '').trim().toLowerCase() === rowProductKey
+                                                                String(r.itemCode || r.productId || r.itemName || '').trim().toLowerCase() === rowProductKey
                                                         )
                                                         : -1;
                                                     const productInputRed = Boolean(lineError?.itemName) || isDuplicateRow;

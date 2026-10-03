@@ -312,14 +312,14 @@ const AddStockTransfer = () => {
                           const matchedProdObject = productList.find(p => p.product_name === item.itemName);
                           const currentUomString = matchedProdObject ? matchedProdObject.uom : 'Nos';
 
-                          // Duplicate product detection (case-insensitive, trimmed)
-                          const rowProductKey = String(item.itemName || '').trim().toLowerCase();
+                          // Duplicate product detection by Item Code / SKU (case-insensitive, trimmed)
+                          const rowProductKey = String(item.itemCode || item.productId || item.itemName || '').trim().toLowerCase();
                           const isDuplicateRow = !!rowProductKey && (values.items || []).some(
-                            (x: any, j: number) => j !== index && String(x.itemName || '').trim().toLowerCase() === rowProductKey
+                            (x: any, j: number) => j !== index && String(x.itemCode || x.productId || x.itemName || '').trim().toLowerCase() === rowProductKey
                           );
                           const firstDupRowIndex = isDuplicateRow
                             ? (values.items || []).findIndex(
-                                (x: any, j: number) => j !== index && String(x.itemName || '').trim().toLowerCase() === rowProductKey
+                                (x: any, j: number) => j !== index && String(x.itemCode || x.productId || x.itemName || '').trim().toLowerCase() === rowProductKey
                               )
                             : -1;
                           const dupInputBorder = isDuplicateRow ? ' border-rose-500' : '';

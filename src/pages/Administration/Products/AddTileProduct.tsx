@@ -1,3 +1,26 @@
+// Helper: parse tile dimensions (h × w) from sub_category, description, or SKU
+const parseTileDimensions = (data: any) => {
+  if (!data) return { h: 24, w: 24 };
+  const text = `${data?.sub_category || ''} ${data?.product_description || ''} ${data?.item_sr_no || ''}`;
+  const match = text.match(/(\d+(?:\.\d+)?)\s*(?:[xX×*])\s*(\d+(?:\.\d+)?)/);
+  if (match) {
+    return {
+      h: Number(match[1]) || 24,
+      w: Number(match[2]) || 24
+    };
+  }
+  return { h: 24, w: 24 };
+};
+
+const parsePiecesPerBox = (data: any) => {
+  if (!data) return 4;
+  const raw = Number(data?.pieces_per_box ?? data?.pcs_per_box ?? data?.pieces_per_packing ?? 0);
+  if (raw >= 1) return raw;
+  const match = String(data?.product_description || '').match(/Box:\s*(\d+)\s*pcs/i);
+  if (match && Number(match[1]) > 0) return Number(match[1]);
+  return 4;
+};
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../../Context/supabaseClient';
@@ -50,19 +73,14 @@ const AddTileProduct: React.FC = () => {
   const [scenarioName, setScenarioName] = useState(editData?.scenario_name || 'Standard Tile');
   const [finishType, setFinishType] = useState('Glazed Polished');
 
-  // Tile Specific Dimensions & Box Packing State (Inches to sq.m)
-  const [tileHeight, setTileHeight] = useState<number | string>(24);
-  const [tileWidth, setTileWidth] = useState<number | string>(24);
-  const [tileThickness, setTileThickness] = useState('');
-  const [piecesPerBox, setPiecesPerBox] = useState<number | string>(
-    (() => {
-      const raw = Number(editData?.pieces_per_box || editData?.pcs_per_box || editData?.pieces_per_packing || 0);
-      if (raw > 1) return raw;
-      const match = String(editData?.product_description || '').match(/Box:\s*(\d+)\s*pcs/i);
-      if (match && Number(match[1]) > 0) return Number(match[1]);
-      return raw > 0 ? raw : 4;
-    })()
-  );
+  // Tile Specific Dimensions & Box Packing State dynamically parsed from editData
+  const [tileHeight, setTileHeight] = useState<number | string>(parseTileDimensions(editData).h);
+  const [tileWidth, setTileWidth] = useState<number | string>(parseTileDimensions(editData).w);
+  const [tileThickness, setTileThickness] = useState(() => {
+    const match = String(editData?.product_description || '').match(/Thickness:\s*([^|]+)/i);
+    return match ? match[1].trim() : '';
+  });
+  const [piecesPerBox, setPiecesPerBox] = useState<number | string>(parsePiecesPerBox(editData));
   const [weightPerBox, setWeightPerBox] = useState<number | string>(28);
 
   // Pricing State (Purchase Price & Sale Price)
@@ -140,6 +158,7 @@ const AddTileProduct: React.FC = () => {
   useEffect(() => {
     if (!isEditMode && (!productName || productName.startsWith('Tile '))) {
       setProductName(`Tile ${tileSizeFormatted} (${finishType})`);
+    }
   }, [tileSizeFormatted, finishType, isEditMode]);
 
   // Rates breakdown calculations
@@ -650,7 +669,7 @@ const AddTileProduct: React.FC = () => {
                 Turns stock count <span className="text-rose-500 font-bold">RED</span> when remaining inventory hits or drops below this box quantity.
               </p>
             </div>
-          </div>        </div>
+          </div>
         </div>
 
         {/* SUBMIT BUTTONS */}
