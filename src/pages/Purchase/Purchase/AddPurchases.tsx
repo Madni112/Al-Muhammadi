@@ -740,7 +740,7 @@ const AddPurchases = () => {
                 </div>
 
                 {/* ── PRODUCT ITEM CATALOG ENTRY TABLE ── */}
-                <div className="border border-stroke dark:border-strokedark rounded-sm relative z-30 overflow-x-auto pb-16">
+                <div className="border border-stroke dark:border-strokedark rounded-sm relative z-30 overflow-visible pb-16">
                   <div className="w-full min-w-max">
                     <table className="w-full table-auto border-collapse text-left">
                       <thead>
@@ -823,6 +823,14 @@ const AddPurchases = () => {
                                         const sku = (p.item_sr_no || `SKU-${p.id}`).toLowerCase();
                                         const name = (p.product_name || '').toLowerCase();
                                         return sku.includes(query) || name.includes(query);
+                                      }).sort((a, b) => {
+                                        if (!item.skuCode) return 0;
+                                        const query = item.skuCode.toLowerCase().trim();
+                                        const aSku = (a.item_sr_no || `SKU-${a.id}`).toLowerCase();
+                                        const bSku = (b.item_sr_no || `SKU-${b.id}`).toLowerCase();
+                                        const aMatch = aSku.startsWith(query) ? 2 : (aSku.includes(query) ? 1 : 0);
+                                        const bMatch = bSku.startsWith(query) ? 2 : (bSku.includes(query) ? 1 : 0);
+                                        return bMatch - aMatch;
                                       });
 
                                       return (
@@ -861,7 +869,7 @@ const AddPurchases = () => {
                                           />
 
                                           {isCurrentActive && filteredProds.length > 0 && (
-                                            <div className="absolute left-0 top-full mt-1.5 z-[99999] w-72 max-h-52 overflow-y-auto bg-white dark:bg-[#1A222C] border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl divide-y divide-slate-100 dark:divide-slate-800">
+                                            <div className="absolute left-0 top-full mt-1.5 z-[99999] w-72 max-h-60 overflow-y-auto bg-white dark:bg-[#1A222C] border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl divide-y divide-slate-100 dark:divide-slate-800">
                                               {filteredProds.map((prod, pIdx) => (
                                                 <div
                                                   key={prod.id}
@@ -878,11 +886,11 @@ const AddPurchases = () => {
                                                   }}
                                                   className={`p-2.5 cursor-pointer text-xs flex justify-between items-center ${highlightedSkuIndex === pIdx ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}
                                                 >
-                                                  <div>
-                                                    <p className="font-bold text-black dark:text-white">{prod.product_name}</p>
-                                                    <p className="text-[10px] font-mono text-gray-400">{prod.item_sr_no || `SKU-${prod.id}`}</p>
+                                                  <div className="min-w-0 pr-2">
+                                                    <p className="font-mono font-bold text-black dark:text-white text-xs">{prod.item_sr_no || `SKU-${prod.id}`}</p>
+                                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[160px]">{prod.product_name}</p>
                                                   </div>
-                                                  <span className="font-mono font-bold text-emerald-600">Rs. {Number(prod.purchase_price || 0).toLocaleString()}</span>
+                                                  <span className="font-mono font-bold text-emerald-600 text-right shrink-0">Rs. {Number(prod.purchase_price || 0).toLocaleString()}</span>
                                                 </div>
                                               ))}
                                             </div>
