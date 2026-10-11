@@ -52,9 +52,49 @@ const AddProduct = () => {
   const [surfaceFinishes, setSurfaceFinishes] = useState<any[]>([]);
   const [groupedUoms, setGroupedUoms] = useState<{ [key: string]: UomItem[] }>({});
 
+  // Tile prints list & search dropdown state
+  const [tilePrints, setTilePrints] = useState<string[]>(() => {
+    const DEFAULT_TILE_PRINTS = [
+      'Calacatta', 'Statuario', 'Carrara', 'Travertine', 'Marquina',
+      'Onyx', 'Emperador', 'Wooden', 'Terrazzo', 'Cement', 'Plain', 'Geometric', 'Rustic'
+    ];
+    try {
+      const saved = localStorage.getItem('al_muhammadi_tile_prints');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return Array.from(new Set([...DEFAULT_TILE_PRINTS, ...parsed]));
+        }
+      }
+    } catch (e) {}
+    return DEFAULT_TILE_PRINTS;
+  });
+  const [isPrintDropdownOpen, setIsPrintDropdownOpen] = useState(false);
+  const [highlightedPrintIndex, setHighlightedPrintIndex] = useState(0);
+  const [isAddPrintModalOpen, setIsAddPrintModalOpen] = useState(false);
+  const [newPrintInput, setNewPrintInput] = useState('');
 
-
-
+  const handleAddPrint = (newPrintName: string, setFieldValue?: (field: string, value: any) => void) => {
+    const clean = newPrintName.trim();
+    if (!clean) {
+      toast.error('Print name cannot be empty');
+      return;
+    }
+    const exists = tilePrints.some((p) => p.toLowerCase() === clean.toLowerCase());
+    const updated = exists ? tilePrints : [...tilePrints, clean];
+    if (!exists) {
+      setTilePrints(updated);
+      try {
+        localStorage.setItem('al_muhammadi_tile_prints', JSON.stringify(updated));
+      } catch (e) {}
+    }
+    if (setFieldValue) {
+      setFieldValue('tilePrint', clean);
+    }
+    setIsAddPrintModalOpen(false);
+    setNewPrintInput('');
+    toast.success(`Print "${clean}" added successfully!`);
+  };
 
   const [isUomDropdownOpen, setIsUomDropdownOpen] = useState(false);
   const [highlightedUomIndex, setHighlightedUomIndex] = useState(0);
@@ -115,6 +155,26 @@ const AddProduct = () => {
           }, {});
           setGroupedUoms(groups);
         }
+
+        // Dynamically fetch and merge any previously saved tile prints from products
+        try {
+          const { data: prodData } = await supabase
+            .from('products')
+            .select('product_description')
+            .limit(150);
+          if (prodData && prodData.length > 0) {
+            const extracted: string[] = [];
+            prodData.forEach((p: any) => {
+              const match = String(p.product_description || '').match(/Print:\s*([^|]+)/i);
+              if (match && match[1]?.trim()) {
+                extracted.push(match[1].trim());
+              }
+            });
+            if (extracted.length > 0) {
+              setTilePrints((prev) => Array.from(new Set([...prev, ...extracted])));
+            }
+          }
+        } catch (e) {}
       } catch (err: any) {
         console.error('Metadata aggregation error: ', err.message);
         toast.error('Failed to load setup configurations');
@@ -187,6 +247,10 @@ const AddProduct = () => {
             })(),
             piecesPerBox: parsePiecesPerBox(editData),
             finishType: editData.bin || '',
+            tilePrint: editData.tile_print || editData.print || (() => {
+              const match = String(editData?.product_description || '').match(/Print:\s*([^|]+)/i);
+              return match ? match[1].trim() : '';
+            })() || '',
             weightPerBox: 28,
           } : {
             productName: '',
@@ -212,6 +276,7 @@ const AddProduct = () => {
             tileThickness: '',
             piecesPerBox: 4,
             finishType: '',
+            tilePrint: '',
             weightPerBox: 28,
           }}
           enableReinitialize={true}
@@ -241,7 +306,7 @@ const AddProduct = () => {
               const totalSqMetersPerBox = sqMetersPerTile * pcs;
               const tileSizeFormatted = `${h} × ${w} in`;
 
-              finalDescription = `[TILE PRODUCT] Size: ${tileSizeFormatted} | Box: ${pcs} pcs (${totalSqMetersPerBox.toFixed(4)} sq.m / box) | Finish: ${values.finishType}${values.tileThickness ? ` | Thickness: ${values.tileThickness}` : ''}${values.weightPerBox ? ` | Wt: ${values.weightPerBox}kg` : ''}`;
+              finalDescription = `[TILE PRODUCT] Size: ${tileSizeFormatted} | Box: ${pcs} pcs (${totalSqMetersPerBox.toFixed(4)} sq.m / box) | Finish: ${values.finishType}${values.tilePrint ? ` | Print: ${values.tilePrint}` : ''}${values.tileThickness ? ` | Thickness: ${values.tileThickness}` : ''}${values.weightPerBox ? ` | Wt: ${values.weightPerBox}kg` : ''}`;
               finalUom = values.uom || 'BOX';
               finalHsCode = values.hsCode?.trim() || '6907.2100';
               finalItemSrNo = values.itemSrNo?.trim() || tileSizeFormatted;
@@ -486,6 +551,128 @@ const AddProduct = () => {
                         <p className="text-[10px] text-rose-500 mt-1 font-semibold">{errors.category as string}</p>
                       )}
                     </div>
+
+                    {/* 1.25 Print Dropdown (Shown when Parent Category includes 'tile') */}
+                    {isTileCategory && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block font-bold text-slate-800 dark:text-slate-100">
+                            Print
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="relative flex-1">
+                            <input
+                              type="text"
+                              name="tilePrint"
+                              autoComplete="off"
+                              onChange={(e) => {
+                                handleChange(e);
+                                setIsPrintDropdownOpen(true);
+                                setHighlightedPrintIndex(0);
+                              }}
+                              onFocus={() => {
+                                setIsPrintDropdownOpen(true);
+                                setHighlightedPrintIndex(0);
+                              }}
+                              onBlur={() => {
+                                setTimeout(() => setIsPrintDropdownOpen(false), 200);
+                              }}
+                              onKeyDown={(e) => {
+                                const filteredPrints = tilePrints.filter(p =>
+                                  p.toLowerCase().includes(String(values.tilePrint || '').toLowerCase().trim())
+                                );
+
+                                if (e.key === 'ArrowDown') {
+                                  e.preventDefault();
+                                  setHighlightedPrintIndex((prev) => prev < filteredPrints.length - 1 ? prev + 1 : 0);
+                                } else if (e.key === 'ArrowUp') {
+                                  e.preventDefault();
+                                  setHighlightedPrintIndex((prev) => prev > 0 ? prev - 1 : filteredPrints.length - 1);
+                                } else if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  if (filteredPrints.length > 0) {
+                                    setFieldValue('tilePrint', filteredPrints[highlightedPrintIndex] || filteredPrints[0]);
+                                    setIsPrintDropdownOpen(false);
+                                  } else if (values.tilePrint && values.tilePrint.trim()) {
+                                    handleAddPrint(values.tilePrint.trim(), setFieldValue);
+                                    setIsPrintDropdownOpen(false);
+                                  }
+                                } else if (e.key === 'Tab' || e.key === 'Escape') {
+                                  setIsPrintDropdownOpen(false);
+                                }
+                              }}
+                              value={values.tilePrint}
+                              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-white dark:bg-slate-800 outline-none focus:border-emerald-600 text-xs font-semibold text-slate-900 dark:text-white"
+                              placeholder="Search or enter print..."
+                            />
+                            {isPrintDropdownOpen && (
+                              <div className="absolute left-0 top-full mt-1.5 z-[99999] w-full min-w-[200px] max-h-[250px] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1A222C] shadow-2xl divide-y divide-slate-100 dark:divide-slate-800 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
+                                {(() => {
+                                  const filteredPrints = tilePrints.filter(p =>
+                                    p.toLowerCase().includes(String(values.tilePrint || '').toLowerCase().trim())
+                                  );
+
+                                  return filteredPrints.length > 0 ? (
+                                    filteredPrints.map((pName, idx) => {
+                                      const isHighlighted = idx === highlightedPrintIndex;
+                                      return (
+                                        <div
+                                          key={pName}
+                                          onMouseEnter={() => setHighlightedPrintIndex(idx)}
+                                          onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setFieldValue('tilePrint', pName);
+                                            setIsPrintDropdownOpen(false);
+                                          }}
+                                          className={`p-3 cursor-pointer transition text-xs font-bold flex items-center justify-between ${
+                                            isHighlighted 
+                                              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 text-emerald-700 dark:text-emerald-400' 
+                                              : 'hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-800 dark:text-slate-200'
+                                          }`}
+                                        >
+                                          <span>{pName}</span>
+                                          {values.tilePrint === pName && (
+                                            <span className="text-[10px] text-emerald-600 font-semibold">Selected</span>
+                                          )}
+                                        </div>
+                                      );
+                                    })
+                                  ) : (
+                                    <div 
+                                      className="p-3 text-center text-xs text-emerald-600 dark:text-emerald-400 font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        if (values.tilePrint && values.tilePrint.trim()) {
+                                          handleAddPrint(values.tilePrint.trim(), setFieldValue);
+                                          setIsPrintDropdownOpen(false);
+                                        } else {
+                                          setIsAddPrintModalOpen(true);
+                                        }
+                                      }}
+                                    >
+                                      + Add "{values.tilePrint || 'New Print'}"
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewPrintInput(values.tilePrint || '');
+                              setIsAddPrintModalOpen(true);
+                            }}
+                            className="h-[38px] w-[38px] shrink-0 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white flex items-center justify-center transition shadow-sm cursor-pointer"
+                            title="Add New Print"
+                          >
+                            <MdAdd className="text-xl" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* 4. Brand */}
                     <div>
@@ -977,6 +1164,77 @@ const AddProduct = () => {
                     <span>{isEditMode ? 'Update Product' : isTileCategory ? 'Save Tile Product' : 'Save Product'}</span>
                   </button>
                 </div>
+
+                {/* QUICK ADD PRINT MODAL */}
+                {isAddPrintModalOpen && (
+                  <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+                    <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-sm w-full overflow-hidden">
+                      <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+                        <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                          <span className="p-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600">
+                            <MdAdd className="text-base" />
+                          </span>
+                          Add New Print
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAddPrintModalOpen(false);
+                            setNewPrintInput('');
+                          }}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer"
+                        >
+                          <MdClose className="text-lg" />
+                        </button>
+                      </div>
+
+                      <div className="p-4 space-y-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                            Print Name *
+                          </label>
+                          <input
+                            type="text"
+                            autoFocus
+                            value={newPrintInput}
+                            onChange={(e) => setNewPrintInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddPrint(newPrintInput, setFieldValue);
+                              } else if (e.key === 'Escape') {
+                                setIsAddPrintModalOpen(false);
+                              }
+                            }}
+                            placeholder="e.g. Statuario Classic, Wood Grain, Rustic Matte"
+                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-white dark:bg-slate-800 outline-none focus:border-emerald-600 text-xs font-semibold text-slate-900 dark:text-white"
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAddPrintModalOpen(false);
+                              setNewPrintInput('');
+                            }}
+                            className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddPrint(newPrintInput, setFieldValue)}
+                            className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <MdAdd className="text-base" />
+                            Add Print
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
               </Form>
             );
