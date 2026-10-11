@@ -81,7 +81,7 @@ const PrintSalesReturn: React.FC = () => {
           const { data: cData } = await supabase
             .from('customers')
             .select('*')
-            .or(`customerName.ilike.${cName},company.ilike.${cName}`)
+            .or(`customername.ilike.${cName},customerName.ilike.${cName},company.ilike.${cName}`)
             .maybeSingle();
           if (cData) setCustomerInfo(cData);
         }
@@ -210,7 +210,9 @@ const PrintSalesReturn: React.FC = () => {
     ? rawOrigInvStr
     : (rawOrigInvStr ? `INV-${rawOrigInvStr.padStart(4, '0')}` : 'FIFO General Return');
 
-  const returnNoFormatted = returnData.return_no || `RTN-${String(returnData.id).padStart(4, '0')}`;
+  const returnNoFormatted = (returnData.return_no && !returnData.return_no.match(/^RTN-\d{6}$/))
+    ? returnData.return_no
+    : `RTN-${String(returnData.id).padStart(4, '0')}`;
   const returnDateFormatted = returnData.return_date 
     ? new Date(returnData.return_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
     : new Date(returnData.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -274,7 +276,7 @@ const PrintSalesReturn: React.FC = () => {
           body {
             background: white !important;
             color: #0f172a !important;
-            font-size: 11px !important;
+            font-size: 14px !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -285,6 +287,7 @@ const PrintSalesReturn: React.FC = () => {
             margin: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
+            font-size: 14px !important;
           }
           table {
             width: 100% !important;
@@ -297,11 +300,21 @@ const PrintSalesReturn: React.FC = () => {
           .print-table-header th {
             color: #ffffff !important;
             background-color: #0f172a !important;
+            font-size: 14px !important;
+            font-weight: 800 !important;
+            padding: 5px 6px !important;
+          }
+          table td {
+            font-size: 13.5px !important;
+            font-weight: 600 !important;
+            padding: 5px 6px !important;
           }
           .print-total-row td {
             background-color: #f1f5f9 !important;
             border-top: 2px solid #0f172a !important;
             border-bottom: 2px solid #0f172a !important;
+            font-size: 15px !important;
+            font-weight: 800 !important;
           }
         }
       `}</style>

@@ -377,6 +377,28 @@ export async function getStockResult(productName: string, dataset?: StockDataset
 }
 
 /**
+ * Synchronous available stock check using an already-fetched dataset.
+ */
+export function getWarehouseAvailableStock(productName: string, warehouseName: string, dataset?: StockDataset | any): number {
+  if (!productName || !warehouseName || !dataset) return 0;
+
+  if (isBalancesDataset(dataset)) {
+    const row = (dataset.balances || []).find(balancesMatch(productName, warehouseName));
+    return row ? (Number(row.quantity) || 0) : 0;
+  }
+
+  try {
+    const result = buildBreakdown(productName.trim().toLowerCase(), dataset);
+    const matchKey = Object.keys(result.byWarehouse).find(
+      (k) => k.toLowerCase() === warehouseName.trim().toLowerCase()
+    );
+    return matchKey ? result.byWarehouse[matchKey].available : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Get available stock (to sell) for a product in a specific warehouse.
  * This matches exactly what ProductList breakdown shows as "Available Stock (To Sell)".
  */

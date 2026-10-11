@@ -221,7 +221,9 @@ const SalesReturnList = () => {
                   return (
                     <tr key={ret.id} className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 duration-150">
                       <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400 text-center font-mono">{serialNumber}</td>
-                      <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-mono">{`RTN-${String(ret.id).padStart(4, '0')}`}</td>
+                      <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                        {ret.return_no && !ret.return_no.match(/^RTN-\d{6}$/) ? ret.return_no : `RTN-${String(ret.id).padStart(4, '0')}`}
+                      </td>
                       <td className="py-3.5 px-4 font-mono font-semibold text-slate-600 dark:text-slate-400">{displayInvoiceNo}</td>
                       <td className="py-3.5 px-4 font-mono font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">{ret.gate_pass_no || '-'}</td>
                       <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">{ret.return_date ? ret.return_date : new Date(ret.created_at).toLocaleDateString()}</td>

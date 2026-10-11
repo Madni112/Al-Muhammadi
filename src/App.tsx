@@ -5,6 +5,11 @@ import { useEffect } from 'react';
 import { initializeSocket } from './service/socket';
 import { AuthProvider } from './Context/Auth';
 import Alert from './pages/Alert';
+import ErrorPopupModal from './components/ErrorPopupModal';
+import { initErrorInterceptor } from './utils/errorPopup';
+
+// Initialize error interceptor so toast.error triggers modal popup
+initErrorInterceptor();
 
 function App() {
   useEffect(() => {
@@ -35,6 +40,7 @@ function App() {
           }}
         />
         <Alert />
+        <ErrorPopupModal />
       </ModalProvider>
     </AuthProvider>
   );

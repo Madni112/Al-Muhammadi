@@ -568,7 +568,18 @@ const ProductList = () => {
   const serviceItems = paginatedProducts.filter(p => p.item_type === 'service');
 
   const renderProductRow = (product: any, serialNumber: number) => {
-    const isLowStock = Number(product.current_stock) <= Number(product.min_stock_alert || 0);
+    const currentStock = Number(product.current_stock || 0);
+    const minAlert = Number(product.min_stock_alert ?? product.min_stock ?? 0);
+    const isZeroStock = currentStock <= 0;
+    const isLowStock = minAlert > 0 && currentStock <= minAlert && !isZeroStock;
+
+    let badgeClass = 'bg-green-500/15 text-green-600 dark:bg-green-950/40 dark:text-green-400 border border-green-500/30';
+    if (isZeroStock) {
+      badgeClass = 'bg-red-600/20 text-red-700 dark:bg-red-950/60 dark:text-red-400 border border-red-600/40 font-black';
+    } else if (isLowStock) {
+      badgeClass = 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-bold';
+    }
+
     return (
       <tr
         key={product.id}
@@ -591,16 +602,15 @@ const ProductList = () => {
             {product.uom}
           </span>
         </td>
-        <td className="py-3.5 px-4 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+        <td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-800 dark:text-slate-200">
           {Number(product.retail_price || product.mrp || 0).toFixed(2)}
         </td>
         <td className="py-3.5 px-4 text-center">
-          <span className={`font-black text-xs px-2.5 py-0.5 rounded-full ${isLowStock ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
-            }`}>
-            {Number(product.current_stock || 0).toLocaleString()} {product.uom || 'PCS'}
+          <span className={`font-black text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${badgeClass}`}>
+            {currentStock.toLocaleString()} {product.uom || 'PCS'}
+            {isLowStock && <MdWarning size={14} className="text-amber-600 dark:text-amber-400 inline shrink-0" />}
           </span>
-          {isLowStock && <MdWarning size={14} className="text-rose-500 inline ml-1" />}
-          <button onClick={() => handleOpenBreakdown(product)} className="text-[9px] font-sans text-emerald-600 hover:underline cursor-pointer block mx-auto mt-0.5">View Breakdown</button>
+          <button onClick={() => handleOpenBreakdown(product)} className="text-[9px] font-sans text-green-600 dark:text-green-400 hover:underline cursor-pointer block mx-auto mt-0.5">View Breakdown</button>
         </td>
         <td className="py-3.5 px-4 text-center">
           <TableActions

@@ -68,7 +68,7 @@ class RootErrorBoundary extends React.Component<
                 letterSpacing: '-0.02em',
               }}
             >
-              AL Muhammadi ERP
+              Notice
             </h2>
             <p
               style={{
@@ -78,47 +78,26 @@ class RootErrorBoundary extends React.Component<
                 marginBottom: '24px',
               }}
             >
-              A view rendering error was caught safely. Click below to return to the Executive Dashboard.
+              {this.state.error?.message || 'An unexpected error occurred. Please click OK to continue on this page.'}
             </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <button
                 onClick={() => {
                   this.setState({ hasError: false, error: null });
-                  window.location.href = '/';
                 }}
                 style={{
                   backgroundColor: '#059669',
                   color: '#ffffff',
                   border: 'none',
-                  padding: '10px 20px',
+                  padding: '10px 24px',
                   borderRadius: '8px',
                   fontWeight: 'bold',
-                  fontSize: '12px',
+                  fontSize: '13px',
                   cursor: 'pointer',
+                  minWidth: '100px',
                 }}
               >
-                Return to Dashboard
-              </button>
-              <button
-                onClick={() => {
-                  try {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                  } catch (_) {}
-                  window.location.href = '/signin';
-                }}
-                style={{
-                  backgroundColor: '#F1F5F9',
-                  color: '#475569',
-                  border: '1px solid #CBD5E1',
-                  padding: '10px 16px',
-                  borderRadius: '8px',
-                  fontWeight: 'bold',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                }}
-              >
-                Reset Session
+                OK
               </button>
             </div>
           </div>

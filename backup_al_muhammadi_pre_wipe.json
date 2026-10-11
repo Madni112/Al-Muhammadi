@@ -1,0 +1,4721 @@
+{
+  "products": [
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "L36145 B",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "TIME CERAMICS PVT LTD",
+      "category": "MATTE",
+      "product_name": "MATTE DARK",
+      "min_stock_alert": 12,
+      "pieces_per_box": 2,
+      "pcs_per_box": 2,
+      "pieces_per_packing": 2,
+      "id": 13,
+      "profit": -2100,
+      "purchase_price": 2100,
+      "retail_price": 0,
+      "mrp": 0,
+      "current_stock": -5,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "24 X 48",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 24 × 48 in | Box: 2 pcs (1.4400 sq.m / box) | Finish: TIME CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-03T12:29:13.84624+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "WST TILE INSERT FRAME",
+      "hs_code": "",
+      "service_charges": 0,
+      "bin": "WASCO (BATH & KITCHEN)",
+      "category": "SILVER",
+      "product_name": "WST TILE INSERT FRAME 24 X 4",
+      "min_stock_alert": 10,
+      "pieces_per_box": 4,
+      "pcs_per_box": 4,
+      "pieces_per_packing": 4,
+      "id": 4,
+      "profit": 500,
+      "purchase_price": 0,
+      "retail_price": 500,
+      "mrp": 500,
+      "current_stock": null,
+      "item_type": "goods",
+      "sub_sub_category": "JALI",
+      "sub_category": "24 X 4",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "",
+      "product_description": "",
+      "uom": "PCS",
+      "created_at": "2026-09-30T12:18:08.956919+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "OCG390005-B",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "OCEAN CERAMICS PVT LTD",
+      "category": "GLOSSY",
+      "product_name": "OCG390005-B 12x36 Glossy Ocean Tile",
+      "min_stock_alert": 10,
+      "pieces_per_box": 5,
+      "pcs_per_box": 5,
+      "pieces_per_packing": 5,
+      "id": 17,
+      "profit": 200,
+      "purchase_price": 1000,
+      "retail_price": 1200,
+      "mrp": 1200,
+      "current_stock": 0,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "12X36",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 12 × 36 in | Box: 5 pcs (1.3500 sq.m / box) | Finish: OCEAN CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-08T16:24:02.084046+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "L36146 C",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "TIME CERAMICS PVT LTD",
+      "category": "C",
+      "product_name": "GLOSSY C",
+      "min_stock_alert": 150,
+      "pieces_per_box": 8,
+      "pcs_per_box": 8,
+      "pieces_per_packing": 8,
+      "id": 9,
+      "profit": 120,
+      "purchase_price": 1380,
+      "retail_price": 1500,
+      "mrp": 1500,
+      "current_stock": null,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "12 X 24",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 12 × 24 in | Box: 8 pcs (1.4400 sq.m / box) | Finish: TIME CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-01T15:11:54.824129+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "L38105 A",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "TIME CERAMICS PVT LTD",
+      "category": "MATTE",
+      "product_name": "MATE 18 X 36",
+      "min_stock_alert": 12,
+      "pieces_per_box": 4,
+      "pcs_per_box": 4,
+      "pieces_per_packing": 4,
+      "id": 14,
+      "profit": 350,
+      "purchase_price": 1650,
+      "retail_price": 2000,
+      "mrp": 2000,
+      "current_stock": 200,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "18 X 36",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 18 × 36 in | Box: 4 pcs (1.6200 sq.m / box) | Finish: TIME CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-04T09:55:27.893449+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "L36146 A",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "TIME CERAMICS PVT LTD",
+      "category": "A",
+      "product_name": "GLOSSY A",
+      "min_stock_alert": 150,
+      "pieces_per_box": 8,
+      "pcs_per_box": 8,
+      "pieces_per_packing": 8,
+      "id": 8,
+      "profit": 120,
+      "purchase_price": 1380,
+      "retail_price": 1500,
+      "mrp": 1500,
+      "current_stock": null,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "12 X 24",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 12 × 24 in | Box: 8 pcs (1.4400 sq.m / box) | Finish: TIME CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-01T15:10:39.63266+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "L36145 C",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "TIME CERAMICS PVT LTD",
+      "category": "C",
+      "product_name": "GLOSSY C",
+      "min_stock_alert": 0,
+      "pieces_per_box": 8,
+      "pcs_per_box": 8,
+      "pieces_per_packing": 8,
+      "id": 12,
+      "profit": 120,
+      "purchase_price": 1380,
+      "retail_price": 1500,
+      "mrp": 1500,
+      "current_stock": null,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "12 X 24",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 12 × 24 in | Box: 8 pcs (1.4400 sq.m / box) | Finish: TIME CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-01T15:53:40.023697+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "L36145 A",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "TIME CERAMICS PVT LTD",
+      "category": "A",
+      "product_name": "GLOSSY A",
+      "min_stock_alert": 20,
+      "pieces_per_box": 8,
+      "pcs_per_box": 8,
+      "pieces_per_packing": 8,
+      "id": 10,
+      "profit": 120,
+      "purchase_price": 1380,
+      "retail_price": 1500,
+      "mrp": 1500,
+      "current_stock": null,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "12 X 24",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 12 × 24 in | Box: 8 pcs (1.4400 sq.m / box) | Finish: TIME CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-01T15:49:51.227041+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "L38105 B",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "TIME CERAMICS PVT LTD",
+      "category": "MATTE",
+      "product_name": "MATE 18 X 36",
+      "min_stock_alert": 12,
+      "pieces_per_box": 4,
+      "pcs_per_box": 4,
+      "pieces_per_packing": 4,
+      "id": 15,
+      "profit": 350,
+      "purchase_price": 1650,
+      "retail_price": 2000,
+      "mrp": 2000,
+      "current_stock": 1200,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "18 X 36",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 18 × 36 in | Box: 4 pcs (1.6200 sq.m / box) | Finish: TIME CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-04T10:38:23.80967+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "WS11 SILVER",
+      "hs_code": "",
+      "service_charges": 0,
+      "bin": "WASCO (BATH & KITCHEN)",
+      "category": "SILVER",
+      "product_name": "SQUARE FLOOR DRAIN SILVER",
+      "min_stock_alert": 10,
+      "pieces_per_box": 4,
+      "pcs_per_box": 4,
+      "pieces_per_packing": 4,
+      "id": 2,
+      "profit": 300,
+      "purchase_price": 0,
+      "retail_price": 300,
+      "mrp": 300,
+      "current_stock": -5,
+      "item_type": "goods",
+      "sub_sub_category": "JALI",
+      "sub_category": "6 X 6",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "",
+      "product_description": "",
+      "uom": "PCS",
+      "created_at": "2026-09-29T14:19:10.570781+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "WS11 GOLDEN",
+      "hs_code": "",
+      "service_charges": 0,
+      "bin": "WASCO (BATH & KITCHEN)",
+      "category": "GOLDEN",
+      "product_name": "SQUARE FLOOR DRAIN GOLDEN",
+      "min_stock_alert": 10,
+      "pieces_per_box": 4,
+      "pcs_per_box": 4,
+      "pieces_per_packing": 4,
+      "id": 1,
+      "profit": 200,
+      "purchase_price": 0,
+      "retail_price": 200,
+      "mrp": 200,
+      "current_stock": 0,
+      "item_type": "goods",
+      "sub_sub_category": "JALI",
+      "sub_category": "6 X 6",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "",
+      "product_description": "",
+      "uom": "PCS",
+      "created_at": "2026-09-29T14:12:57.315232+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "",
+      "hs_code": "",
+      "service_charges": 0,
+      "bin": "WASCO (BATH & KITCHEN)",
+      "category": "SILVER",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "min_stock_alert": 10,
+      "pieces_per_box": 4,
+      "pcs_per_box": 4,
+      "pieces_per_packing": 4,
+      "id": 5,
+      "profit": 400,
+      "purchase_price": 0,
+      "retail_price": 400,
+      "mrp": 400,
+      "current_stock": 300,
+      "item_type": "goods",
+      "sub_sub_category": "JALI",
+      "sub_category": "18 X 4",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "",
+      "product_description": "",
+      "uom": "PCS",
+      "created_at": "2026-09-30T14:07:03.135802+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "WS11 BLACK",
+      "hs_code": "",
+      "service_charges": 0,
+      "bin": "WASCO (BATH & KITCHEN)",
+      "category": "BLACK",
+      "product_name": "SQUARE FLOOR DRAIN BLACK",
+      "min_stock_alert": 10,
+      "pieces_per_box": 4,
+      "pcs_per_box": 4,
+      "pieces_per_packing": 4,
+      "id": 3,
+      "profit": 400,
+      "purchase_price": 0,
+      "retail_price": 400,
+      "mrp": 400,
+      "current_stock": 1,
+      "item_type": "goods",
+      "sub_sub_category": "JALI",
+      "sub_category": "6 X 6",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "",
+      "product_description": "",
+      "uom": "PCS",
+      "created_at": "2026-09-29T14:21:43.16044+00:00"
+    },
+    {
+      "sro_schedule_no": "",
+      "item_sr_no": "OCG390005-A",
+      "hs_code": "6907.2100",
+      "service_charges": 0,
+      "bin": "OCEAN CERAMICS PVT LTD",
+      "category": "GLOSSY",
+      "product_name": "12x36 Glossy Ocean Tile",
+      "min_stock_alert": 10,
+      "pieces_per_box": 5,
+      "pcs_per_box": 5,
+      "pieces_per_packing": 5,
+      "id": 16,
+      "profit": 200,
+      "purchase_price": 1000,
+      "retail_price": 1200,
+      "mrp": 1200,
+      "current_stock": null,
+      "item_type": "goods",
+      "sub_sub_category": "TILE",
+      "sub_category": "12X36",
+      "tenant_id": null,
+      "brand": null,
+      "scenario_name": "Tile Metric",
+      "product_description": "[TILE PRODUCT] Size: 12 × 36 in | Box: 5 pcs (1.3500 sq.m / box) | Finish: OCEAN CERAMICS PVT LTD | Wt: 28kg",
+      "uom": "BOX",
+      "created_at": "2026-10-08T16:22:32.871633+00:00"
+    }
+  ],
+  "inventory_categories": [
+    {
+      "name": "Test",
+      "id": 2,
+      "tenant_id": null,
+      "parent_id": null,
+      "code": null,
+      "created_at": null
+    },
+    {
+      "name": "Sub Category",
+      "id": 3,
+      "tenant_id": null,
+      "parent_id": 2,
+      "code": null,
+      "created_at": null
+    },
+    {
+      "name": "TILE",
+      "id": 7,
+      "tenant_id": null,
+      "parent_id": null,
+      "code": null,
+      "created_at": "2026-09-28T16:55:04.054256+00:00"
+    },
+    {
+      "name": "12 X 24",
+      "id": 8,
+      "tenant_id": null,
+      "parent_id": 7,
+      "code": null,
+      "created_at": "2026-09-28T16:56:23.162488+00:00"
+    },
+    {
+      "name": "16 X 16",
+      "id": 12,
+      "tenant_id": null,
+      "parent_id": 7,
+      "code": null,
+      "created_at": "2026-09-29T14:05:27.509695+00:00"
+    },
+    {
+      "name": "JALI",
+      "id": 15,
+      "tenant_id": null,
+      "parent_id": null,
+      "code": null,
+      "created_at": "2026-09-29T14:06:33.952055+00:00"
+    },
+    {
+      "name": "6 X 6",
+      "id": 16,
+      "tenant_id": null,
+      "parent_id": 15,
+      "code": null,
+      "created_at": "2026-09-29T14:07:10.055156+00:00"
+    },
+    {
+      "name": "SILVER",
+      "id": 17,
+      "tenant_id": null,
+      "parent_id": 16,
+      "code": null,
+      "created_at": "2026-09-29T14:07:38.538594+00:00"
+    },
+    {
+      "name": "GOLDEN",
+      "id": 18,
+      "tenant_id": null,
+      "parent_id": 16,
+      "code": null,
+      "created_at": "2026-09-29T14:07:41.617084+00:00"
+    },
+    {
+      "name": "BLACK",
+      "id": 19,
+      "tenant_id": null,
+      "parent_id": 16,
+      "code": null,
+      "created_at": "2026-09-29T14:07:43.49637+00:00"
+    },
+    {
+      "name": "IVORY",
+      "id": 20,
+      "tenant_id": null,
+      "parent_id": 16,
+      "code": null,
+      "created_at": "2026-09-29T14:08:02.525442+00:00"
+    },
+    {
+      "name": "OFF WHITE",
+      "id": 21,
+      "tenant_id": null,
+      "parent_id": 16,
+      "code": null,
+      "created_at": "2026-09-29T14:08:06.019025+00:00"
+    },
+    {
+      "name": "24 X 4",
+      "id": 22,
+      "tenant_id": null,
+      "parent_id": 15,
+      "code": null,
+      "created_at": "2026-09-30T10:50:18.880268+00:00"
+    },
+    {
+      "name": "SILVER",
+      "id": 23,
+      "tenant_id": null,
+      "parent_id": 22,
+      "code": null,
+      "created_at": "2026-09-30T10:51:30.663846+00:00"
+    },
+    {
+      "name": "18 X 4",
+      "id": 24,
+      "tenant_id": null,
+      "parent_id": 15,
+      "code": null,
+      "created_at": "2026-09-30T14:06:05.904798+00:00"
+    },
+    {
+      "name": "SILVER",
+      "id": 25,
+      "tenant_id": null,
+      "parent_id": 24,
+      "code": null,
+      "created_at": "2026-09-30T14:06:14.483032+00:00"
+    },
+    {
+      "name": "MATT",
+      "id": 26,
+      "tenant_id": null,
+      "parent_id": 8,
+      "code": null,
+      "created_at": "2026-09-30T14:58:56.379638+00:00"
+    },
+    {
+      "name": "A",
+      "id": 13,
+      "tenant_id": null,
+      "parent_id": 12,
+      "code": null,
+      "created_at": "2026-09-29T14:05:33.162951+00:00"
+    },
+    {
+      "name": "A",
+      "id": 9,
+      "tenant_id": null,
+      "parent_id": 8,
+      "code": null,
+      "created_at": "2026-09-28T16:56:53.470082+00:00"
+    },
+    {
+      "name": "B",
+      "id": 27,
+      "tenant_id": null,
+      "parent_id": 8,
+      "code": null,
+      "created_at": "2026-09-30T15:13:03.626644+00:00"
+    },
+    {
+      "name": "C",
+      "id": 28,
+      "tenant_id": null,
+      "parent_id": 8,
+      "code": null,
+      "created_at": "2026-09-30T15:13:05.593491+00:00"
+    },
+    {
+      "name": "24 X 48",
+      "id": 29,
+      "tenant_id": null,
+      "parent_id": 7,
+      "code": null,
+      "created_at": "2026-10-03T12:22:12.753365+00:00"
+    },
+    {
+      "name": "MATTE",
+      "id": 30,
+      "tenant_id": null,
+      "parent_id": 29,
+      "code": null,
+      "created_at": "2026-10-03T12:23:37.223695+00:00"
+    },
+    {
+      "name": "18 X 36",
+      "id": 31,
+      "tenant_id": null,
+      "parent_id": 7,
+      "code": null,
+      "created_at": "2026-10-04T09:52:58.568638+00:00"
+    },
+    {
+      "name": "MATTE",
+      "id": 32,
+      "tenant_id": null,
+      "parent_id": 31,
+      "code": null,
+      "created_at": "2026-10-04T09:53:30.057562+00:00"
+    },
+    {
+      "name": "12X36",
+      "id": 33,
+      "tenant_id": null,
+      "parent_id": 7,
+      "code": null,
+      "created_at": "2026-10-08T16:20:55.578397+00:00"
+    },
+    {
+      "name": "GLOSSY",
+      "id": 34,
+      "tenant_id": null,
+      "parent_id": 33,
+      "code": null,
+      "created_at": "2026-10-08T16:21:12.828855+00:00"
+    }
+  ],
+  "inventory_brands": [],
+  "inventory_locations": [
+    {
+      "notes": null,
+      "contact_phone": "",
+      "id": 3,
+      "name": "AL MUHAMMADI SHOWROOM",
+      "location_type": "Sale Point",
+      "address": "TILAK CHADI",
+      "capacity": null,
+      "manager_name": null,
+      "tenant_id": null,
+      "created_at": "2026-09-29T14:14:07.7529+00:00"
+    },
+    {
+      "notes": null,
+      "contact_phone": "",
+      "id": 4,
+      "name": "FATEH CHOWK",
+      "location_type": "Storage Point",
+      "address": "FATEH CHOWK",
+      "capacity": null,
+      "manager_name": null,
+      "tenant_id": null,
+      "created_at": "2026-09-29T14:14:24.192491+00:00"
+    }
+  ],
+  "inventory_uom": [
+    {
+      "id": 3,
+      "short_code": "PCS",
+      "full_name": "Pieces",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Count & Units",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 5,
+      "short_code": "EACH",
+      "full_name": "Each",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Count & Units",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 6,
+      "short_code": "SET",
+      "full_name": "Sets",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Count & Units",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 10,
+      "short_code": "PKT",
+      "full_name": "Packet / Pack",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Packaging & Containers",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 14,
+      "short_code": "SQFT",
+      "full_name": "Square Feet (Sq. Ft)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Area & Surface",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 15,
+      "short_code": "SQM",
+      "full_name": "Square Meter (Sq. Mtr)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Area & Surface",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 11,
+      "short_code": "BAG",
+      "full_name": "Bag / Sack",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Packaging & Containers",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 16,
+      "short_code": "SQYD",
+      "full_name": "Square Yard (Guz)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Area & Surface",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 17,
+      "short_code": "MTR",
+      "full_name": "Meter (Linear Mtr)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Length & Distance",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 20,
+      "short_code": "MM",
+      "full_name": "Millimeter",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Length & Distance",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 21,
+      "short_code": "YD",
+      "full_name": "Yard (Guz)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Length & Distance",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 23,
+      "short_code": "GM",
+      "full_name": "Gram (g)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Weight & Mass",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 25,
+      "short_code": "LBS",
+      "full_name": "Pound (lb)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Weight & Mass",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 27,
+      "short_code": "ML",
+      "full_name": "Milliliter (ml)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Volume & Liquid",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 28,
+      "short_code": "GAL",
+      "full_name": "Gallon",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Volume & Liquid",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 2,
+      "short_code": "BOX",
+      "full_name": "Box / Carton",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Packaging & Containers",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 12,
+      "short_code": "BNDL",
+      "full_name": "Bundle",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Packaging & Containers",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 9,
+      "short_code": "CTN",
+      "full_name": "Carton",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Packaging & Containers",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 13,
+      "short_code": "ROLL",
+      "full_name": "Roll",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Packaging & Containers",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 4,
+      "short_code": "NOS",
+      "full_name": "Numbers",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Count & Units",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 7,
+      "short_code": "PAIR",
+      "full_name": "Pairs",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Count & Units",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 8,
+      "short_code": "DOZ",
+      "full_name": "Dozen (12 Pcs)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Count & Units",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 19,
+      "short_code": "INCH",
+      "full_name": "Inches",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Length & Distance",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 18,
+      "short_code": "FT",
+      "full_name": "Foot / Feet",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Length & Distance",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 22,
+      "short_code": "KG",
+      "full_name": "Kilogram (Kg)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Weight & Mass",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 24,
+      "short_code": "TON",
+      "full_name": "Metric Ton",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Weight & Mass",
+      "tenant_id": null,
+      "is_active": true
+    },
+    {
+      "id": 26,
+      "short_code": "LTR",
+      "full_name": "Liter (Ltr)",
+      "created_at": "2026-09-29T15:56:04.161735+00:00",
+      "category": "Volume & Liquid",
+      "tenant_id": null,
+      "is_active": true
+    }
+  ],
+  "opening_stocks": [],
+  "stock_balances": [],
+  "warehouse_inventory": [
+    {
+      "id": 1,
+      "warehouse_name": "LOC 1",
+      "tenant_id": null,
+      "created_at": "2026-09-29T07:41:42.519192+00:00",
+      "product_name": "TILE",
+      "quantity": 0
+    },
+    {
+      "id": 29,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-10T12:47:56.544029+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 30,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-10T12:48:02.837224+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 31,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-10T12:48:10.693126+00:00",
+      "product_name": "GLOSSY A",
+      "quantity": 2
+    },
+    {
+      "id": 21,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-10-03T13:52:53.861393+00:00",
+      "product_name": "GLOSSY A",
+      "quantity": 0
+    },
+    {
+      "id": 6,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-09-30T16:34:50.018471+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 7,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-09-30T16:34:50.138551+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 28,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-10-08T16:37:02.536269+00:00",
+      "product_name": "OCG390005-B 12x36 Glossy Ocean Tile",
+      "quantity": 0
+    },
+    {
+      "id": 22,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-10-03T13:58:13.492495+00:00",
+      "product_name": "MATTE DARK",
+      "quantity": 0
+    },
+    {
+      "id": 8,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-09-30T16:35:03.27332+00:00",
+      "product_name": "WST TILE INSERT FRAME 24 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 9,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-09-30T16:35:09.715719+00:00",
+      "product_name": "WST TILE INSERT FRAME 24 X 4",
+      "quantity": 1
+    },
+    {
+      "id": 17,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-03T13:48:43.951627+00:00",
+      "product_name": "MATTE DARK",
+      "quantity": 0
+    },
+    {
+      "id": 11,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-09-30T17:34:32.370703+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 12,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-09-30T17:34:35.251623+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 15,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-01T10:39:15.780059+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 23,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-04T09:56:55.812123+00:00",
+      "product_name": "MATE 18 X 36",
+      "quantity": 0
+    },
+    {
+      "id": 16,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-01T12:48:58.656622+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 18,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-03T13:51:40.936042+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 19,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-03T13:52:23.130072+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 20,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-03T13:52:24.933733+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 2,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-09-29T16:36:19.016017+00:00",
+      "product_name": "SQUARE FLOOR DRAIN BLACK",
+      "quantity": 99
+    },
+    {
+      "id": 5,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-09-30T13:00:44.371325+00:00",
+      "product_name": "SQUARE FLOOR DRAIN BLACK",
+      "quantity": 650
+    },
+    {
+      "id": 25,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-04T10:30:59.21281+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 0
+    },
+    {
+      "id": 14,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-09-30T18:17:26.72537+00:00",
+      "product_name": "SQUARE FLOOR DRAIN SILVER",
+      "quantity": 0
+    },
+    {
+      "id": 4,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-09-30T12:57:58.748996+00:00",
+      "product_name": "SQUARE FLOOR DRAIN SILVER",
+      "quantity": 6
+    },
+    {
+      "id": 26,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-10-08T16:35:29.447129+00:00",
+      "product_name": "12x36 Glossy Ocean Tile",
+      "quantity": 0
+    },
+    {
+      "id": 13,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-09-30T17:34:37.700591+00:00",
+      "product_name": "WST TILE INSERT FRAME 18 X 4",
+      "quantity": 290
+    },
+    {
+      "id": 27,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-10-08T16:35:37.814636+00:00",
+      "product_name": "12x36 Glossy Ocean Tile",
+      "quantity": 100
+    },
+    {
+      "id": 24,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-10-04T09:58:39.90122+00:00",
+      "product_name": "MATE 18 X 36",
+      "quantity": 1400
+    },
+    {
+      "id": 3,
+      "warehouse_name": "FATEH CHOWK",
+      "tenant_id": null,
+      "created_at": "2026-09-29T16:36:20.105047+00:00",
+      "product_name": "SQUARE FLOOR DRAIN GOLDEN",
+      "quantity": 0
+    },
+    {
+      "id": 10,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "tenant_id": null,
+      "created_at": "2026-09-30T17:34:30.03913+00:00",
+      "product_name": "SQUARE FLOOR DRAIN GOLDEN",
+      "quantity": -115
+    }
+  ],
+  "stock_transfers": [],
+  "sales_invoices": [
+    {
+      "sale_date": "2026-10-01",
+      "id": 9,
+      "invoice_no": "AYAZ BHAI-006",
+      "customer_name": "SAAD",
+      "payment_term": "Cash",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "1000",
+      "receipt_status": "Paid",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "AL MUHAMMADI SHOWROOM: 04",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-10-01T12:44:49.210333+00:00",
+      "items": [
+        {
+          "rp": 200,
+          "qty": "5",
+          "amount": 0,
+          "hsCode": "",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "WS11 GOLDEN",
+          "itemName": "SQUARE FLOOR DRAIN GOLDEN",
+          "warehouse": "AL MUHAMMADI SHOWROOM",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 40,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 1000
+    },
+    {
+      "sale_date": "2026-10-03",
+      "id": 11,
+      "invoice_no": "AYAZ SOOMRO-007",
+      "customer_name": "HADI",
+      "payment_term": "Credit",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "480000",
+      "receipt_status": "On Credit",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "FATEH CHOWK: 011",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-10-03T13:55:42.765816+00:00",
+      "items": [
+        {
+          "rp": 400,
+          "qty": "1200",
+          "amount": 0,
+          "hsCode": "",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "",
+          "itemName": "WST TILE INSERT FRAME 18 X 4",
+          "warehouse": "FATEH CHOWK",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 1500,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 0
+    },
+    {
+      "sale_date": "2026-09-30",
+      "id": 4,
+      "invoice_no": "AYAZ BHAI-001",
+      "customer_name": "ASIF",
+      "payment_term": "Credit",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "1500",
+      "receipt_status": "On Credit",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "AL MUHAMMADI SHOWROOM: 001",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-09-30T15:54:33.74435+00:00",
+      "items": [
+        {
+          "rp": 300,
+          "qty": "5",
+          "amount": 0,
+          "hsCode": "",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "WS11 SILVER",
+          "itemName": "SQUARE FLOOR DRAIN SILVER",
+          "warehouse": "AL MUHAMMADI SHOWROOM",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 11,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 400
+    },
+    {
+      "sale_date": "2026-10-01",
+      "id": 6,
+      "invoice_no": "AYAZ BHAI-003",
+      "customer_name": "ADIL",
+      "payment_term": "Credit",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "10000",
+      "receipt_status": "On Credit",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "AL MUHAMMADI SHOWROOM: 02",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-10-01T09:07:40.985095+00:00",
+      "items": [
+        {
+          "rp": 200,
+          "qty": "50",
+          "amount": 0,
+          "hsCode": "",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "WS11 GOLDEN",
+          "itemName": "SQUARE FLOOR DRAIN GOLDEN",
+          "warehouse": "AL MUHAMMADI SHOWROOM",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 200,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 9500
+    },
+    {
+      "sale_date": "2026-10-01",
+      "id": 7,
+      "invoice_no": "AYAZ BHAI-004",
+      "customer_name": "ASIF",
+      "payment_term": "Credit",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "12000",
+      "receipt_status": "On Credit",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "AL MUHAMMADI SHOWROOM: 03",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-10-01T10:40:20.576391+00:00",
+      "items": [
+        {
+          "rp": 200,
+          "qty": "60",
+          "amount": 0,
+          "hsCode": "",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "WS11 GOLDEN",
+          "itemName": "SQUARE FLOOR DRAIN GOLDEN",
+          "warehouse": "AL MUHAMMADI SHOWROOM",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 100,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 11000
+    },
+    {
+      "sale_date": "2026-10-01",
+      "id": 8,
+      "invoice_no": "AYAZ BHAI-005",
+      "customer_name": "HADEED",
+      "payment_term": "Credit",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "20000",
+      "receipt_status": "On Credit",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "FATEH CHOWK: 04",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-10-01T12:20:57.586398+00:00",
+      "items": [
+        {
+          "rp": 400,
+          "qty": "50",
+          "amount": 0,
+          "hsCode": "",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "WS11 BLACK",
+          "itemName": "SQUARE FLOOR DRAIN BLACK",
+          "warehouse": "FATEH CHOWK",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 700,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 19000
+    },
+    {
+      "sale_date": "2026-10-03",
+      "id": 12,
+      "invoice_no": "AYAZ SOOMRO-001",
+      "customer_name": "Walk-in Customer",
+      "payment_term": "Cash",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "12000",
+      "receipt_status": "Paid",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "AL MUHAMMADI SHOWROOM: 02",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-10-03T13:59:21.776846+00:00",
+      "items": [
+        {
+          "rp": 2500,
+          "qty": "5",
+          "amount": 0,
+          "hsCode": "6907.2100",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "L36145 B",
+          "itemName": "MATTE DARK",
+          "warehouse": "AL MUHAMMADI SHOWROOM",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 5,
+          "_overallDiscount": 500,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 12000
+    },
+    {
+      "sale_date": "2026-10-01",
+      "id": 10,
+      "invoice_no": "AYAZ BHAI-000",
+      "customer_name": "testing",
+      "payment_term": "Cash",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "400",
+      "receipt_status": "Paid",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "AL MUHAMMADI SHOWROOM: 000",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-10-01T14:57:04.743405+00:00",
+      "items": [
+        {
+          "rp": 400,
+          "qty": 1,
+          "amount": 0,
+          "hsCode": "",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "WS11 BLACK",
+          "itemName": "SQUARE FLOOR DRAIN BLACK",
+          "warehouse": "AL MUHAMMADI SHOWROOM",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 100,
+          "_overallDiscount": 0,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 400
+    },
+    {
+      "sale_date": "2026-10-10",
+      "id": 16,
+      "invoice_no": "AYAZ SOOMRO-002",
+      "customer_name": "YH",
+      "payment_term": "Cash",
+      "dispatch_warehouse": "",
+      "salesman": "AYAZ KACHI",
+      "transport_name": "No Transport (Handover)",
+      "selected_bank": null,
+      "bank_amount": "0",
+      "total_amount": "3000",
+      "receipt_status": "Paid",
+      "sale_status": "Confirm",
+      "scenario_type": "Standard Retail Sale (No Tax)",
+      "dc_no": null,
+      "shipping_address": "",
+      "gate_pass_no": "AL MUHAMMADI SHOWROOM: 000",
+      "cash_account_title": null,
+      "vehicle_number": null,
+      "buyer_cnic": null,
+      "buyer_registration_type": null,
+      "consumer_type": null,
+      "transport_charges": 0,
+      "pay_by_bank": null,
+      "pay_by_cash": null,
+      "tenant_id": null,
+      "additional_charges": 0,
+      "created_at": "2026-10-10T12:48:58.165298+00:00",
+      "items": [
+        {
+          "rp": 1500,
+          "qty": "2",
+          "amount": 0,
+          "hsCode": "6907.2100",
+          "fTaxPer": 0,
+          "gstRate": 0,
+          "skuCode": "L36146 A",
+          "itemName": "GLOSSY A",
+          "warehouse": "AL MUHAMMADI SHOWROOM",
+          "discountAmt": 0,
+          "discountPer": 0,
+          "availableQty": 2,
+          "_overallDiscount": 0,
+          "itemServiceCharges": 0
+        }
+      ],
+      "cash_amount_paid": 3000
+    }
+  ],
+  "delivery_challans": [
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 5,
+          "rate": 300,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 5,
+          "poNoSub": "",
+          "skuCode": "WS11 SILVER",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 5,
+          "pDescription": "SQUARE FLOOR DRAIN SILVER",
+          "dispatchedQty": 0
+        }
+      ],
+      "total_net_amount": 1500,
+      "freight_charges": null,
+      "is_printed": null,
+      "tenant_id": null,
+      "gate_pass_no": "001",
+      "freight_payment_status": null,
+      "transportation": "No Transport (Handover)",
+      "customer_name": "ASIF",
+      "created_at": "2026-09-30T15:54:34.12481+00:00",
+      "challan_date": "2026-09-30",
+      "id": 9,
+      "remarks": "Awaiting warehouse approval for AYAZ BHAI-001 (AL MUHAMMADI SHOWROOM)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": null,
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 5,
+      "total_amount": 1500,
+      "invoice_no": "AYAZ BHAI-001",
+      "status": "Pending",
+      "po_date": "2026-09-30",
+      "challan_no": "ALMUHAMMADISHOWROOM-0001"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 5,
+          "rate": 200,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 GOLDEN",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 5,
+          "pDescription": "SQUARE FLOOR DRAIN GOLDEN",
+          "dispatchedQty": 5
+        }
+      ],
+      "total_net_amount": 1000,
+      "freight_charges": null,
+      "is_printed": null,
+      "tenant_id": null,
+      "gate_pass_no": null,
+      "freight_payment_status": null,
+      "transportation": "No Transport (Handover)",
+      "customer_name": "SAAD",
+      "created_at": "2026-10-01T14:48:54.001354+00:00",
+      "challan_date": "2026-10-01",
+      "id": 16,
+      "remarks": "Remaining hold items from ALMUHAMMADISHOWROOM-0004",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": null,
+      "vehicle_no": "Pending Dispatch",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 5,
+      "total_amount": 1000,
+      "invoice_no": "AYAZ BHAI-006",
+      "status": "Pending Approval",
+      "po_date": null,
+      "challan_no": "ALMUHAMMADISHOWROOM-0004-B"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 10,
+          "rate": 200,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 GOLDEN",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 60,
+          "pDescription": "SQUARE FLOOR DRAIN GOLDEN",
+          "dispatchedQty": 10
+        }
+      ],
+      "total_net_amount": 2000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": null,
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "ASIF",
+      "created_at": "2026-10-01T14:49:46.17181+00:00",
+      "challan_date": "2026-10-01",
+      "id": 17,
+      "remarks": "Approved by Warehouse Manager (Partially Dispatched) (Remaining hold items moved to ALMUHAMMADISHOWROOM-0003-C)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 10,
+      "total_amount": 2000,
+      "invoice_no": "AYAZ BHAI-004",
+      "status": "Partially Dispatched",
+      "po_date": null,
+      "challan_no": "ALMUHAMMADISHOWROOM-0003-B"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 50,
+          "rate": 200,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 GOLDEN",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 50,
+          "pDescription": "SQUARE FLOOR DRAIN GOLDEN",
+          "dispatchedQty": 50
+        }
+      ],
+      "total_net_amount": 10000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": "02",
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "ADIL",
+      "created_at": "2026-10-01T09:07:41.360274+00:00",
+      "challan_date": "2026-10-01",
+      "id": 11,
+      "remarks": "Approved by Warehouse Manager (Dispatched)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 50,
+      "total_amount": 10000,
+      "invoice_no": "AYAZ BHAI-003",
+      "status": "Dispatched",
+      "po_date": "2026-10-01",
+      "challan_no": "ALMUHAMMADISHOWROOM-0002"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 5,
+          "rate": 200,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 GOLDEN",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 5,
+          "pDescription": "SQUARE FLOOR DRAIN GOLDEN",
+          "dispatchedQty": 0
+        }
+      ],
+      "total_net_amount": 1000,
+      "freight_charges": null,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": "04",
+      "freight_payment_status": null,
+      "transportation": "No Transport (Handover)",
+      "customer_name": "SAAD",
+      "created_at": "2026-10-01T12:44:49.470193+00:00",
+      "challan_date": "2026-10-01",
+      "id": 14,
+      "remarks": "Awaiting warehouse approval for AYAZ BHAI-006 (AL MUHAMMADI SHOWROOM) (Remaining hold items moved to ALMUHAMMADISHOWROOM-0004-B)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": null,
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 5,
+      "total_amount": 1000,
+      "invoice_no": "AYAZ BHAI-006",
+      "status": "Pending",
+      "po_date": "2026-10-01",
+      "challan_no": "ALMUHAMMADISHOWROOM-0004"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 5,
+          "rate": 200,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 GOLDEN",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 5,
+          "pDescription": "SQUARE FLOOR DRAIN GOLDEN",
+          "dispatchedQty": 5
+        }
+      ],
+      "total_net_amount": 1000,
+      "freight_charges": 0,
+      "is_printed": null,
+      "tenant_id": null,
+      "gate_pass_no": null,
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "SAAD",
+      "created_at": "2026-10-01T14:48:46.499265+00:00",
+      "challan_date": "2026-10-01",
+      "id": 15,
+      "remarks": "Approved by Warehouse Manager (Dispatched)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 5,
+      "total_amount": 1000,
+      "invoice_no": "AYAZ BHAI-006",
+      "status": "Dispatched",
+      "po_date": null,
+      "challan_no": "ALMUHAMMADISHOWROOM-0004-B"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 50,
+          "rate": 200,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 GOLDEN",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 50,
+          "pDescription": "SQUARE FLOOR DRAIN GOLDEN",
+          "dispatchedQty": 50
+        }
+      ],
+      "total_net_amount": 10000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": null,
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "ASIF",
+      "created_at": "2026-10-01T14:50:57.439366+00:00",
+      "challan_date": "2026-10-01",
+      "id": 18,
+      "remarks": "Approved by Warehouse Manager (Dispatched 50 pcs)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 50,
+      "total_amount": 10000,
+      "invoice_no": "AYAZ BHAI-004",
+      "status": "Dispatched",
+      "po_date": null,
+      "challan_no": "ALMUHAMMADISHOWROOM-0003-C"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 25,
+          "rate": 400,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 BLACK",
+          "discount": 0,
+          "location": "FATEH CHOWK",
+          "orderQty": 25,
+          "pDescription": "SQUARE FLOOR DRAIN BLACK",
+          "dispatchedQty": 25
+        }
+      ],
+      "total_net_amount": 10000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": "04",
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "HADEED",
+      "created_at": "2026-10-01T12:20:57.906803+00:00",
+      "challan_date": "2026-10-01",
+      "id": 13,
+      "remarks": "Approved by Warehouse Manager (Dispatched 25 pcs, 25 on Hold) (Remaining hold items moved to FATEHCHOWK-0001-B)",
+      "dispatch_warehouse": "FATEH CHOWK",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 25,
+      "total_amount": 10000,
+      "invoice_no": "AYAZ BHAI-005",
+      "status": "Dispatched",
+      "po_date": "2026-10-01",
+      "challan_no": "FATEHCHOWK-0001"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 1,
+          "rate": 400,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 BLACK",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 1,
+          "pDescription": "SQUARE FLOOR DRAIN BLACK",
+          "dispatchedQty": 1
+        }
+      ],
+      "total_net_amount": 400,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": "000",
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "testing",
+      "created_at": "2026-10-01T14:57:05.023111+00:00",
+      "challan_date": "2026-10-01",
+      "id": 19,
+      "remarks": "Approved by Warehouse Manager (Dispatched 1 pcs)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 1,
+      "total_amount": 400,
+      "invoice_no": "AYAZ BHAI-000",
+      "status": "Dispatched",
+      "po_date": "2026-10-01",
+      "challan_no": "ALMUHAMMADISHOWROOM-0005"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 60,
+          "rate": 200,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 GOLDEN",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 60,
+          "pDescription": "SQUARE FLOOR DRAIN GOLDEN",
+          "dispatchedQty": 60
+        }
+      ],
+      "total_net_amount": 12000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": "03",
+      "freight_payment_status": "Free / Direct",
+      "transportation": "Customer's Own Transport",
+      "customer_name": "ASIF",
+      "created_at": "2026-10-01T10:40:20.869488+00:00",
+      "challan_date": "2026-10-01",
+      "id": 12,
+      "remarks": "Approved by Warehouse Manager (Dispatched 60 pcs)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "Customer's Own Transport",
+      "total_quantity": 60,
+      "total_amount": 12000,
+      "invoice_no": "AYAZ BHAI-004",
+      "status": "Dispatched",
+      "po_date": "2026-10-01",
+      "challan_no": "ALMUHAMMADISHOWROOM-0003"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 10,
+          "rate": 400,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 BLACK",
+          "discount": 0,
+          "location": "FATEH CHOWK",
+          "orderQty": 10,
+          "pDescription": "SQUARE FLOOR DRAIN BLACK",
+          "dispatchedQty": 10
+        }
+      ],
+      "total_net_amount": 4000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": null,
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "HADEED",
+      "created_at": "2026-10-01T18:03:54.4412+00:00",
+      "challan_date": "2026-10-01",
+      "id": 23,
+      "remarks": "Approved by Warehouse Manager (Dispatched 10 pcs)",
+      "dispatch_warehouse": "FATEH CHOWK",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 10,
+      "total_amount": 4000,
+      "invoice_no": "AYAZ BHAI-005",
+      "status": "Dispatched",
+      "po_date": null,
+      "challan_no": "FATEHCHOWK-0001-B"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 900,
+          "rate": 400,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "",
+          "discount": 0,
+          "location": "FATEH CHOWK",
+          "orderQty": 900,
+          "pDescription": "WST TILE INSERT FRAME 18 X 4",
+          "dispatchedQty": 900
+        }
+      ],
+      "total_net_amount": 360000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": "011",
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "HADI",
+      "created_at": "2026-10-03T13:55:43.136112+00:00",
+      "challan_date": "2026-10-03",
+      "id": 25,
+      "remarks": "Approved by Warehouse Manager (Dispatched 900 pcs) (Remaining hold items moved to FATEHCHOWK-0002-B)",
+      "dispatch_warehouse": "FATEH CHOWK",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 900,
+      "total_amount": 360000,
+      "invoice_no": "AYAZ SOOMRO-007",
+      "status": "Dispatched",
+      "po_date": "2026-10-03",
+      "challan_no": "FATEHCHOWK-0002"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 5,
+          "rate": 2500,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "L36145 B",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 5,
+          "pDescription": "MATTE DARK",
+          "dispatchedQty": 5
+        }
+      ],
+      "total_net_amount": 12500,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": "02",
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "Walk-in Customer",
+      "created_at": "2026-10-03T15:06:19.441766+00:00",
+      "challan_date": "2026-10-03",
+      "id": 28,
+      "remarks": "Approved by Warehouse Manager (Dispatched 5 pcs)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 5,
+      "total_amount": 12500,
+      "invoice_no": "AYAZ SOOMRO-001",
+      "status": "Dispatched",
+      "po_date": "2026-10-03",
+      "challan_no": "ALMUHAMMADISHOWROOM-0006"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 2,
+          "rate": 1500,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "L36146 A",
+          "discount": 0,
+          "location": "AL MUHAMMADI SHOWROOM",
+          "orderQty": 2,
+          "pDescription": "GLOSSY A",
+          "dispatchedQty": 2
+        }
+      ],
+      "total_net_amount": 3000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": "000",
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "YH",
+      "created_at": "2026-10-10T12:48:58.520606+00:00",
+      "challan_date": "2026-10-10",
+      "id": 33,
+      "remarks": "Approved by Warehouse Manager (Dispatched 2 pcs)",
+      "dispatch_warehouse": "AL MUHAMMADI SHOWROOM",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 2,
+      "total_amount": 3000,
+      "invoice_no": "AYAZ SOOMRO-002",
+      "status": "Dispatched",
+      "po_date": "2026-10-10",
+      "challan_no": "ALMUHAMMADISHOWROOM-0007"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 300,
+          "rate": 400,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "",
+          "discount": 0,
+          "location": "FATEH CHOWK",
+          "orderQty": 300,
+          "pDescription": "WST TILE INSERT FRAME 18 X 4",
+          "dispatchedQty": 300
+        }
+      ],
+      "total_net_amount": 120000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": null,
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "HADI",
+      "created_at": "2026-10-10T13:48:07.952187+00:00",
+      "challan_date": "2026-10-10",
+      "id": 34,
+      "remarks": "Approved by Warehouse Manager (Dispatched 300 pcs)",
+      "dispatch_warehouse": "FATEH CHOWK",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 300,
+      "total_amount": 120000,
+      "invoice_no": "AYAZ SOOMRO-007",
+      "status": "Dispatched",
+      "po_date": null,
+      "challan_no": "FATEHCHOWK-0002-B"
+    },
+    {
+      "total_discount": 0,
+      "items": [
+        {
+          "qty": 15,
+          "rate": 400,
+          "notes": "",
+          "disAmt": 0,
+          "distPer": 0,
+          "holdQty": 0,
+          "poNoSub": "",
+          "skuCode": "WS11 BLACK",
+          "discount": 0,
+          "location": "FATEH CHOWK",
+          "orderQty": 15,
+          "pDescription": "SQUARE FLOOR DRAIN BLACK",
+          "dispatchedQty": 15
+        }
+      ],
+      "total_net_amount": 6000,
+      "freight_charges": 0,
+      "is_printed": true,
+      "tenant_id": null,
+      "gate_pass_no": null,
+      "freight_payment_status": "Free / Direct",
+      "transportation": "No Transport (Handover)",
+      "customer_name": "HADEED",
+      "created_at": "2026-10-01T18:11:18.408112+00:00",
+      "challan_date": "2026-10-01",
+      "id": 24,
+      "remarks": "Approved by Warehouse Manager (Dispatched 15 pcs)",
+      "dispatch_warehouse": "FATEH CHOWK",
+      "po_no": "",
+      "driver_name": "Direct Handover",
+      "vehicle_no": "Counter Delivery",
+      "transport_name": "No Transport (Handover)",
+      "total_quantity": 15,
+      "total_amount": 6000,
+      "invoice_no": "AYAZ BHAI-005",
+      "status": "Dispatched",
+      "po_date": null,
+      "challan_no": "FATEHCHOWK-0001-C"
+    }
+  ],
+  "sales_returns": [
+    {
+      "dispatch_warehouse": null,
+      "pay_by_bank": null,
+      "original_sale_date": null,
+      "id": 2,
+      "original_total_amount": null,
+      "created_at": "2026-10-10T13:55:17.448273+00:00",
+      "payout_amount_paid": 0,
+      "items": [
+        {
+          "qty": 2,
+          "sku": "L36146 A",
+          "uom": "BOX",
+          "rate": 1500,
+          "total": 3000,
+          "itemName": "GLOSSY A",
+          "warehouse": "AL MUHAMMADI SHOWROOM"
+        }
+      ],
+      "cash_amount_paid": null,
+      "return_warehouse_to": null,
+      "return_status": null,
+      "cash_account_title": null,
+      "linked_bank_title": null,
+      "selected_bank": null,
+      "buyer_cnic": null,
+      "original_fbr_fiscal_number": null,
+      "inward_status": null,
+      "gate_pass_no": "02",
+      "remarks": null,
+      "original_invoice_no": "AYAZ SOOMRO-002",
+      "payment_term": "On Credit",
+      "source_warehouse": "AL MUHAMMADI SHOWROOM",
+      "bank_name": null,
+      "settlement_mode": "On Credit",
+      "invoice_no": "AYAZ SOOMRO-002",
+      "return_date": "2026-10-10",
+      "metadata": {
+        "paymentTerm": "On Credit",
+        "bankPayoutPaid": 0,
+        "cashPayoutPaid": 0,
+        "selectedBankId": null,
+        "settlementMode": "On Credit",
+        "linkedInvoiceNo": "AYAZ SOOMRO-002",
+        "matchedInvoices": [
+          {
+            "sku": "L36146 A",
+            "item_name": "GLOSSY A",
+            "invoice_no": "AYAZ SOOMRO-002",
+            "deducted_qty": 2,
+            "entered_rate": 1500,
+            "invoice_date": "2026-10-10T12:48:58.165298+00:00",
+            "invoice_rate": 1500,
+            "deducted_value": 3000,
+            "is_exact_rate_match": true
+          }
+        ]
+      },
+      "bank_amount": null,
+      "total_amount": 3000,
+      "status": "Credit Applied",
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "customer_name": "YH",
+      "return_no": "RTN-260249",
+      "pay_by_cash": null,
+      "received_items": null,
+      "tenant_id": null,
+      "original_sales_tax": null
+    }
+  ],
+  "customers": [],
+  "salesmen": [
+    {
+      "user_id": "c28d59cf-cc55-4598-971a-2102eb469a64",
+      "phone": "03033127713",
+      "email": null,
+      "area": "BORI BAZAR HYDERABAD",
+      "invoice_name": "AYAZ SOOMRO",
+      "invoice_names": [
+        "AYAZ SOOMRO"
+      ],
+      "created_at": "2026-09-29T16:29:08.602452+00:00",
+      "commission_rate": null,
+      "id": 1,
+      "tenant_id": null,
+      "name": "AYAZ KACHI",
+      "linked_salesmen": []
+    }
+  ],
+  "supplier_purchases": [
+    {
+      "vendor_name": "WASCO ( BATH & KITCHEN )",
+      "items": [
+        {
+          "qty": "11",
+          "rate": 100,
+          "gstAmt": 0,
+          "gstRate": 18,
+          "skuCode": "WS11 SILVER",
+          "itemName": "SQUARE FLOOR DRAIN SILVER",
+          "warehouse": "",
+          "discountAmt": 0,
+          "discountPer": 0
+        }
+      ],
+      "total_amount": 1100,
+      "amount_paid": 0,
+      "remaining_balance": 1100,
+      "purchase_date": "2026-09-29",
+      "id": 1,
+      "purchase_no": "01",
+      "bill_no": null,
+      "target_warehouse": "AL MUHAMMADI SHOWROOM",
+      "status": null,
+      "notes": null,
+      "supplier_name": "WASCO ( BATH & KITCHEN )",
+      "payment_term": "By Cash",
+      "selected_bank_title": null,
+      "purchase_type": "No Tax",
+      "remarks": null,
+      "cash_account_title": null,
+      "created_at": "2026-09-29T14:33:06.8201+00:00",
+      "cash_amount_paid": 0,
+      "bank_amount_paid": 0,
+      "metadata": {
+        "grn_id": "eb0f5e55-bc76-49dd-8240-b4d3bdede278",
+        "applyTax": false,
+        "bankAmountPaid": 0,
+        "cashAmountPaid": 0,
+        "settlementMode": "Cash",
+        "selectedBankTitle": ""
+      },
+      "additional_charges": 0,
+      "tenant_id": null
+    },
+    {
+      "vendor_name": "WASCO ( BATH & KITCHEN )",
+      "items": [
+        {
+          "qty": 1,
+          "rate": 500,
+          "gstAmt": 0,
+          "gstRate": 18,
+          "skuCode": "WST TILE INSERT FRAME",
+          "itemName": "WST TILE INSERT FRAME 24 X 4",
+          "warehouse": "",
+          "discountAmt": 0,
+          "discountPer": 0
+        }
+      ],
+      "total_amount": 500,
+      "amount_paid": 0,
+      "remaining_balance": 500,
+      "purchase_date": "2026-09-30",
+      "id": 2,
+      "purchase_no": "02",
+      "bill_no": null,
+      "target_warehouse": "AL MUHAMMADI SHOWROOM",
+      "status": null,
+      "notes": null,
+      "supplier_name": "WASCO ( BATH & KITCHEN )",
+      "payment_term": "By Cash",
+      "selected_bank_title": null,
+      "purchase_type": "No Tax",
+      "remarks": null,
+      "cash_account_title": null,
+      "created_at": "2026-09-30T12:23:51.722802+00:00",
+      "cash_amount_paid": 0,
+      "bank_amount_paid": 0,
+      "metadata": {
+        "grn_id": "5140c08b-9f20-410e-883b-26a91d17d73d",
+        "applyTax": false,
+        "bankAmountPaid": 0,
+        "cashAmountPaid": 0,
+        "settlementMode": "Cash",
+        "selectedBankTitle": ""
+      },
+      "additional_charges": 0,
+      "tenant_id": null
+    },
+    {
+      "vendor_name": "TIME CERAMICS",
+      "items": [
+        {
+          "qty": 10,
+          "rate": 2100,
+          "gstAmt": 0,
+          "gstRate": 18,
+          "skuCode": "L36145 B",
+          "itemName": "MATTE DARK",
+          "warehouse": "",
+          "discountAmt": 0,
+          "discountPer": 0
+        },
+        {
+          "qty": 5,
+          "rate": 1380,
+          "gstAmt": 0,
+          "gstRate": 18,
+          "skuCode": "L36145 A",
+          "itemName": "GLOSSY A",
+          "warehouse": "AL MUHAMMADI SHOWROOM",
+          "discountAmt": 0,
+          "discountPer": 0
+        }
+      ],
+      "total_amount": 27900,
+      "amount_paid": 0,
+      "remaining_balance": 27900,
+      "purchase_date": "2026-10-03",
+      "id": 4,
+      "purchase_no": "03",
+      "bill_no": null,
+      "target_warehouse": "AL MUHAMMADI SHOWROOM",
+      "status": null,
+      "notes": null,
+      "supplier_name": "TIME CERAMICS",
+      "payment_term": "By Cash",
+      "selected_bank_title": null,
+      "purchase_type": "No Tax",
+      "remarks": null,
+      "cash_account_title": null,
+      "created_at": "2026-10-03T13:11:54.4663+00:00",
+      "cash_amount_paid": 0,
+      "bank_amount_paid": 0,
+      "metadata": {
+        "grn_id": "9b15925b-f4e2-44fa-8d59-bbef0a6ad2a8",
+        "applyTax": false,
+        "bankAmountPaid": 0,
+        "cashAmountPaid": 0,
+        "settlementMode": "Cash",
+        "selectedBankTitle": ""
+      },
+      "additional_charges": 0,
+      "tenant_id": null
+    }
+  ],
+  "grn_receipts": [
+    {
+      "status": "Confirm",
+      "remarks": "Auto-generated from Direct Purchase",
+      "id": "eb0f5e55-bc76-49dd-8240-b4d3bdede278",
+      "grn_no": "GRN-01",
+      "vendor_name": "WASCO ( BATH & KITCHEN )",
+      "created_at": "2026-09-29T14:33:06.445822+00:00",
+      "receipt_date": "2026-09-29"
+    },
+    {
+      "status": "Confirm",
+      "remarks": "Auto-generated from Direct Purchase",
+      "id": "5140c08b-9f20-410e-883b-26a91d17d73d",
+      "grn_no": "GRN-02",
+      "vendor_name": "WASCO ( BATH & KITCHEN )",
+      "created_at": "2026-09-30T12:23:51.368499+00:00",
+      "receipt_date": "2026-09-30"
+    },
+    {
+      "status": "Partially Received",
+      "remarks": "Auto-generated from Direct Purchase",
+      "id": "9b15925b-f4e2-44fa-8d59-bbef0a6ad2a8",
+      "grn_no": "GRN-03",
+      "vendor_name": "TIME CERAMICS",
+      "created_at": "2026-10-03T13:11:54.135432+00:00",
+      "receipt_date": "2026-10-03"
+    }
+  ],
+  "grn_items": [
+    {
+      "rejected_qty": 0,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "reject_reason": "",
+      "id": "3641345c-f332-4b50-914c-d2909fb67c49",
+      "uom": "EACH",
+      "hold_qty": 0,
+      "product_name": "SQUARE FLOOR DRAIN SILVER",
+      "accepted_qty": 11,
+      "created_at": "2026-09-29T16:04:39.361776+00:00",
+      "qty": 11,
+      "grn_id": "eb0f5e55-bc76-49dd-8240-b4d3bdede278"
+    },
+    {
+      "rejected_qty": 0,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "reject_reason": "",
+      "id": "1971d782-0a19-438a-b392-14d2ebdd0620",
+      "uom": "EACH",
+      "hold_qty": 0,
+      "product_name": "WST TILE INSERT FRAME 24 X 4",
+      "accepted_qty": 1,
+      "created_at": "2026-09-30T12:23:51.549094+00:00",
+      "qty": 1,
+      "grn_id": "5140c08b-9f20-410e-883b-26a91d17d73d"
+    },
+    {
+      "rejected_qty": 1,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "reject_reason": "ABC",
+      "id": "08bf1590-2bbb-464e-b07c-3cbb8ad27c1b",
+      "uom": "EACH",
+      "hold_qty": 4,
+      "product_name": "MATTE DARK",
+      "accepted_qty": 5,
+      "created_at": "2026-10-03T13:11:54.308712+00:00",
+      "qty": 10,
+      "grn_id": "9b15925b-f4e2-44fa-8d59-bbef0a6ad2a8"
+    },
+    {
+      "rejected_qty": 1,
+      "warehouse_name": "AL MUHAMMADI SHOWROOM",
+      "reject_reason": "ABC",
+      "id": "0d5bf75a-30b9-4854-bf62-a1479befc278",
+      "uom": "EACH",
+      "hold_qty": 2,
+      "product_name": "GLOSSY A",
+      "accepted_qty": 2,
+      "created_at": "2026-10-03T13:11:54.308712+00:00",
+      "qty": 5,
+      "grn_id": "9b15925b-f4e2-44fa-8d59-bbef0a6ad2a8"
+    }
+  ],
+  "purchase_returns": [],
+  "vendors": [
+    {
+      "ntn_strn": null,
+      "created_at": "2026-09-29T14:28:33.277863+00:00",
+      "cell_no": null,
+      "ntn": null,
+      "category": null,
+      "balance_type": null,
+      "credit_terms": null,
+      "bank_name": null,
+      "account_title": null,
+      "account_no": null,
+      "vendor_name": "WASCO ( BATH & KITCHEN )",
+      "name": "WASCO ( BATH & KITCHEN )",
+      "phone": null,
+      "id": 2,
+      "email": null,
+      "address": "FAISALABAD",
+      "city": null,
+      "balance": null,
+      "opening_balance": null,
+      "tenant_id": null,
+      "contact_name": null,
+      "phone_no": null
+    },
+    {
+      "ntn_strn": null,
+      "created_at": "2026-09-29T14:29:24.440054+00:00",
+      "cell_no": null,
+      "ntn": null,
+      "category": null,
+      "balance_type": null,
+      "credit_terms": null,
+      "bank_name": null,
+      "account_title": null,
+      "account_no": null,
+      "vendor_name": "SPLASH",
+      "name": "SPLASH",
+      "phone": null,
+      "id": 3,
+      "email": null,
+      "address": null,
+      "city": null,
+      "balance": null,
+      "opening_balance": null,
+      "tenant_id": null,
+      "contact_name": null,
+      "phone_no": null
+    },
+    {
+      "ntn_strn": null,
+      "created_at": "2026-10-03T12:20:25.577397+00:00",
+      "cell_no": null,
+      "ntn": null,
+      "category": null,
+      "balance_type": null,
+      "credit_terms": null,
+      "bank_name": null,
+      "account_title": null,
+      "account_no": null,
+      "vendor_name": "TIME CERAMICS",
+      "name": "TIME CERAMICS",
+      "phone": null,
+      "id": 4,
+      "email": null,
+      "address": null,
+      "city": null,
+      "balance": null,
+      "opening_balance": null,
+      "tenant_id": null,
+      "contact_name": null,
+      "phone_no": null
+    }
+  ],
+  "financial_vouchers": [
+    {
+      "payment_mode": null,
+      "voucher_type": "Cash Payment Voucher",
+      "items": [
+        {
+          "debit": 3000,
+          "credit": 0,
+          "accountCode": "1020",
+          "description": "Sales return refund paid to YH via SRR-622429"
+        },
+        {
+          "debit": 0,
+          "credit": 3000,
+          "accountCode": "1001",
+          "description": "Cash payout from drawer via SRR-622429"
+        }
+      ],
+      "metadata": {
+        "bankAmount": 0,
+        "cashAmount": 3000,
+        "paymentTerm": "By Cash",
+        "moduleSource": "sales_return_receipt",
+        "linkedReturnNo": null,
+        "selectedBankId": null,
+        "selectedBankTitle": null
+      },
+      "tenant_id": null,
+      "created_at": "2026-10-10T13:57:29.308015+00:00",
+      "credit": null,
+      "debit": null,
+      "voucher_date": "2026-10-10",
+      "id": 12,
+      "original_invoice_no": null,
+      "salesman": null,
+      "customer_name": "YH",
+      "customerName": "YH",
+      "description": null,
+      "cheque_no": null,
+      "bank_name": null,
+      "party_name": null,
+      "account_name": null,
+      "narration": "Customer Sales Return Refund Disbursed: YH | General Return Balance Payout | Mode: Cash Drawer | Remarks:",
+      "account_code": null,
+      "total_amount": 3000,
+      "voucher_no": "SRR-622429",
+      "notes": "Customer Sales Return Refund Disbursed: YH | General Return Balance Payout | Mode: Cash Drawer | Remarks:"
+    }
+  ],
+  "chart_of_accounts": [
+    {
+      "created_at": "2026-09-29T14:26:39.262318+00:00",
+      "sub_category_code": "CURRENT ASSETS",
+      "notes": "CASH BOX",
+      "id": 1,
+      "account_title": "CASH BOX",
+      "category_code": "ASSETS",
+      "control_code": "CASH",
+      "account_code": "1001",
+      "tenant_id": null,
+      "linked_bank_id": null
+    },
+    {
+      "created_at": "2026-09-29T14:28:44.763494+00:00",
+      "sub_category_code": "Current Liabilities",
+      "notes": "Vendor ledger account for WASCO ( BATH & KITCHEN )",
+      "id": 2,
+      "account_title": "WASCO ( BATH & KITCHEN )",
+      "category_code": "2. LIABILITIES",
+      "control_code": "Vendor",
+      "account_code": "2010-001",
+      "tenant_id": null,
+      "linked_bank_id": null
+    },
+    {
+      "created_at": "2026-09-29T14:30:02.899009+00:00",
+      "sub_category_code": "Current Liabilities",
+      "notes": "Vendor ledger account for SPLASH",
+      "id": 3,
+      "account_title": "SPLASH",
+      "category_code": "2. LIABILITIES",
+      "control_code": "Vendor",
+      "account_code": "2010-002",
+      "tenant_id": null,
+      "linked_bank_id": null
+    }
+  ],
+  "banks": [],
+  "audit_logs": [
+    {
+      "created_at": "2026-09-28T16:01:05.75026+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-28T16:01:05.483Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 1,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-29T14:59:07.163216+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-29T14:59:06.346Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 2,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-29T16:39:52.16337+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged out of ERP portal",
+        "timestamp": "2026-09-29T16:39:51.782Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 3,
+      "action_type": "LOGOUT"
+    },
+    {
+      "created_at": "2026-09-29T16:40:08.693205+00:00",
+      "details": {
+        "email": "ayazkachi@am.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-29T16:40:08.340Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "ayazkachi@am.com",
+      "id": 4,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-29T19:06:17.539201+00:00",
+      "details": {
+        "email": "ayazkachi@am.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-29T19:06:14.804Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "ayazkachi@am.com",
+      "id": 5,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-29T19:06:20.114513+00:00",
+      "details": {
+        "email": "ayazkachi@am.com",
+        "event": "User logged out of ERP portal",
+        "timestamp": "2026-09-29T19:06:17.761Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "ayazkachi@am.com",
+      "id": 6,
+      "action_type": "LOGOUT"
+    },
+    {
+      "created_at": "2026-09-29T19:20:03.222222+00:00",
+      "details": {
+        "email": "ayazkachi@am.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-29T19:20:00.666Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "ayazkachi@am.com",
+      "id": 7,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-29T23:46:19.159559+00:00",
+      "details": {
+        "email": "ayazkachi@am.com",
+        "event": "User logged out of ERP portal",
+        "timestamp": "2026-09-29T23:46:19.257Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "ayazkachi@am.com",
+      "id": 8,
+      "action_type": "LOGOUT"
+    },
+    {
+      "created_at": "2026-09-29T23:46:26.78799+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-29T23:46:26.871Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 9,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-30T10:39:51.156103+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-30T10:39:51.106Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 10,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-30T10:59:29.695604+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-30T10:59:29.760Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 11,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-30T12:18:09.171279+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "SILVER",
+        "item_code": "WST TILE INSERT FRAME",
+        "timestamp": "2026-09-30T12:18:08.353Z",
+        "product_name": "WST TILE INSERT FRAME",
+        "retail_price": 500,
+        "purchase_price": 0
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 12,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-09-30T12:21:55.82169+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "SILVER",
+        "item_code": "WST TILE INSERT FRAME",
+        "timestamp": "2026-09-30T12:21:55.029Z",
+        "product_name": "WST TILE INSERT FRAME 24 X 4",
+        "retail_price": 500,
+        "purchase_price": 0
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 13,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T14:05:36.469833+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "SILVER",
+        "item_code": "",
+        "timestamp": "2026-09-30T14:05:35.612Z",
+        "product_name": "WST TILE INSERT FRAME 24 X 4",
+        "retail_price": 500,
+        "purchase_price": 0
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 14,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T14:05:47.194724+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "SILVER",
+        "item_code": "WST TILE INSERT FRAME",
+        "timestamp": "2026-09-30T14:05:46.362Z",
+        "product_name": "WST TILE INSERT FRAME 24 X 4",
+        "retail_price": 500,
+        "purchase_price": 0
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 15,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T14:07:03.267654+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "SILVER",
+        "item_code": "",
+        "timestamp": "2026-09-30T14:07:02.445Z",
+        "product_name": "WST TILE INSERT FRAME 18 X 4",
+        "retail_price": 400,
+        "purchase_price": 0
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 16,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-09-30T14:17:06.827873+00:00",
+      "details": {
+        "id": 1,
+        "event": "Created sales invoice AYAZ BHAI-001 for KAMRAN",
+        "timestamp": "2026-09-30T14:17:06.025Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "KAMRAN",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 17,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-09-30T14:28:13.675702+00:00",
+      "details": {
+        "id": 1,
+        "event": "Updated sales invoice AYAZ BHAI-001 for KAMRAN",
+        "timestamp": "2026-09-30T14:28:12.893Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "KAMRAN",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 18,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T14:29:34.110871+00:00",
+      "details": {
+        "id": 1,
+        "event": "Updated sales invoice AYAZ BHAI-001 for KAMRAN",
+        "timestamp": "2026-09-30T14:29:33.345Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "KAMRAN",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 19,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T14:29:34.221841+00:00",
+      "details": {
+        "id": 1,
+        "event": "Updated sales invoice AYAZ BHAI-001 for KAMRAN",
+        "timestamp": "2026-09-30T14:29:33.454Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "KAMRAN",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 20,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T14:29:34.358006+00:00",
+      "details": {
+        "id": 1,
+        "event": "Updated sales invoice AYAZ BHAI-001 for KAMRAN",
+        "timestamp": "2026-09-30T14:29:33.583Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "KAMRAN",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 21,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T14:29:34.512495+00:00",
+      "details": {
+        "id": 1,
+        "event": "Updated sales invoice AYAZ BHAI-001 for KAMRAN",
+        "timestamp": "2026-09-30T14:29:33.746Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "KAMRAN",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 22,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T14:35:27.811418+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-09-30T14:35:27.801Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 23,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-09-30T14:40:09.394959+00:00",
+      "details": {
+        "id": 1,
+        "event": "Deleted sales invoice AYAZ BHAI-001 (Customer)",
+        "timestamp": "2026-09-30T14:40:09.784Z",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 24,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-09-30T14:57:28.509502+00:00",
+      "details": {
+        "id": 2,
+        "event": "Created sales invoice AYAZ BHAI-001 for KAMRAN",
+        "timestamp": "2026-09-30T14:57:28.880Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "KAMRAN",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 25,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-09-30T15:47:18.307388+00:00",
+      "details": {
+        "event": "Updated Customer Profile",
+        "phone": "-",
+        "timestamp": "2026-09-30T15:47:18.630Z",
+        "customer_code": null,
+        "customer_name": "KAMRAN"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 26,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-09-30T15:47:50.081178+00:00",
+      "details": {
+        "id": 2,
+        "event": "Deleted sales invoice AYAZ BHAI-001 (Customer)",
+        "timestamp": "2026-09-30T15:47:50.503Z",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 27,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-09-30T15:49:00.824581+00:00",
+      "details": {
+        "id": 3,
+        "event": "Created sales invoice AYAZ BHAI-001 for ASIF",
+        "timestamp": "2026-09-30T15:49:01.238Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "ASIF",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 28,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-09-30T15:53:52.796107+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-09-30T15:53:53.210Z",
+        "customer_code": "",
+        "customer_name": "ASIF"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 29,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-09-30T15:54:01.05857+00:00",
+      "details": {
+        "id": 3,
+        "event": "Deleted sales invoice AYAZ BHAI-001 (Customer)",
+        "timestamp": "2026-09-30T15:54:01.482Z",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 30,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-09-30T15:54:33.918348+00:00",
+      "details": {
+        "id": 4,
+        "event": "Created sales invoice AYAZ BHAI-001 for ASIF",
+        "timestamp": "2026-09-30T15:54:34.355Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 1500,
+        "customer_name": "ASIF",
+        "invoice_number": "AYAZ BHAI-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 31,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-09-30T16:24:45.988712+00:00",
+      "details": {
+        "location": "AL MUHAMMADI SHOWROOM",
+        "products": [
+          "SQUARE FLOOR DRAIN BLACK (100 Units)",
+          "SQUARE FLOOR DRAIN GOLDEN (200 Units)"
+        ],
+        "stock_no": "STK-483868-4114",
+        "items_count": 2,
+        "batch_number": "001",
+        "opening_date": "2026-09-30",
+        "total_quantity": 300
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 32,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-09-30T16:25:35.368797+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "products": [
+          "WST TILE INSERT FRAME 18 X 4 (1500 Units)"
+        ],
+        "stock_no": "STK-533764-7138",
+        "items_count": 1,
+        "batch_number": "002",
+        "opening_date": "2026-09-30",
+        "total_quantity": 1500
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 33,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-09-30T16:26:54.678272+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "products": [
+          "WST TILE INSERT FRAME 18 X 4 (1500 Units)",
+          "SQUARE FLOOR DRAIN BLACK (700 Units)"
+        ],
+        "stock_no": "STK-533764-7138",
+        "items_count": 2,
+        "batch_number": "002",
+        "opening_date": "2026-09-30",
+        "total_quantity": 2200
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 34,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T08:48:34.831799+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-10-01T08:48:15.144Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 35,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-10-01T08:49:02.987902+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged out of ERP portal",
+        "timestamp": "2026-10-01T08:48:44.292Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 36,
+      "action_type": "LOGOUT"
+    },
+    {
+      "created_at": "2026-10-01T09:02:51.576409+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-10-01T09:02:50.572Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 37,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-10-01T09:07:41.081688+00:00",
+      "details": {
+        "id": 5,
+        "event": "Created sales invoice AYAZ BHAI-003 for ADIL",
+        "timestamp": "2026-10-01T09:07:40.197Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 10000,
+        "customer_name": "ADIL",
+        "invoice_number": "AYAZ BHAI-003"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 38,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T09:07:41.125473+00:00",
+      "details": {
+        "id": 6,
+        "event": "Created sales invoice AYAZ BHAI-003 for ADIL",
+        "timestamp": "2026-10-01T09:07:40.259Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 10000,
+        "customer_name": "ADIL",
+        "invoice_number": "AYAZ BHAI-003"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 39,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T10:40:20.737508+00:00",
+      "details": {
+        "id": 7,
+        "event": "Created sales invoice AYAZ BHAI-004 for ASIF",
+        "timestamp": "2026-10-01T10:40:19.780Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 12000,
+        "customer_name": "ASIF",
+        "invoice_number": "AYAZ BHAI-004"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 40,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T12:20:57.750339+00:00",
+      "details": {
+        "id": 8,
+        "event": "Created sales invoice AYAZ BHAI-005 for HADEED",
+        "timestamp": "2026-10-01T12:20:56.503Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 20000,
+        "customer_name": "HADEED",
+        "invoice_number": "AYAZ BHAI-005"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 41,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T12:28:03.04915+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-10-01T12:28:03.009Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 42,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-10-01T12:44:49.334812+00:00",
+      "details": {
+        "id": 9,
+        "event": "Created sales invoice AYAZ BHAI-006 for SAAD",
+        "timestamp": "2026-10-01T12:44:48.120Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Cash",
+        "total_amount": 1000,
+        "customer_name": "SAAD",
+        "invoice_number": "AYAZ BHAI-006"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 43,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T14:28:09.140598+00:00",
+      "details": {
+        "event": "Updated Customer Profile",
+        "phone": "-",
+        "timestamp": "2026-10-01T14:28:07.798Z",
+        "customer_code": null,
+        "customer_name": "ADIL GHANI"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 44,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T14:55:39.495586+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-10-01T14:55:38.987Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 45,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-10-01T14:57:04.866061+00:00",
+      "details": {
+        "id": 10,
+        "event": "Created sales invoice AYAZ BHAI-000 for testing",
+        "timestamp": "2026-10-01T14:57:04.551Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 400,
+        "customer_name": "testing",
+        "invoice_number": "AYAZ BHAI-000"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 46,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T15:10:39.837231+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "A",
+        "item_code": "L36146",
+        "timestamp": "2026-10-01T15:10:38.465Z",
+        "product_name": "GLOSSY",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 47,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T15:11:55.019806+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "C",
+        "item_code": "L36146 C",
+        "timestamp": "2026-10-01T15:11:53.661Z",
+        "product_name": "GLOSSY",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 48,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T15:12:22.174924+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "A",
+        "item_code": "L36146 A",
+        "timestamp": "2026-10-01T15:12:20.845Z",
+        "product_name": "GLOSSY",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 49,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T15:27:08.986128+00:00",
+      "details": {
+        "email": "test@noorhorizontechnologies.com",
+        "event": "User logged into ERP portal",
+        "timestamp": "2026-10-01T15:27:09.031Z"
+      },
+      "table_name": "auth_users",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 50,
+      "action_type": "LOGIN"
+    },
+    {
+      "created_at": "2026-10-01T15:44:53.520617+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "A",
+        "item_code": "L36146 A GLOSSY",
+        "timestamp": "2026-10-01T15:44:52.154Z",
+        "product_name": "GLOSSY",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 51,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T15:45:17.418452+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "C",
+        "item_code": "L36146 C GLOSSY",
+        "timestamp": "2026-10-01T15:45:16.073Z",
+        "product_name": "GLOSSY",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 52,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T15:47:20.67122+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "C",
+        "item_code": "L36146 C",
+        "timestamp": "2026-10-01T15:47:19.297Z",
+        "product_name": "GLOSSY C",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 53,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T15:47:44.677642+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "C",
+        "item_code": "L36146 C",
+        "timestamp": "2026-10-01T15:47:43.340Z",
+        "product_name": "GLOSSY C",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 54,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T15:48:04.812824+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "A",
+        "item_code": "L36146 A GLOSSY",
+        "timestamp": "2026-10-01T15:48:03.485Z",
+        "product_name": "GLOSSY A",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 55,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T15:48:26.133328+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "A",
+        "item_code": "L36146 A",
+        "timestamp": "2026-10-01T15:48:24.798Z",
+        "product_name": "GLOSSY A",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 56,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T15:49:51.420096+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "A",
+        "item_code": "L36145",
+        "timestamp": "2026-10-01T15:49:50.073Z",
+        "product_name": "GLOSSY A",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 57,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T15:51:06.685791+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "C",
+        "item_code": "L36145 C",
+        "timestamp": "2026-10-01T15:51:05.346Z",
+        "product_name": "GLOSSY  C",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 58,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T15:52:35.714488+00:00",
+      "details": {
+        "event": "Deleted Product Master",
+        "category": "C",
+        "item_code": "L36145 C",
+        "timestamp": "2026-10-01T15:52:35.666Z",
+        "product_name": "GLOSSY C"
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 59,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-01T15:53:40.204217+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "C",
+        "item_code": "L36145 C",
+        "timestamp": "2026-10-01T15:53:40.121Z",
+        "product_name": "GLOSSY C",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 60,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T15:53:57.997548+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "A",
+        "item_code": "L36145 A",
+        "timestamp": "2026-10-01T15:53:57.924Z",
+        "product_name": "GLOSSY A",
+        "retail_price": 1500,
+        "purchase_price": 1380
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 61,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-01T15:57:57.58663+00:00",
+      "details": {
+        "location": "AL MUHAMMADI SHOWROOM",
+        "products": [
+          "GLOSSY A (1000 Units)",
+          "GLOSSY C (500 Units)"
+        ],
+        "stock_no": "STK-276954-8416",
+        "items_count": 2,
+        "batch_number": "004",
+        "opening_date": "2026-10-01",
+        "total_quantity": 1500
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 62,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-01T15:58:40.009974+00:00",
+      "details": {
+        "location": "AL MUHAMMADI SHOWROOM",
+        "stock_no": "STK-276954-8416",
+        "items_count": 2,
+        "deleted_items": [
+          "GLOSSY A (1000 Units)",
+          "GLOSSY C (500 Units)"
+        ],
+        "total_quantity": 1500
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 63,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-03T12:29:14.082472+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "MATTE",
+        "item_code": "L36145 B",
+        "timestamp": "2026-10-03T12:29:13.969Z",
+        "product_name": "MATTE  DARK",
+        "retail_price": 0,
+        "purchase_price": 2100
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 64,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-03T12:39:50.570624+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "MATTE",
+        "item_code": "L36145 B",
+        "timestamp": "2026-10-03T12:39:50.473Z",
+        "product_name": "MATTE DARK",
+        "retail_price": 0,
+        "purchase_price": 2100
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 65,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-03T13:01:08.977212+00:00",
+      "details": {
+        "id": 3,
+        "event": "Deleted purchase consignment #3 (Vendor)",
+        "timestamp": "2026-10-03T13:01:09.355Z",
+        "warehouse": "AL MUHAMMADI SHOWROOM",
+        "purchase_number": "#3"
+      },
+      "table_name": "supplier_purchases",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 66,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-03T13:33:19.395544+00:00",
+      "details": {
+        "id": 5,
+        "event": "Received customer payment CR-250868 (Rs. 500) from HADEED",
+        "amount": 500,
+        "timestamp": "2026-10-03T13:33:19.790Z",
+        "voucher_type": "By Cash",
+        "customer_name": "HADEED",
+        "linked_invoice": "General Collection",
+        "receipt_number": "CR-250868"
+      },
+      "table_name": "invoice_receipts",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 67,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-03T13:43:51.805176+00:00",
+      "details": {
+        "event": "Created Customer Profile",
+        "phone": "-",
+        "timestamp": "2026-10-03T13:43:51.697Z",
+        "customer_code": null,
+        "customer_name": "HADI"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 68,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-03T13:55:42.94084+00:00",
+      "details": {
+        "id": 11,
+        "event": "Created sales invoice AYAZ SOOMRO-007 for HADI",
+        "timestamp": "2026-10-03T13:55:42.853Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 480000,
+        "customer_name": "HADI",
+        "invoice_number": "AYAZ SOOMRO-007"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 69,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-03T13:59:21.919581+00:00",
+      "details": {
+        "id": 12,
+        "event": "Created sales invoice AYAZ SOOMRO-001 for JI,UG",
+        "timestamp": "2026-10-03T13:59:21.833Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Cash",
+        "total_amount": 12500,
+        "customer_name": "JI,UG",
+        "invoice_number": "AYAZ SOOMRO-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 70,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-03T14:46:36.39297+00:00",
+      "details": {
+        "id": 12,
+        "event": "Updated sales invoice AYAZ SOOMRO-001 for JI,UG",
+        "timestamp": "2026-10-03T14:46:36.875Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Cash",
+        "total_amount": 12000,
+        "customer_name": "JI,UG",
+        "invoice_number": "AYAZ SOOMRO-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 71,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-03T15:06:18.133726+00:00",
+      "details": {
+        "id": 12,
+        "event": "Updated sales invoice AYAZ SOOMRO-001 for Walk-in Customer",
+        "timestamp": "2026-10-03T15:06:18.643Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Cash",
+        "total_amount": 12000,
+        "customer_name": "Walk-in Customer",
+        "invoice_number": "AYAZ SOOMRO-001"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 72,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-04T09:39:07.891334+00:00",
+      "details": {
+        "id": 13,
+        "event": "Created sales invoice AYAZ SOOMRO-009 for ASIF",
+        "timestamp": "2026-10-04T09:39:07.743Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 400,
+        "customer_name": "ASIF",
+        "invoice_number": "AYAZ SOOMRO-009"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 73,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-04T09:40:24.957687+00:00",
+      "details": {
+        "id": 6,
+        "event": "Received customer payment CR-292100 (Rs. 1,200) from ASIF",
+        "amount": 1200,
+        "timestamp": "2026-10-04T09:40:24.801Z",
+        "voucher_type": "By Cash",
+        "customer_name": "ASIF",
+        "linked_invoice": "General Collection",
+        "receipt_number": "CR-292100"
+      },
+      "table_name": "invoice_receipts",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 74,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-04T09:55:28.100424+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "MATTE",
+        "item_code": "L38105 A",
+        "timestamp": "2026-10-04T09:55:27.931Z",
+        "product_name": "MATE 18 X 36",
+        "retail_price": 0,
+        "purchase_price": 1650
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 75,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-04T09:57:44.067073+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "products": [
+          "MATE 18 X 36 (700 Units)"
+        ],
+        "stock_no": "STK-863183-8486",
+        "items_count": 1,
+        "batch_number": "1010",
+        "opening_date": "2026-10-04",
+        "total_quantity": 700
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 76,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-04T10:00:00.009226+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "MATTE",
+        "item_code": "L38105 A",
+        "timestamp": "2026-10-04T09:59:59.846Z",
+        "product_name": "MATE 18 X 36",
+        "retail_price": 2000,
+        "purchase_price": 1650
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 77,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-04T10:26:40.086655+00:00",
+      "details": {
+        "id": 14,
+        "event": "Created sales invoice AYAZ SOOMRO-0010 for SAAD",
+        "timestamp": "2026-10-04T10:26:39.942Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Cash",
+        "total_amount": 800000,
+        "customer_name": "SAAD",
+        "invoice_number": "AYAZ SOOMRO-0010"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 78,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-04T10:32:03.132146+00:00",
+      "details": {
+        "id": 15,
+        "event": "Created sales invoice AYAZ SOOMRO-0011 for MAAZ BEHLUM",
+        "timestamp": "2026-10-04T10:32:03.016Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Cash",
+        "total_amount": 4000,
+        "customer_name": "MAAZ BEHLUM",
+        "invoice_number": "AYAZ SOOMRO-0011"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 79,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-10T12:46:05.706856+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 500,
+        "timestamp": "2026-10-10T12:46:05.200Z",
+        "voucher_no": "CR-698351",
+        "voucher_type": "Cash Receipt Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 105,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-04T10:33:52.824176+00:00",
+      "details": {
+        "id": 7,
+        "event": "Received customer payment CR-547675 (Rs. 4,000) from MAAZ BEHLUM",
+        "amount": 4000,
+        "timestamp": "2026-10-04T10:33:52.685Z",
+        "voucher_type": "By Cash",
+        "customer_name": "MAAZ BEHLUM",
+        "linked_invoice": "General Collection",
+        "receipt_number": "CR-547675"
+      },
+      "table_name": "invoice_receipts",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 80,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-04T10:38:24.018041+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "MATTE",
+        "item_code": "L38105 B",
+        "timestamp": "2026-10-04T10:38:23.870Z",
+        "product_name": "MATE 18 X 36",
+        "retail_price": 2000,
+        "purchase_price": 1650
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 81,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-04T10:40:18.733494+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "products": [
+          "MATE 18 X 36 (1200 Units)"
+        ],
+        "stock_no": "STK-418056-3188",
+        "items_count": 1,
+        "batch_number": "10112",
+        "opening_date": "2026-10-04",
+        "total_quantity": 1200
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 82,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-06T09:07:42.938991+00:00",
+      "details": {
+        "id": 8,
+        "event": "Received customer payment CR-698351 (Rs. 500) from ADIL",
+        "amount": 500,
+        "timestamp": "2026-10-06T09:07:42.164Z",
+        "voucher_type": "By Cash",
+        "customer_name": "ADIL",
+        "linked_invoice": "General Collection",
+        "receipt_number": "CR-698351"
+      },
+      "table_name": "invoice_receipts",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 83,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-06T09:08:14.617876+00:00",
+      "details": {
+        "id": 9,
+        "event": "Received customer payment CR-985007 (Rs. 1,000) from ASIF",
+        "amount": 1000,
+        "timestamp": "2026-10-06T09:08:13.896Z",
+        "voucher_type": "By Cash",
+        "customer_name": "ASIF",
+        "linked_invoice": "General Collection",
+        "receipt_number": "CR-985007"
+      },
+      "table_name": "invoice_receipts",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 84,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-06T09:09:07.680135+00:00",
+      "details": {
+        "id": 10,
+        "event": "Received customer payment CR-351577 (Rs. 480,000) from HADI",
+        "amount": 480000,
+        "timestamp": "2026-10-06T09:09:06.990Z",
+        "voucher_type": "By Cash",
+        "customer_name": "HADI",
+        "linked_invoice": "General Collection",
+        "receipt_number": "CR-351577"
+      },
+      "table_name": "invoice_receipts",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 85,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-06T09:11:39.79816+00:00",
+      "details": {
+        "id": 11,
+        "event": "Received customer payment CR-386736 (Rs. 500) from HADEED",
+        "amount": 500,
+        "timestamp": "2026-10-06T09:11:39.081Z",
+        "voucher_type": "By Cash",
+        "customer_name": "HADEED",
+        "linked_invoice": "General Collection",
+        "receipt_number": "CR-386736"
+      },
+      "table_name": "invoice_receipts",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 86,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-06T09:21:44.827238+00:00",
+      "details": {
+        "id": 10,
+        "event": "Updated sales invoice AYAZ BHAI-000 for testing",
+        "timestamp": "2026-10-06T09:21:44.128Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Cash",
+        "total_amount": 400,
+        "customer_name": "testing",
+        "invoice_number": "AYAZ BHAI-000"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 87,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-06T09:26:42.115835+00:00",
+      "details": {
+        "id": 13,
+        "event": "Updated sales invoice AYAZ SOOMRO-009 for ASIF",
+        "timestamp": "2026-10-06T09:26:41.410Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Credit",
+        "total_amount": 400,
+        "customer_name": "ASIF",
+        "invoice_number": "AYAZ SOOMRO-009"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 88,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-07T07:34:20.184662+00:00",
+      "details": {
+        "id": 11,
+        "event": "Updated customer payment receipt CR-386736 from HADEED",
+        "amount": 500,
+        "timestamp": "2026-10-07T07:34:20.030Z",
+        "voucher_type": "By Cash",
+        "customer_name": "HADEED",
+        "linked_invoice": "General Collection",
+        "receipt_number": "CR-386736"
+      },
+      "table_name": "invoice_receipts",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 89,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-08T16:22:33.099568+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "GLOSSY",
+        "item_code": "OCG390005",
+        "timestamp": "2026-10-08T16:22:32.997Z",
+        "product_name": "12x36 Glossy Ocean Tile",
+        "retail_price": 1200,
+        "purchase_price": 1000
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 90,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-08T16:24:02.298794+00:00",
+      "details": {
+        "event": "Created Product Master",
+        "category": "GLOSSY",
+        "item_code": "L390005-B",
+        "timestamp": "2026-10-08T16:24:02.216Z",
+        "product_name": "12x36 Glossy Ocean Tile",
+        "retail_price": 1200,
+        "purchase_price": 1000
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 91,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-08T16:24:10.980331+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "GLOSSY",
+        "item_code": "L390005-B",
+        "timestamp": "2026-10-08T16:24:10.870Z",
+        "product_name": "12x36 Glossy Ocean Tile",
+        "retail_price": 1200,
+        "purchase_price": 1000
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 92,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-08T16:24:18.015877+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "GLOSSY",
+        "item_code": "OCG390005-A",
+        "timestamp": "2026-10-08T16:24:17.936Z",
+        "product_name": "12x36 Glossy Ocean Tile",
+        "retail_price": 1200,
+        "purchase_price": 1000
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 93,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-08T16:24:30.192265+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "GLOSSY",
+        "item_code": "OCG390005-B",
+        "timestamp": "2026-10-08T16:24:30.153Z",
+        "product_name": "12x36 Glossy Ocean Tile",
+        "retail_price": 1200,
+        "purchase_price": 1000
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 94,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-08T16:36:07.201485+00:00",
+      "details": {
+        "event": "Updated Product Master",
+        "category": "GLOSSY",
+        "item_code": "OCG390005-B",
+        "timestamp": "2026-10-08T16:36:07.190Z",
+        "product_name": "OCG390005-B 12x36 Glossy Ocean Tile",
+        "retail_price": 1200,
+        "purchase_price": 1000
+      },
+      "table_name": "products",
+      "performed_by": "User",
+      "id": 95,
+      "action_type": "UPDATE"
+    },
+    {
+      "created_at": "2026-10-08T16:36:39.027433+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "products": [
+          "OCG390005-B 12x36 Glossy Ocean Tile (100 Units)"
+        ],
+        "stock_no": "STK-398297-6346",
+        "items_count": 1,
+        "batch_number": "005",
+        "opening_date": "2026-10-08",
+        "total_quantity": 100
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 96,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-10T12:45:43.099409+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "stock_no": "STK-398297-6346",
+        "items_count": 1,
+        "deleted_items": [
+          "OCG390005-B 12x36 Glossy Ocean Tile (100 Units)"
+        ],
+        "total_quantity": 100
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 97,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:45:45.394823+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "stock_no": "STK-418056-3188",
+        "items_count": 1,
+        "deleted_items": [
+          "MATE 18 X 36 (1200 Units)"
+        ],
+        "total_quantity": 1200
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 98,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:45:47.60199+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "stock_no": "STK-863183-8486",
+        "items_count": 1,
+        "deleted_items": [
+          "MATE 18 X 36 (700 Units)"
+        ],
+        "total_quantity": 700
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 99,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:45:50.211363+00:00",
+      "details": {
+        "location": "FATEH CHOWK",
+        "stock_no": "STK-533764-7138",
+        "items_count": 2,
+        "deleted_items": [
+          "WST TILE INSERT FRAME 18 X 4 (1500 Units)",
+          "SQUARE FLOOR DRAIN BLACK (700 Units)"
+        ],
+        "total_quantity": 2200
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 100,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:45:52.831888+00:00",
+      "details": {
+        "location": "AL MUHAMMADI SHOWROOM",
+        "stock_no": "STK-483868-4114",
+        "items_count": 2,
+        "deleted_items": [
+          "SQUARE FLOOR DRAIN BLACK (100 Units)",
+          "SQUARE FLOOR DRAIN GOLDEN (200 Units)"
+        ],
+        "total_quantity": 300
+      },
+      "table_name": "opening_stocks",
+      "performed_by": "test",
+      "id": 101,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:45:59.313481+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 500,
+        "timestamp": "2026-10-10T12:45:58.809Z",
+        "voucher_no": "CR-386736",
+        "voucher_type": "Cash Receipt Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 102,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:01.592508+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 480000,
+        "timestamp": "2026-10-10T12:46:00.554Z",
+        "voucher_no": "CR-351577",
+        "voucher_type": "Cash Receipt Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 103,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:03.427734+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 1000,
+        "timestamp": "2026-10-10T12:46:02.911Z",
+        "voucher_no": "CR-985007",
+        "voucher_type": "Cash Receipt Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 104,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:08.992922+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 4000,
+        "timestamp": "2026-10-10T12:46:08.482Z",
+        "voucher_no": "CR-547675",
+        "voucher_type": "Cash Receipt Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 106,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:21.642771+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 600,
+        "timestamp": "2026-10-10T12:46:21.165Z",
+        "voucher_no": "PR-928552",
+        "voucher_type": "Cash Payment Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 111,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:12.558247+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 500,
+        "timestamp": "2026-10-10T12:46:12.086Z",
+        "voucher_no": "PR-361473",
+        "voucher_type": "Cash Payment Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 107,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:15.122916+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 500,
+        "timestamp": "2026-10-10T12:46:14.636Z",
+        "voucher_no": "CR-250868",
+        "voucher_type": "Cash Receipt Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 108,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:17.065278+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 1200,
+        "timestamp": "2026-10-10T12:46:16.583Z",
+        "voucher_no": "CR-292100",
+        "voucher_type": "Cash Receipt Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 109,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:19.120909+00:00",
+      "details": {
+        "event": "Deleted Financial Voucher",
+        "amount": 500,
+        "timestamp": "2026-10-10T12:46:18.617Z",
+        "voucher_no": "PR-803048",
+        "voucher_type": "Cash Payment Voucher"
+      },
+      "table_name": "financial_vouchers",
+      "performed_by": "User",
+      "id": 110,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:46:44.919178+00:00",
+      "details": {
+        "id": 15,
+        "event": "Deleted sales invoice AYAZ SOOMRO-0011 (Customer)",
+        "timestamp": "2026-10-10T12:46:44.420Z",
+        "invoice_number": "AYAZ SOOMRO-0011"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 112,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T12:48:58.293977+00:00",
+      "details": {
+        "id": 16,
+        "event": "Created sales invoice AYAZ SOOMRO-002 for YH",
+        "timestamp": "2026-10-10T12:48:57.816Z",
+        "warehouse": "",
+        "item_count": 1,
+        "payment_term": "Cash",
+        "total_amount": 3000,
+        "customer_name": "YH",
+        "invoice_number": "AYAZ SOOMRO-002"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 113,
+      "action_type": "INSERT"
+    },
+    {
+      "created_at": "2026-10-10T13:46:58.481347+00:00",
+      "details": {
+        "id": 14,
+        "event": "Deleted sales invoice AYAZ SOOMRO-0010 (Customer)",
+        "timestamp": "2026-10-10T13:46:57.832Z",
+        "invoice_number": "AYAZ SOOMRO-0010"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 114,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:47:06.314712+00:00",
+      "details": {
+        "id": 13,
+        "event": "Deleted sales invoice AYAZ SOOMRO-009 (Customer)",
+        "timestamp": "2026-10-10T13:47:05.688Z",
+        "invoice_number": "AYAZ SOOMRO-009"
+      },
+      "table_name": "sales_invoices",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 115,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:49:42.034651+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:49:41.440Z",
+        "customer_code": "",
+        "customer_name": "ADIL"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 116,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:49:45.324832+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:49:44.732Z",
+        "customer_code": "",
+        "customer_name": "ADIL GHANI"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 117,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:49:48.311369+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:49:47.724Z",
+        "customer_code": "",
+        "customer_name": "ASIF"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 118,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:04.782896+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:04.182Z",
+        "customer_code": "",
+        "customer_name": "HADEED"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 119,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:07.160404+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:06.568Z",
+        "customer_code": "",
+        "customer_name": "HADI"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 120,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:09.306874+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:08.715Z",
+        "customer_code": "",
+        "customer_name": "JI,UG"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 121,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:11.954712+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:11.371Z",
+        "customer_code": "",
+        "customer_name": "MAAZ BEHLUM"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 122,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:14.957611+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:14.377Z",
+        "customer_code": "",
+        "customer_name": "KAMRAN"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 123,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:17.158221+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:16.565Z",
+        "customer_code": "",
+        "customer_name": "SAAD"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 124,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:20.161969+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:19.578Z",
+        "customer_code": "",
+        "customer_name": "testing"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 125,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:22.343666+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:21.759Z",
+        "customer_code": "WALK-IN",
+        "customer_name": "Walk-in Customer"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 126,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:50:24.876032+00:00",
+      "details": {
+        "event": "Deleted Customer Profile",
+        "timestamp": "2026-10-10T13:50:24.273Z",
+        "customer_code": "",
+        "customer_name": "YH"
+      },
+      "table_name": "customers",
+      "performed_by": "User",
+      "id": 127,
+      "action_type": "DELETE"
+    },
+    {
+      "created_at": "2026-10-10T13:57:11.293163+00:00",
+      "details": {
+        "id": 1,
+        "event": "Deleted sales return note #1 (YH)",
+        "timestamp": "2026-10-10T13:57:10.720Z",
+        "total_amount": 3000,
+        "customer_name": "YH",
+        "return_number": "RTN-260249"
+      },
+      "table_name": "sales_returns",
+      "performed_by": "test@noorhorizontechnologies.com",
+      "id": 128,
+      "action_type": "DELETE"
+    }
+  ],
+  "hr_employees": [],
+  "hr_designations": [],
+  "notifications": []
+}

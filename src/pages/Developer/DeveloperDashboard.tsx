@@ -855,75 +855,6 @@ const DeveloperDashboard: React.FC = () => {
     }
   };
 
-  // IF NOT AUTHENTICATED AS DEVELOPER -> SHOW SECURE LOGIN FORM
-  if (!isDevAuthorized) {
-    return (
-      <div className="min-h-screen bg-gray-50 text-body dark:bg-boxdark-2 dark:text-bodydark flex flex-col items-center justify-center p-6 font-sans transition-colors duration-200">
-        
-        <div className="absolute top-6 right-6">
-          <ul className="flex items-center gap-2 list-none m-0">
-            <DarkModeSwitcher />
-          </ul>
-        </div>
-
-        <div className="w-full max-w-md bg-white dark:bg-boxdark border border-stroke dark:border-strokedark p-8 sm:p-10 rounded-3xl shadow-default space-y-6 transition-colors duration-200">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mx-auto flex items-center justify-center text-3xl shadow-xs">
-              <MdSecurity />
-            </div>
-            <h2 className="text-2xl font-black tracking-tight text-black dark:text-white">Master Role & Dev Console</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Employee Access & Roles Control for AL Muhammadi</p>
-          </div>
-
-          {authError && (
-            <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-danger text-xs p-3 rounded-lg flex items-center gap-2">
-              <MdLockOutline /> {authError}
-            </div>
-          )}
-
-          <form onSubmit={handleDevLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-black dark:text-white mb-1.5">Master Developer Email</label>
-              <input
-                type="email"
-                required
-                value={emailInput}
-                onChange={e => setEmailInput(e.target.value)}
-                placeholder="developer@noorhorizontechnologies.com"
-                className="w-full bg-transparent dark:bg-form-input border border-stroke dark:border-form-strokedark rounded-xl p-3 text-xs text-black dark:text-white outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-black dark:text-white mb-1.5">Master Password</label>
-              <input
-                type="password"
-                required
-                value={passwordInput}
-                onChange={e => setPasswordInput(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full bg-transparent dark:bg-form-input border border-stroke dark:border-form-strokedark rounded-xl p-3 text-xs text-black dark:text-white outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <MdVpnKey /> Authenticate Role Console
-            </button>
-          </form>
-
-          <div className="pt-2 text-center">
-            <a href="/" className="text-[11px] text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition">
-              ← Return to Main Application
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Resolve employee friendly name, role, and avatar from performed_by identifier
   const getEmployeeInfo = (performedBy?: string) => {
     if (!performedBy || performedBy.toLowerCase() === 'system') {
@@ -1257,12 +1188,14 @@ const DeveloperDashboard: React.FC = () => {
   }, [employees, logs]);
 
   // Audit Logs computed filtering & pagination
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = (logs || []).filter(log => {
+    if (!log) return false;
     // Action filter
     if (logFilterAction !== 'ALL') {
+      const act = String(log.action_type || '').toUpperCase();
       if (logFilterAction === 'AUTH') {
-        if (log.action_type !== 'LOGIN' && log.action_type !== 'LOGOUT') return false;
-      } else if (log.action_type !== logFilterAction) {
+        if (act !== 'LOGIN' && act !== 'LOGOUT') return false;
+      } else if (act !== logFilterAction) {
         return false;
       }
     }
@@ -1270,9 +1203,10 @@ const DeveloperDashboard: React.FC = () => {
     // Employee filter
     if (logFilterEmployee !== 'ALL') {
       const empInfo = getEmployeeInfo(log.performed_by);
-      const matchesName = empInfo.name.toLowerCase() === logFilterEmployee.toLowerCase();
-      const matchesEmail = empInfo.email.toLowerCase() === logFilterEmployee.toLowerCase();
-      const matchesRaw = (log.performed_by || '').toLowerCase() === logFilterEmployee.toLowerCase();
+      const target = logFilterEmployee.toLowerCase();
+      const matchesName = String(empInfo.name || '').toLowerCase() === target;
+      const matchesEmail = String(empInfo.email || '').toLowerCase() === target;
+      const matchesRaw = String(log.performed_by || '').toLowerCase() === target;
       if (!matchesName && !matchesEmail && !matchesRaw) return false;
     }
 
@@ -1281,12 +1215,12 @@ const DeveloperDashboard: React.FC = () => {
       const q = logSearch.toLowerCase();
       const empInfo = getEmployeeInfo(log.performed_by);
       const activity = formatActivityEvent(log);
-      const matchAction = (log.action_type || '').toLowerCase().includes(q);
-      const matchCategory = activity.category.toLowerCase().includes(q);
-      const matchTitle = activity.title.toLowerCase().includes(q);
-      const matchSummary = activity.summary.toLowerCase().includes(q);
-      const matchEmpName = empInfo.name.toLowerCase().includes(q);
-      const matchEmpRole = empInfo.role.toLowerCase().includes(q);
+      const matchAction = String(log.action_type || '').toLowerCase().includes(q);
+      const matchCategory = String(activity.category || '').toLowerCase().includes(q);
+      const matchTitle = String(activity.title || '').toLowerCase().includes(q);
+      const matchSummary = String(activity.summary || '').toLowerCase().includes(q);
+      const matchEmpName = String(empInfo.name || '').toLowerCase() === q || String(empInfo.name || '').toLowerCase().includes(q);
+      const matchEmpRole = String(empInfo.role || '').toLowerCase().includes(q);
       const matchDetails = JSON.stringify(log.details || {}).toLowerCase().includes(q);
       return matchAction || matchCategory || matchTitle || matchSummary || matchEmpName || matchEmpRole || matchDetails;
     }
@@ -1297,6 +1231,75 @@ const DeveloperDashboard: React.FC = () => {
   const pageSize = 15;
   const totalPages = Math.ceil(filteredLogs.length / pageSize) || 1;
   const paginatedLogs = filteredLogs.slice((logPage - 1) * pageSize, logPage * pageSize);
+
+// IF NOT AUTHENTICATED AS DEVELOPER -> SHOW SECURE LOGIN FORM
+  if (!isDevAuthorized) {
+    return (
+      <div className="min-h-screen bg-gray-50 text-body dark:bg-boxdark-2 dark:text-bodydark flex flex-col items-center justify-center p-6 font-sans transition-colors duration-200">
+        
+        <div className="absolute top-6 right-6">
+          <ul className="flex items-center gap-2 list-none m-0">
+            <DarkModeSwitcher />
+          </ul>
+        </div>
+
+        <div className="w-full max-w-md bg-white dark:bg-boxdark border border-stroke dark:border-strokedark p-8 sm:p-10 rounded-3xl shadow-default space-y-6 transition-colors duration-200">
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mx-auto flex items-center justify-center text-3xl shadow-xs">
+              <MdSecurity />
+            </div>
+            <h2 className="text-2xl font-black tracking-tight text-black dark:text-white">Master Role & Dev Console</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Employee Access & Roles Control for AL Muhammadi</p>
+          </div>
+
+          {authError && (
+            <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-danger text-xs p-3 rounded-lg flex items-center gap-2">
+              <MdLockOutline /> {authError}
+            </div>
+          )}
+
+          <form onSubmit={handleDevLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-black dark:text-white mb-1.5">Master Developer Email</label>
+              <input
+                type="email"
+                required
+                value={emailInput}
+                onChange={e => setEmailInput(e.target.value)}
+                placeholder="developer@noorhorizontechnologies.com"
+                className="w-full bg-transparent dark:bg-form-input border border-stroke dark:border-form-strokedark rounded-xl p-3 text-xs text-black dark:text-white outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-black dark:text-white mb-1.5">Master Password</label>
+              <input
+                type="password"
+                required
+                value={passwordInput}
+                onChange={e => setPasswordInput(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full bg-transparent dark:bg-form-input border border-stroke dark:border-form-strokedark rounded-xl p-3 text-xs text-black dark:text-white outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <MdVpnKey /> Authenticate Role Console
+            </button>
+          </form>
+
+          <div className="pt-2 text-center">
+            <a href="/" className="text-[11px] text-gray-500 dark:text-gray-400 hover:text-emerald-600 transition">
+              ← Return to Main Application
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-body dark:bg-boxdark-2 dark:text-bodydark font-sans p-6 md:p-10 flex flex-col items-center transition-colors duration-200">
