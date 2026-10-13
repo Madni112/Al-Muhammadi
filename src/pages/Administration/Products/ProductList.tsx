@@ -120,6 +120,16 @@ const ProductList = () => {
 
         const unifiedProductPayload = baseProducts.map(product => {
           const name = String(product.product_name || '').trim().toLowerCase();
+          const pCode = String(product.item_sr_no || '').trim().toLowerCase();
+
+          const isItemMatch = (item: any) => {
+            const itemCode = String(item.item_code || item.item_sr_no || item.skuCode || item.sku || item.code || '').trim().toLowerCase();
+            if (pCode && itemCode) {
+              return pCode === itemCode;
+            }
+            const iName = String(item.product_name || item.itemName || item.item_name || item.item_details || item.pDescription || '').trim().toLowerCase();
+            return iName === name;
+          };
 
           const whBreakdowns: Record<string, any> = {};
           const getWh = (whName: string) => {
@@ -133,8 +143,11 @@ const ProductList = () => {
           // 1. Live stock from warehouse_inventory
           let liveStock = 0;
           (openStocks || []).forEach((os: any) => {
+            const osCode = String(os.skuCode || os.item_code || os.itemCode || '').trim().toLowerCase();
             const osName = String(os.product_name || os.item_name || os.itemName || os.item_details || os.itemDetails || '').trim().toLowerCase();
-            if (osName === name || osName.includes(name) || name.includes(osName)) {
+            const isMatch = (pCode && osCode) ? (pCode === osCode) : (osName === name);
+
+            if (isMatch) {
               const qty = Number(os.quantity || os.qty || 0);
               liveStock += qty;
               getWh(os.warehouse_name || os.location || 'Global / Unassigned').opening += qty;
@@ -158,8 +171,7 @@ const ProductList = () => {
             if (termClean !== 'cancel' && termClean !== 'deleted' && termClean !== 'draft' && !hasGrn) {
               const itemsArray = Array.isArray(p.items) ? p.items : JSON.parse(p.items || '[]');
               itemsArray.forEach((item: any) => {
-                const pName = String(item.product_name || item.itemName || item.item_name || '').trim().toLowerCase();
-                if (pName === name || pName.includes(name)) {
+                if (isItemMatch(item)) {
                   const qty = Number(item.qty || item.quantity || 0);
                   totalPurchased += qty;
                   const resolvedWh = item.warehouse || item.location || p.target_warehouse || p.receiving_warehouse || p.warehouse || 'Global / Unassigned';
@@ -175,8 +187,7 @@ const ProductList = () => {
           (grnReceipts || []).forEach((grn: any) => {
             if (['Pending Inward', 'Confirm', 'Partially Received', 'Billed', 'Rejected'].includes(grn.status)) {
               (grn.grn_items || []).forEach((item: any) => {
-                const pName = String(item.product_name || '').trim().toLowerCase();
-                if (pName === name || pName.includes(name)) {
+                if (isItemMatch(item)) {
                   const isUnverified = (item.accepted_qty == null) || (item.accepted_qty === 0 && item.rejected_qty === 0 && Number(item.qty) > 0 && ['Pending Inward', 'Partially Received'].includes(grn.status));
                   const accepted = isUnverified ? 0 : Number(item.accepted_qty ?? item.qty ?? 0);
                   const rejected = Number(item.rejected_qty ?? 0);
@@ -205,8 +216,7 @@ const ProductList = () => {
             if (statusClean !== 'cancel' && statusClean !== 'deleted') {
               const itemsArray = Array.isArray(s.items) ? s.items : JSON.parse(s.items || '[]');
               itemsArray.forEach((item: any) => {
-                const sName = String(item.product_name || item.itemName || item.item_name || '').trim().toLowerCase();
-                if (sName === name || sName.includes(name)) {
+                if (isItemMatch(item)) {
                   const qty = Number(item.qty || item.quantity || 0);
                   totalSold += qty;
                   getWh(item.warehouse || item.location || s.dispatch_warehouse || s.warehouse || 'Global / Unassigned').sold += qty;
@@ -221,8 +231,7 @@ const ProductList = () => {
             if (String(sr.status || '').trim().toLowerCase() !== 'cancel') {
               const itemsArray = Array.isArray(sr.items) ? sr.items : JSON.parse(sr.items || '[]');
               itemsArray.forEach((item: any) => {
-                const srName = String(item.product_name || item.itemName || item.item_name || '').trim().toLowerCase();
-                if (srName === name || srName.includes(name)) {
+                if (isItemMatch(item)) {
                   const qty = Number(item.qty || item.quantity || 0);
                   totalSalesReturned += qty;
                   getWh(item.warehouse || item.location || sr.receiving_warehouse || sr.warehouse || 'Global / Unassigned').salesReturned += qty;
@@ -238,8 +247,7 @@ const ProductList = () => {
             if (statusClean !== 'cancel' && statusClean !== 'deleted') {
               const itemsArray = Array.isArray(pr.items) ? pr.items : JSON.parse(pr.items || '[]');
               itemsArray.forEach((item: any) => {
-                const prName = String(item.product_name || item.itemName || item.item_name || '').trim().toLowerCase();
-                if (prName === name || prName.includes(name)) {
+                if (isItemMatch(item)) {
                   const qty = Number(item.qty || item.quantity || 0);
                   totalPurchaseReturned += qty;
                   getWh(item.warehouse || item.location || pr.dispatch_warehouse || pr.warehouse || 'Global / Unassigned').purchaseReturned += qty;
@@ -253,8 +261,7 @@ const ProductList = () => {
           (stockTransfers || []).forEach((st: any) => {
             const itemsArray = Array.isArray(st.items) ? st.items : (typeof st.items === 'string' ? JSON.parse(st.items || '[]') : []);
             itemsArray.forEach((item: any) => {
-              const stName = String(item.product_name || item.itemName || '').trim().toLowerCase();
-              if (stName === name) {
+              if (isItemMatch(item)) {
                 const qty = Number(item.qty || item.quantity || item.transfer_qty || 0);
                 const srcWh = String(st.from_location || item.from_location || 'Global / Unassigned').trim();
                 const destWh = String(st.to_location || item.to_location || 'Global / Unassigned').trim();
@@ -272,8 +279,7 @@ const ProductList = () => {
             if (statusClean !== 'cancel' && statusClean !== 'deleted') {
               const itemsArray = Array.isArray(dc.items) ? dc.items : (typeof dc.items === 'string' ? JSON.parse(dc.items || '[]') : []);
               itemsArray.forEach((item: any) => {
-                const dcName = String(item.product_name || item.itemName || item.pDescription || '').trim().toLowerCase();
-                if (dcName === name || dcName.includes(name)) {
+                if (isItemMatch(item)) {
                   const orderQty = Number(item.orderQty ?? item.qty ?? 0);
                   const dispatchedQty = Number(item.dispatchedQty ?? (statusClean === 'approved' || statusClean === 'dispatched' || statusClean === 'fully dispatched' ? orderQty : 0));
                   let holdQty = 0;
@@ -567,11 +573,55 @@ const ProductList = () => {
   const goodsItems = paginatedProducts.filter(p => (p.item_type || 'goods') === 'goods');
   const serviceItems = paginatedProducts.filter(p => p.item_type === 'service');
 
+  const isTileProduct = (p: any) => {
+    if (!p) return false;
+    const cat = String(p.category || p.sub_category || p.sub_sub_category || p.parent_category || '').toLowerCase();
+    const desc = String(p.product_description || '').toLowerCase();
+    const name = String(p.product_name || '').toLowerCase();
+    const scenario = String(p.scenario_name || '').toLowerCase();
+    const uom = String(p.uom || '').toLowerCase();
+    return cat.includes('tile') || desc.includes('[tile') || desc.includes('box:') || name.includes('tile') || scenario.includes('tile') || uom === 'box';
+  };
+
+  const getProductPiecesPerBox = (p: any) => {
+    if (!p) return 4;
+    const raw = Number(p.pieces_per_box ?? p.pcs_per_box ?? p.pieces_per_packing ?? 0);
+    if (raw >= 1) return raw;
+    const match = String(p.product_description || '').match(/Box:\s*(\d+)\s*pcs/i);
+    if (match && Number(match[1]) > 0) return Number(match[1]);
+    const text = `${p.product_name || ''} ${p.product_description || ''}`;
+    const slashMatch = text.match(/\b\d+(?:\.\d+)?\/(\d+)\b/);
+    if (slashMatch && Number(slashMatch[1]) > 0) return Number(slashMatch[1]);
+    return 4;
+  };
+
   const renderProductRow = (product: any, serialNumber: number) => {
     const currentStock = Number(product.current_stock || 0);
     const minAlert = Number(product.min_stock_alert ?? product.min_stock ?? 0);
     const isZeroStock = currentStock <= 0;
     const isLowStock = minAlert > 0 && currentStock <= minAlert && !isZeroStock;
+
+    const isTile = isTileProduct(product);
+    const pcsPerBox = getProductPiecesPerBox(product);
+    const isTileWithPieces = isTile && pcsPerBox > 1;
+
+    let displayBoxes = currentStock;
+    let loosePieces = 0;
+    let hasLoosePieces = false;
+
+    if (isTileWithPieces) {
+      const sign = currentStock < 0 ? -1 : 1;
+      const absStock = Math.abs(currentStock);
+      let wholeBoxes = Math.floor(absStock);
+      let pcs = Math.round((absStock - wholeBoxes) * pcsPerBox);
+      if (pcs >= pcsPerBox) {
+        wholeBoxes += Math.floor(pcs / pcsPerBox);
+        pcs %= pcsPerBox;
+      }
+      displayBoxes = sign * wholeBoxes;
+      loosePieces = pcs;
+      hasLoosePieces = pcs > 0;
+    }
 
     let badgeClass = 'bg-green-500/15 text-green-600 dark:bg-green-950/40 dark:text-green-400 border border-green-500/30';
     if (isZeroStock) {
@@ -606,10 +656,17 @@ const ProductList = () => {
           {Number(product.retail_price || product.mrp || 0).toFixed(2)}
         </td>
         <td className="py-3.5 px-4 text-center">
-          <span className={`font-black text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${badgeClass}`}>
-            {currentStock.toLocaleString()} {product.uom || 'PCS'}
-            {isLowStock && <MdWarning size={14} className="text-amber-600 dark:text-amber-400 inline shrink-0" />}
-          </span>
+          <div className="flex flex-col items-center justify-center">
+            <span className={`font-black text-xs px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${badgeClass}`}>
+              {displayBoxes.toLocaleString()} {product.uom || (isTile ? 'BOX' : 'PCS')}
+              {isLowStock && <MdWarning size={14} className="text-amber-600 dark:text-amber-400 inline shrink-0" />}
+            </span>
+            {hasLoosePieces && (
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+                {loosePieces} {loosePieces === 1 ? 'piece' : 'pieces'}
+              </span>
+            )}
+          </div>
           <button onClick={() => handleOpenBreakdown(product)} className="text-[9px] font-sans text-green-600 dark:text-green-400 hover:underline cursor-pointer block mx-auto mt-0.5">View Breakdown</button>
         </td>
         <td className="py-3.5 px-4 text-center">
