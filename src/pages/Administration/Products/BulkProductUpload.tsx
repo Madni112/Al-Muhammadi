@@ -24,6 +24,9 @@ import {
   MdEditNote,
   MdSync,
   MdTune,
+  MdSquareFoot,
+  MdCategory,
+  MdBlock,
 } from 'react-icons/md';
 
 export type DuplicateStatus = 'ready' | 'duplicate_in_file' | 'duplicate_in_db' | 'invalid';
@@ -41,6 +44,18 @@ export interface ProcessedRow {
   retailPrice: number;
   uom: string;
   minimumStock: number;
+  // Tile-specific attributes
+  print?: string;
+  tileWidth?: number;
+  tileHeight?: number;
+  piecesPerBox?: number;
+  sqMPerPiece?: number;
+  sqMPerBox?: number;
+  purchasePerSqM?: number;
+  salePerSqM?: number;
+  profitPerBox?: number;
+  profitMarginPercent?: string;
+  // Status
   status: DuplicateStatus;
   statusReason: string;
   matchedDbProduct?: {
@@ -56,17 +71,53 @@ export interface ProcessedRow {
   rawRow: any;
 }
 
+// Visual badge indicating whether a master category/brand/print already exists or will be created
+const MasterBadge = ({ exists }: { exists: boolean }) => {
+  if (exists) {
+    return (
+      <span
+        title="Already exists in database master catalog"
+        className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 whitespace-nowrap"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+        <span>Already</span>
+      </span>
+    );
+  }
+  return (
+    <span
+      title="Will be auto-created in master catalog during upload"
+      className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 whitespace-nowrap"
+    >
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+      <span>Will create</span>
+    </span>
+  );
+};
+
 const BulkProductUpload = () => {
-  const { userName, userEmail } = useAuth();
+  const { userName, userEmail, tenantId } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Tab: 'OTHER' = Upload Other Products, 'TILES' = Upload Tile Products
+  const [activeTab, setActiveTab] = useState<'OTHER' | 'TILES'>('OTHER');
 
   const [fileName, setFileName] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; stage: string } | null>(null);
 
-  const [processedRows, setProcessedRows] = useState<ProcessedRow[]>([]);
+  // Master Data Hierarchy State (Parent -> Sub -> Category, Brands, Prints)
+  const [autoCreateMasters, setAutoCreateMasters] = useState(true);
+  const [existingCategories, setExistingCategories] = useState<any[]>([]);
+  const [existingBrands, setExistingBrands] = useState<any[]>([]);
+  const [existingPrints, setExistingPrints] = useState<any[]>([]);
+
+  // Separate rows for each tab from the uploaded file
+  const [otherRows, setOtherRows] = useState<ProcessedRow[]>([]);
+  const [tileRows, setTileRows] = useState<ProcessedRow[]>([]);
+
   const [activeFilterTab, setActiveFilterTab] = useState<'ALL' | 'READY' | 'FILE_DUP' | 'DB_DUP' | 'INVALID'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadMode, setUploadMode] = useState<'SKIP_DUPLICATES' | 'UPDATE_EXISTING'>('SKIP_DUPLICATES');
@@ -79,9 +130,296 @@ const BulkProductUpload = () => {
     updatedCount: number;
     skippedCount: number;
     totalRows: number;
+    mastersCount?: number;
   } | null>(null);
 
-  // Parse Excel file and run 2-tier duplicate analysis
+  // Determine which dataset is currently active
+  const processedRows = useMemo(() => {
+    return activeTab === 'TILES' ? tileRows : otherRows;
+  }, [activeTab, tileRows, otherRows]);
+
+  const setProcessedRows = (updater: React.SetStateAction<ProcessedRow[]>) => {
+    if (activeTab === 'TILES') {
+      setTileRows(updater);
+    } else {
+      setOtherRows(updater);
+    }
+  };
+
+  const hasFileLoaded = otherRows.length > 0 || tileRows.length > 0;
+  const isMixedFile = otherRows.length > 0 && tileRows.length > 0;
+
+  // Pending missing master data computed against DB
+  const pendingMasters = useMemo(() => {
+    const parentSet = new Set<string>();
+    const subSet = new Set<string>();
+    const catSet = new Set<string>();
+    const brandSet = new Set<string>();
+    const printSet = new Set<string>();
+
+    const allRows = [...otherRows, ...tileRows];
+    if (allRows.length === 0) {
+      return { parents: [], subs: [], cats: [], brands: [], prints: [], total: 0 };
+    }
+
+    // Build lookup maps from existing DB categories
+    const dbParentMap = new Map<string, any>();
+    const dbSubMap = new Map<string, any>(); // `${parentId}:::${subName}`
+    const dbCatMap = new Map<string, any>(); // `${subId}:::${catName}`
+
+    (existingCategories || []).forEach((c: any) => {
+      const cName = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id === null || c.parent_id === undefined) {
+        dbParentMap.set(cName, c);
+      }
+    });
+
+    (existingCategories || []).forEach((c: any) => {
+      const cName = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id !== null && c.parent_id !== undefined) {
+        const isParentRoot = Array.from(dbParentMap.values()).some((p: any) => p.id === c.parent_id);
+        if (isParentRoot) {
+          dbSubMap.set(`${c.parent_id}:::${cName}`, c);
+        }
+      }
+    });
+
+    (existingCategories || []).forEach((c: any) => {
+      const cName = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id !== null && c.parent_id !== undefined) {
+        const isParentSub = Array.from(dbSubMap.values()).some((s: any) => s.id === c.parent_id);
+        if (isParentSub) {
+          dbCatMap.set(`${c.parent_id}:::${cName}`, c);
+        }
+      }
+    });
+
+    const dbBrandSet = new Set((existingBrands || []).map((b: any) => String(b.name || '').trim().toLowerCase()));
+    const dbPrintSet = new Set((existingPrints || []).map((p: any) => String(p.name || '').trim().toLowerCase()));
+
+    allRows.forEach((r) => {
+      const p = (r.parentCat || '').trim();
+      const s = (r.subCategory || '').trim();
+      const c = (r.category || '').trim();
+      const b = (r.brand || '').trim();
+      const pr = (r.print || '').trim();
+
+      if (p && !dbParentMap.has(p.toLowerCase())) {
+        parentSet.add(p);
+      }
+      if (s) {
+        const pObj = dbParentMap.get(p.toLowerCase());
+        const subKey = pObj ? `${pObj.id}:::${s.toLowerCase()}` : '';
+        if (!subKey || !dbSubMap.has(subKey)) {
+          subSet.add(s);
+        }
+      }
+      if (c) {
+        catSet.add(c);
+      }
+      if (b && !dbBrandSet.has(b.toLowerCase())) {
+        brandSet.add(b);
+      }
+      if (pr && !dbPrintSet.has(pr.toLowerCase())) {
+        printSet.add(pr);
+      }
+    });
+
+    return {
+      parents: Array.from(parentSet),
+      subs: Array.from(subSet),
+      cats: Array.from(catSet),
+      brands: Array.from(brandSet),
+      prints: Array.from(printSet),
+      total: parentSet.size + subSet.size + brandSet.size + printSet.size,
+    };
+  }, [otherRows, tileRows, existingCategories, existingBrands, existingPrints]);
+
+  // Fast lookup structure for individual row badges (Already vs Will create)
+  const masterLookup = useMemo(() => {
+    const parentSet = new Set<string>();
+    const subSet = new Map<string, Set<string>>(); // parentLower -> Set of subLower
+    const catSet = new Map<string, Set<string>>(); // `${parentLower}:::${subLower}` -> Set of catLower
+
+    const dbParentIdMap = new Map<number | string, string>(); // id -> parentLower
+    const dbSubIdMap = new Map<number | string, { parentLower: string; subLower: string }>();
+
+    (existingCategories || []).forEach((c: any) => {
+      const nameLower = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id === null || c.parent_id === undefined) {
+        parentSet.add(nameLower);
+        dbParentIdMap.set(c.id, nameLower);
+      }
+    });
+
+    (existingCategories || []).forEach((c: any) => {
+      const nameLower = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id !== null && c.parent_id !== undefined && dbParentIdMap.has(c.parent_id)) {
+        const parentLower = dbParentIdMap.get(c.parent_id)!;
+        if (!subSet.has(parentLower)) subSet.set(parentLower, new Set());
+        subSet.get(parentLower)!.add(nameLower);
+        dbSubIdMap.set(c.id, { parentLower, subLower: nameLower });
+      }
+    });
+
+    (existingCategories || []).forEach((c: any) => {
+      const nameLower = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id !== null && c.parent_id !== undefined && dbSubIdMap.has(c.parent_id)) {
+        const { parentLower, subLower } = dbSubIdMap.get(c.parent_id)!;
+        const key = `${parentLower}:::${subLower}`;
+        if (!catSet.has(key)) catSet.set(key, new Set());
+        catSet.get(key)!.add(nameLower);
+      }
+    });
+
+    const brandSet = new Set(
+      (existingBrands || []).map((b: any) => String(b.name || '').trim().toLowerCase())
+    );
+
+    const printSet = new Set(
+      (existingPrints || []).map((p: any) => String(p.name || '').trim().toLowerCase())
+    );
+
+    return {
+      isParentExists: (name?: string) => {
+        if (!name || !name.trim()) return false;
+        return parentSet.has(name.trim().toLowerCase());
+      },
+      isSubExists: (parentName?: string, subName?: string) => {
+        if (!subName || !subName.trim()) return false;
+        const pLower = (parentName || '').trim().toLowerCase();
+        if (subSet.has(pLower) && subSet.get(pLower)!.has(subName.trim().toLowerCase())) return true;
+        // Fallback: check if sub exists anywhere in categories
+        return (existingCategories || []).some(
+          c => c.parent_id !== null && String(c.name || '').trim().toLowerCase() === subName.trim().toLowerCase()
+        );
+      },
+      isCatExists: (parentName?: string, subName?: string, catName?: string) => {
+        if (!catName || !catName.trim()) return false;
+        const pLower = (parentName || '').trim().toLowerCase();
+        const sLower = (subName || '').trim().toLowerCase();
+        const key = `${pLower}:::${sLower}`;
+        if (catSet.has(key) && catSet.get(key)!.has(catName.trim().toLowerCase())) return true;
+        return (existingCategories || []).some(
+          c => String(c.name || '').trim().toLowerCase() === catName.trim().toLowerCase()
+        );
+      },
+      isBrandExists: (brandName?: string) => {
+        if (!brandName || !brandName.trim()) return false;
+        return brandSet.has(brandName.trim().toLowerCase());
+      },
+      isPrintExists: (printName?: string) => {
+        if (!printName || !printName.trim()) return false;
+        return printSet.has(printName.trim().toLowerCase());
+      },
+    };
+  }, [existingCategories, existingBrands, existingPrints]);
+
+  // Handle Tab Switch (Preserves parsed rows for both tabs)
+  const handleTabChange = (newTab: 'OTHER' | 'TILES') => {
+    if (newTab === activeTab) return;
+    setActiveTab(newTab);
+    setCurrentPage(1);
+    setActiveFilterTab('ALL');
+  };
+
+  // Download sample template for Other Products
+  const handleDownloadOtherTemplate = () => {
+    const sampleData = [
+      {
+        'CODE': 'G-SANIT-01',
+        'DESCRIPTION': 'Porta Ceramic Basin Vanity',
+        'PARENT CATEGORY': 'Sanitary Ware',
+        'SUB CATEGORY': 'Basins',
+        'CATEGORY': 'Vanity Basins',
+        'BRAND': 'Porta',
+        'PURCHASE PRICE': 8500,
+        'SALES PRICE': 11000,
+        'UOM': 'PCS',
+        'MINIMUM': 5,
+      },
+      {
+        'CODE': 'G-PIPE-02',
+        'DESCRIPTION': 'PPRC Pipe 25mm 4m Class A',
+        'PARENT CATEGORY': 'Pipes & Fittings',
+        'SUB CATEGORY': 'PPRC Pipes',
+        'CATEGORY': '25mm Pipes',
+        'BRAND': 'Popular',
+        'PURCHASE PRICE': 650,
+        'SALES PRICE': 850,
+        'UOM': 'LENGTH',
+        'MINIMUM': 20,
+      },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(sampleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Other Products Template');
+    XLSX.writeFile(wb, 'other-products-template.xlsx');
+    toast.success('Downloaded Other Products Excel template!');
+  };
+
+  // Download sample template for Tile Products
+  const handleDownloadTileTemplate = () => {
+    const sampleData = [
+      {
+        'Code': 'PT-60120-01',
+        'Description': 'Calacatta Gold Glazed Polished Porcelain',
+        'Brand': 'Master',
+        'Parent Category': 'Pak Tiles',
+        'Sub Category': 'Porcelain',
+        'Category': '60x120',
+        'Print': 'Glazed Polished',
+        'UOM': 'BOX',
+        'Pieces Per Box': 2,
+        'width': 60,
+        'height': 120,
+        'Purchase Price (Per Box)': 3200,
+        'Sale Price (Per Box)': 4000,
+        'Min': 20,
+      },
+      {
+        'Code': 'CT-6060-05',
+        'Description': 'Carrara White Matte Floor Tile',
+        'Brand': 'Sonex',
+        'Parent Category': 'Ch Tiles',
+        'Sub Category': 'Ceramic',
+        'Category': '60x60',
+        'Print': 'Matt',
+        'UOM': 'BOX',
+        'Pieces Per Box': 4,
+        'width': 60,
+        'height': 60,
+        'Purchase Price (Per Box)': 2400,
+        'Sale Price (Per Box)': 3000,
+        'Min': 15,
+      },
+      {
+        'Code': 'ST-3090-09',
+        'Description': 'Nero Marquina Wall Glossy Tile',
+        'Brand': 'Stile',
+        'Parent Category': 'Spain Tiles',
+        'Sub Category': 'Ceramic',
+        'Category': '30x90',
+        'Print': 'Polished',
+        'UOM': 'BOX',
+        'Pieces Per Box': 4,
+        'width': 30,
+        'height': 90,
+        'Purchase Price (Per Box)': 2800,
+        'Sale Price (Per Box)': 3500,
+        'Min': 10,
+      },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(sampleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Tile Products Template');
+    XLSX.writeFile(wb, 'tile-products-template.xlsx');
+    toast.success('Downloaded Tile Products Excel template!');
+  };
+
+  // Parse Excel file, auto-classify tiles vs other products, apply redirects and dual-tab mapping
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -97,8 +435,23 @@ const BulkProductUpload = () => {
         const workbook = XLSX.read(bstr, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        // Read sheet as raw 2D grid of rows
         const rawGrid: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+        // Auto-propagate merged cells down to all child cells in the merged range
+        if (sheet['!merges'] && Array.isArray(sheet['!merges'])) {
+          sheet['!merges'].forEach((merge: any) => {
+            const startVal = rawGrid[merge.s.r]?.[merge.s.c];
+            if (startVal !== undefined && startVal !== '') {
+              for (let r = merge.s.r; r <= merge.e.r; r++) {
+                for (let c = merge.s.c; c <= merge.e.c; c++) {
+                  if (rawGrid[r]) {
+                    rawGrid[r][c] = startVal;
+                  }
+                }
+              }
+            }
+          });
+        }
 
         if (!rawGrid || rawGrid.length === 0) {
           toast.error('The selected file has no data rows.');
@@ -120,6 +473,10 @@ const BulkProductUpload = () => {
           'BRAND',
           'UOM',
           'MINIMUM',
+          'PRINT',
+          'PIECES',
+          'WIDTH',
+          'HEIGHT',
         ];
 
         let headerRowIdx = 0;
@@ -143,7 +500,7 @@ const BulkProductUpload = () => {
         );
         const dataGrid = rawGrid.slice(headerRowIdx + 1);
 
-        // Normalize data rows to objects, filtering out completely blank rows
+        // Normalize data rows to objects, filtering out completely blank rows or spacer rows without code & name
         const normalizedData: any[] = [];
         dataGrid.forEach((row) => {
           const hasData = row.some((cell: any) => String(cell || '').trim() !== '');
@@ -155,6 +512,14 @@ const BulkProductUpload = () => {
               rowObj[colName] = row[idx];
             }
           });
+
+          // Check if this row is just an empty spacer row (no code and no description)
+          const checkCode = String(rowObj['CODE'] || rowObj['ITEM CODE'] || rowObj['ITEM_CODE'] || rowObj['ITEM SR NO'] || rowObj['SKU'] || '').trim();
+          const checkName = String(rowObj['DESCRIPTION'] || rowObj['PRODUCT NAME'] || rowObj['PRODUCT_NAME'] || rowObj['NAME'] || '').trim();
+          if (!checkCode && !checkName) {
+            return; // Skip empty separator/spacer row
+          }
+
           normalizedData.push(rowObj);
         });
 
@@ -164,31 +529,44 @@ const BulkProductUpload = () => {
           return;
         }
 
-        // 1. Fetch current database catalog for comparison
-        const { data: dbProducts, error: dbError } = await supabase
-          .from('products')
-          .select('id, product_name, item_sr_no, purchase_price, retail_price, category');
+        // 1. Fetch current database catalog, categories, brands, and prints for comparison
+        const [productsRes, catsRes, brandsRes, printsRes] = await Promise.all([
+          supabase
+            .from('products')
+            .select('id, product_name, item_sr_no, purchase_price, retail_price, category'),
+          tenantId
+            ? supabase.from('inventory_categories').select('*').eq('tenant_id', tenantId)
+            : supabase.from('inventory_categories').select('*'),
+          supabase.from('inventory_brands').select('*'),
+          supabase.from('inventory_prints').select('*'),
+        ]);
 
-        if (dbError) throw dbError;
+        if (productsRes.error) throw productsRes.error;
+        const dbProducts = productsRes.data || [];
+        setExistingCategories(catsRes.data || []);
+        setExistingBrands(brandsRes.data || []);
+        setExistingPrints(printsRes.data || []);
 
-        // Build database lookup maps (lowercase trimmed)
-        const dbByCode = new Map<string, any>();
-        const dbByName = new Map<string, any>();
+        // Build database lookup maps (lowercase trimmed 2-layer composite: Code + Name)
+        const dbByComposite = new Map<string, any>();
 
         (dbProducts || []).forEach((p: any) => {
           const codeKey = String(p.item_sr_no || '').trim().toLowerCase();
           const nameKey = String(p.product_name || '').replace(/\s+/g, ' ').trim().toLowerCase();
-          if (codeKey) dbByCode.set(codeKey, p);
-          if (nameKey) dbByName.set(nameKey, p);
+          if (codeKey || nameKey) {
+            dbByComposite.set(`${codeKey}:::${nameKey}`, p);
+          }
         });
 
         const suffixRegex = /[\.\-\s]*(a39|shop)\s*$/i;
 
-        // In-file duplicate tracking maps
-        const fileSeenCodes = new Map<string, number>(); // code -> first 1-based row index
-        const fileSeenNames = new Map<string, number>(); // name -> first 1-based row index
+        // In-file duplicate tracking map (2-Layer: Code + Description)
+        const fileSeenComposite = new Map<string, number>(); // compositeKey -> first 1-based row index
 
-        const processed: ProcessedRow[] = normalizedData.map((row, i) => {
+        const parsedTileList: ProcessedRow[] = [];
+        const parsedOtherList: ProcessedRow[] = [];
+
+        normalizedData.forEach((row, i) => {
           const rowIndex = i + 1;
           const rawCode = String(
             row['CODE'] || row['ITEM CODE'] || row['ITEM_CODE'] || row['ITEM SR NO'] || row['SKU'] || ''
@@ -202,90 +580,185 @@ const BulkProductUpload = () => {
 
           const codeKey = cleanCode.toLowerCase();
           const nameKey = cleanName.toLowerCase();
+          const compositeKey = `${codeKey}:::${nameKey}`;
+
+          // Brand extraction
+          const rawBrand = String(
+            row['BRAND'] || row['BRAND / BIN'] || row['BIN'] || ''
+          ).trim();
+
+          // Category fields (tolerant to typos like Pareent category / Sub Categry)
+          const rawParentCat = String(
+            row['PARENT CATEGORY'] || row['PAREENT CATEGORY'] || row['PARENT_CATEGORY'] || row['PARENT'] || ''
+          ).trim();
+          const rawSubCat = String(
+            row['SUB CATEGORY'] || row['SUB CATEGRY'] || row['SUB_CATEGORY'] || row['SUB'] || ''
+          ).trim();
+          const rawCat = String(
+            row['CATEGORY'] || row['SIZE'] || ''
+          ).trim();
+
+          // Tile-specific columns
+          const rawPrint = String(
+            row['PRINT'] || row['FINISH'] || row['SURFACE'] || ''
+          ).trim();
+          const rawPcs = Number(
+            row['PIECES PER BOX'] || row['PIECES_PER_BOX'] || row['PCS PER BOX'] || row['PCS/BOX'] || row['PACKING'] || 0
+          );
+          const piecesPerBox = rawPcs > 0 ? rawPcs : 1;
+
+          const rawW = Number(row['WIDTH'] || row['W'] || 0);
+          const rawH = Number(row['HEIGHT'] || row['H'] || 0);
+
+          // Numeric prices and minimum
+          const rawPur = parseFloat(
+            String(row['PURCHASE PRICE (PER BOX)'] || row['PURCHASE PRICE'] || row['PURCHASE'] || row['BUY RATE'] || 0).replace(/[^\d.]/g, '')
+          ) || 0;
+          const rawRet = parseFloat(
+            String(row['SALE PRICE (PER BOX)'] || row['SALE PRICE'] || row['SALES PRICE'] || row['RETAIL PRICE'] || row['SALE RATE'] || 0).replace(/[^\d.]/g, '')
+          ) || 0;
+          const rawMin = parseInt(
+            String(row['MIN'] || row['MINIMUM'] || row['MINIMUM STOCK'] || row['MIN STOCK'] || 0).replace(/[^\d]/g, ''),
+            10
+          ) || 0;
+
+          // Check if this row is a tile product:
+          const isTileRow = rawParentCat.toLowerCase().includes('tile');
+          const rawUom = String(row['UOM'] || (isTileRow ? 'BOX' : 'PCS')).trim() || (isTileRow ? 'BOX' : 'PCS');
+
+          // Tile metric calculations (width & height in cm)
+          let sqMPerPiece = 0;
+          let sqMPerBox = 0;
+          let purchasePerSqM = 0;
+          let salePerSqM = 0;
+          let profitPerBox = rawRet - rawPur;
+          let profitMarginPercent = rawPur > 0 ? ((profitPerBox / rawPur) * 100).toFixed(1) : '0';
+
+          if (rawW > 0 && rawH > 0) {
+            sqMPerPiece = (rawW / 100) * (rawH / 100);
+            sqMPerBox = sqMPerPiece * piecesPerBox;
+            if (sqMPerBox > 0) {
+              purchasePerSqM = rawPur / sqMPerBox;
+              salePerSqM = rawRet / sqMPerBox;
+            }
+          }
 
           let status: DuplicateStatus = 'ready';
-          let statusReason = 'New unique product — ready to upload';
+          let statusReason = isTileRow
+            ? 'New unique tile product — ready to upload'
+            : 'New unique product — ready to upload';
           let matchedDbProduct: any = undefined;
           let matchedFileRowIndex: number | undefined = undefined;
 
-          // Check 1: Missing Required Name
+          // Check 1: Missing Required Description / Name
           if (!cleanName) {
             status = 'invalid';
             statusReason = 'Missing product description / name';
           }
-          // Check 2: Duplicate Code within the file
-          else if (codeKey && fileSeenCodes.has(codeKey)) {
+          // Check 2: Duplicate in File (2-Layer: Code AND Description both duplicate)
+          else if (fileSeenComposite.has(compositeKey)) {
             status = 'duplicate_in_file';
-            matchedFileRowIndex = fileSeenCodes.get(codeKey);
-            statusReason = `Duplicate Code: Same code as Row #${matchedFileRowIndex} in this file ("${cleanCode}")`;
+            matchedFileRowIndex = fileSeenComposite.get(compositeKey);
+            statusReason = `Duplicate: Both Code ("${cleanCode || 'None'}") and Description match Row #${matchedFileRowIndex} in this file`;
           }
-          // Check 3: Duplicate Name within the file
-          else if (fileSeenNames.has(nameKey)) {
-            status = 'duplicate_in_file';
-            matchedFileRowIndex = fileSeenNames.get(nameKey);
-            statusReason = `Duplicate Name: Same description as Row #${matchedFileRowIndex} in this file`;
-          }
-          // Check 4: Duplicate Code in Database
-          else if (codeKey && dbByCode.has(codeKey)) {
-            const matched = dbByCode.get(codeKey);
+          // Check 3: Duplicate in Database (2-Layer: Code AND Description both duplicate)
+          else if (dbByComposite.has(compositeKey)) {
+            const matched = dbByComposite.get(compositeKey);
             status = 'duplicate_in_db';
             matchedDbProduct = matched;
-            statusReason = `Code already in Database: Matches "${matched.product_name}" (DB ID #${matched.id})`;
-          }
-          // Check 5: Duplicate Name in Database
-          else if (dbByName.has(nameKey)) {
-            const matched = dbByName.get(nameKey);
-            status = 'duplicate_in_db';
-            matchedDbProduct = matched;
-            statusReason = `Name already in Database: Matches existing product (DB ID #${matched.id})`;
+            statusReason = `Already in Database: Both Code and Description match "${matched.product_name}" (DB ID #${matched.id})`;
           }
 
-          // Register first occurrence in file
-          if (cleanName && !fileSeenNames.has(nameKey)) {
-            fileSeenNames.set(nameKey, rowIndex);
-          }
-          if (cleanCode && !fileSeenCodes.has(codeKey)) {
-            fileSeenCodes.set(codeKey, rowIndex);
+          // Register in seen map if clean
+          if (status !== 'duplicate_in_file' && status !== 'invalid') {
+            fileSeenComposite.set(compositeKey, rowIndex);
           }
 
-          const pPrice = Number(row['PURCHASE PRICE'] || row['PURCHASE_PRICE'] || row['PURCHASE'] || row['COST'] || 0);
-          const rPrice = Number(row['SALES PRICE'] || row['SALE PRICE'] || row['RETAIL PRICE'] || row['RETAIL_PRICE'] || row['PRICE'] || 0);
-
-          return {
-            id: `row-${rowIndex}-${cleanCode || cleanName || Math.random()}`,
+          const processedItem: ProcessedRow = {
+            id: `row-${rowIndex}`,
             rowIndex,
             code: cleanCode,
             productName: cleanName,
-            category: String(row['CATEGORY'] || row['LEAF CATEGORY'] || row['LEAF_CATEGORY'] || '').trim(),
-            subCategory: String(row['SUB CATEGORY'] || row['SUB CAT'] || row['SUB_CATEGORY'] || '').trim(),
-            parentCat: String(row['PARENT CAT'] || row['PARENT CATEGORY'] || row['PARENT_CAT'] || row['PARENT_CATEGORY'] || row['SUB SUB CATEGORY'] || '').trim(),
-            brand: String(row['BRAND'] || row['BIN'] || '').trim(),
-            purchasePrice: isNaN(pPrice) ? 0 : pPrice,
-            retailPrice: isNaN(rPrice) ? 0 : rPrice,
-            uom: String(row['UOM'] || 'PCS').trim(),
-            minimumStock: Number(row['MINIMUM'] || row['MIN_STOCK'] || 0) || 0,
+            category: rawCat,
+            subCategory: rawSubCat,
+            parentCat: rawParentCat,
+            brand: rawBrand,
+            purchasePrice: rawPur,
+            retailPrice: rawRet,
+            uom: rawUom,
+            minimumStock: rawMin,
+            // Tile specific
+            print: rawPrint,
+            tileWidth: rawW > 0 ? rawW : undefined,
+            tileHeight: rawH > 0 ? rawH : undefined,
+            piecesPerBox,
+            sqMPerPiece,
+            sqMPerBox,
+            purchasePerSqM,
+            salePerSqM,
+            profitPerBox,
+            profitMarginPercent,
+            // Status
             status,
             statusReason,
             matchedDbProduct,
             matchedFileRowIndex,
-            selected: status === 'ready', // Default: only check new ready items
+            selected: status === 'ready',
             rawRow: row,
           };
+
+          if (isTileRow) {
+            parsedTileList.push(processedItem);
+          } else {
+            parsedOtherList.push(processedItem);
+          }
         });
 
-        setProcessedRows(processed);
+        setTileRows(parsedTileList);
+        setOtherRows(parsedOtherList);
         setCurrentPage(1);
         setActiveFilterTab('ALL');
 
-        const readyCount = processed.filter(r => r.status === 'ready').length;
-        const fileDupCount = processed.filter(r => r.status === 'duplicate_in_file').length;
-        const dbDupCount = processed.filter(r => r.status === 'duplicate_in_db').length;
+        // --- SMART TAB REDIRECTION RULES ---
+        const tileCount = parsedTileList.length;
+        const otherCount = parsedOtherList.length;
 
-        toast.success(
-          `Analysis complete: ${readyCount} new, ${fileDupCount} file duplicates, ${dbDupCount} already in DB.`
-        );
+        // Rule 1: Uploaded in OTHER tab, but contains Tiles list (or predominantly tiles)
+        if (activeTab === 'OTHER') {
+          if ((tileCount > 0 && otherCount === 0) || (tileCount > 2 && otherCount <= 2)) {
+            setActiveTab('TILES');
+            toast('Tiles list detected! Automatically redirected to "Upload Tile Products" tab.', {
+              icon: '🔄',
+            });
+          } else if (tileCount > 0 && otherCount > 0) {
+            if (tileCount > otherCount) {
+              setActiveTab('TILES');
+            }
+            toast.success(
+              `Mixed file: Detected ${tileCount} Tile products & ${otherCount} Other products separated across tabs.`
+            );
+          } else {
+            toast.success(`Parsed ${otherCount} products in Other Products tab.`);
+          }
+        }
+        // Rule 2: Uploaded in TILE tab, but contains >2 non-tile items (or purely non-tiles)
+        else if (activeTab === 'TILES') {
+          if ((otherCount > 0 && tileCount === 0) || (otherCount > 2 && tileCount <= 2)) {
+            setActiveTab('OTHER');
+            toast(
+              `Non-tile list detected (${otherCount} items)! Automatically redirected to "Upload Other Products" tab.`,
+              { icon: '🔄' }
+            );
+          } else if (tileCount > 0 && otherCount > 0) {
+            toast.success(
+              `Mixed file: Detected ${tileCount} Tile products & ${otherCount} Other products separated across tabs.`
+            );
+          } else {
+            toast.success(`Parsed ${tileCount} tile products in Tile Products tab.`);
+          }
+        }
       } catch (err: any) {
-        toast.error('Failed to parse and analyze file: ' + err.message);
+        toast.error('Failed to parse file: ' + err.message);
       } finally {
         setAnalyzing(false);
       }
@@ -294,7 +767,7 @@ const BulkProductUpload = () => {
     reader.readAsBinaryString(file);
   };
 
-  // KPI Metrics
+  // Metrics calculation for the currently active tab
   const metrics = useMemo(() => {
     const total = processedRows.length;
     const ready = processedRows.filter(r => r.status === 'ready').length;
@@ -302,50 +775,60 @@ const BulkProductUpload = () => {
     const dbDup = processedRows.filter(r => r.status === 'duplicate_in_db').length;
     const invalid = processedRows.filter(r => r.status === 'invalid').length;
     const selectedCount = processedRows.filter(r => r.selected).length;
+
     return { total, ready, fileDup, dbDup, invalid, selectedCount };
   }, [processedRows]);
 
-  // Filtered rows for table
+  // Filtered rows for the preview table
   const filteredRows = useMemo(() => {
     return processedRows.filter((r) => {
-      // Tab filter
+      // 1. Filter Tab
       if (activeFilterTab === 'READY' && r.status !== 'ready') return false;
       if (activeFilterTab === 'FILE_DUP' && r.status !== 'duplicate_in_file') return false;
       if (activeFilterTab === 'DB_DUP' && r.status !== 'duplicate_in_db') return false;
       if (activeFilterTab === 'INVALID' && r.status !== 'invalid') return false;
 
-      // Search filter
+      // 2. Search query
       if (searchTerm.trim()) {
         const query = searchTerm.toLowerCase();
-        const codeMatch = r.code.toLowerCase().includes(query);
-        const nameMatch = r.productName.toLowerCase().includes(query);
-        const catMatch = r.category.toLowerCase().includes(query);
-        const brandMatch = r.brand.toLowerCase().includes(query);
-        return codeMatch || nameMatch || catMatch || brandMatch;
+        const inCode = (r.code || '').toLowerCase().includes(query);
+        const inName = (r.productName || '').toLowerCase().includes(query);
+        const inCat = (r.category || '').toLowerCase().includes(query);
+        const inParent = (r.parentCat || '').toLowerCase().includes(query);
+        const inBrand = (r.brand || '').toLowerCase().includes(query);
+        const inPrint = (r.print || '').toLowerCase().includes(query);
+        if (!inCode && !inName && !inCat && !inParent && !inBrand && !inPrint) return false;
       }
+
       return true;
     });
   }, [processedRows, activeFilterTab, searchTerm]);
 
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  // Paginated Rows
+  const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
   const paginatedRows = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredRows.slice(start, start + pageSize);
   }, [filteredRows, currentPage, pageSize]);
 
-  // Toggle selection for a single row
-  const toggleRowSelection = (id: string) => {
+  // Row selection handlers
+  const toggleRowSelect = (id: string) => {
     setProcessedRows(prev =>
       prev.map(r => (r.id === id ? { ...r, selected: !r.selected } : r))
     );
   };
 
-  // Toggle selection for all currently filtered rows
-  const toggleSelectAllFiltered = (selectAll: boolean) => {
-    const idsToToggle = new Set(filteredRows.map(r => r.id));
+  const selectAllFiltered = () => {
+    const ids = new Set(filteredRows.map(r => r.id));
     setProcessedRows(prev =>
-      prev.map(r => (idsToToggle.has(r.id) ? { ...r, selected: selectAll } : r))
+      prev.map(r => (ids.has(r.id) ? { ...r, selected: true } : r))
+    );
+  };
+
+  const deselectAllFiltered = () => {
+    const ids = new Set(filteredRows.map(r => r.id));
+    setProcessedRows(prev =>
+      prev.map(r => (ids.has(r.id) ? { ...r, selected: false } : r))
     );
   };
 
@@ -365,34 +848,27 @@ const BulkProductUpload = () => {
     toast.success(`Removed ${dupsCount} duplicate rows from the list.`);
   };
 
-  // Remove DB / Software duplicates only
-  const removeDbDuplicates = () => {
-    const count = processedRows.filter(r => r.status === 'duplicate_in_db').length;
+  // Remove Rejected / Invalid rows only
+  const removeInvalidRows = () => {
+    const count = processedRows.filter(r => r.status === 'invalid').length;
     if (count === 0) {
-      toast('No software duplicates to remove.');
+      toast('No rejected rows to remove.');
       return;
     }
-    setProcessedRows(prev => prev.filter(r => r.status !== 'duplicate_in_db'));
-    toast.success(`Removed ${count} software duplicates from the list.`);
-  };
-
-  // Remove in-file duplicates only
-  const removeFileDuplicates = () => {
-    const count = processedRows.filter(r => r.status === 'duplicate_in_file').length;
-    if (count === 0) {
-      toast('No in-file duplicates to remove.');
-      return;
-    }
-    setProcessedRows(prev => prev.filter(r => r.status !== 'duplicate_in_file'));
-    toast.success(`Removed ${count} in-file duplicates from the list.`);
+    setProcessedRows(prev => prev.filter(r => r.status !== 'invalid'));
+    toast.success(`Removed ${count} rejected rows from the list.`);
   };
 
   // Export duplicates or current filtered list as Excel
-  const handleExportFiltered = (type: 'ALL' | 'DUPLICATES' = 'DUPLICATES') => {
-    const rowsToExport =
-      type === 'DUPLICATES'
-        ? processedRows.filter(r => r.status === 'duplicate_in_file' || r.status === 'duplicate_in_db')
-        : filteredRows;
+  const handleExportFiltered = (type: 'ALL' | 'DUPLICATES' | 'REJECTED' = 'DUPLICATES') => {
+    let rowsToExport: ProcessedRow[] = [];
+    if (type === 'DUPLICATES') {
+      rowsToExport = processedRows.filter(r => r.status === 'duplicate_in_file' || r.status === 'duplicate_in_db');
+    } else if (type === 'REJECTED') {
+      rowsToExport = processedRows.filter(r => r.status === 'invalid');
+    } else {
+      rowsToExport = filteredRows;
+    }
 
     if (rowsToExport.length === 0) {
       toast('No rows to export.');
@@ -401,13 +877,19 @@ const BulkProductUpload = () => {
 
     const exportData = rowsToExport.map(r => ({
       'Row #': r.rowIndex,
-      'Status': r.status === 'ready' ? 'New Product' : r.status === 'duplicate_in_file' ? 'Duplicate in File' : r.status === 'duplicate_in_db' ? 'Already in Database' : 'Invalid',
+      'Status': r.status === 'ready' ? 'New Product' : r.status === 'duplicate_in_file' ? 'Duplicate in File' : r.status === 'duplicate_in_db' ? 'Already in Database' : 'Rejected / Invalid',
       'Reason': r.statusReason,
       'Item Code': r.code,
       'Product Name': r.productName,
-      'Category': r.category,
+      'Brand': r.brand,
+      'Parent Category': r.parentCat,
       'Sub Category': r.subCategory,
-      'Brand / Bin': r.brand,
+      'Category': r.category,
+      'Print / Finish': r.print || '',
+      'Width (cm)': r.tileWidth || '',
+      'Height (cm)': r.tileHeight || '',
+      'Pieces Per Box': r.piecesPerBox || 1,
+      'Sq.m Per Box': r.sqMPerBox ? r.sqMPerBox.toFixed(4) : '',
       'Purchase Price': r.purchasePrice,
       'Sales Price': r.retailPrice,
       'UOM': r.uom,
@@ -417,130 +899,439 @@ const BulkProductUpload = () => {
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Product Duplicates');
-    XLSX.writeFile(wb, `product-duplicates-report-${new Date().toISOString().split('T')[0]}.xlsx`);
-    toast.success('Downloaded duplicate report spreadsheet!');
+    const sheetName = type === 'REJECTED' ? 'Rejected Items' : type === 'DUPLICATES' ? 'Duplicates' : 'Exported Products';
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.writeFile(wb, `product-${type.toLowerCase()}-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+    toast.success(`Downloaded ${sheetName} spreadsheet!`);
   };
 
-  // Confirm and execute upload
-  const handleExecuteUpload = async () => {
-    // 1. Identify which rows to upload
-    const rowsToInsert = processedRows.filter(r => r.status === 'ready' && r.selected);
+  // Auto-Provision Master Data Hierarchy (Parent -> Sub -> Category, Brands, Prints)
+  const syncMasterHierarchy = async (rowsToProcess: ProcessedRow[]) => {
+    let createdParents = 0;
+    let createdSubs = 0;
+    let createdCats = 0;
+    let createdBrands = 0;
+    let createdPrints = 0;
+
+    // 1. Fetch latest categories
+    let catQuery = supabase.from('inventory_categories').select('*');
+    if (tenantId) catQuery = catQuery.eq('tenant_id', tenantId);
+    const { data: latestCats } = await catQuery;
+    const catList: any[] = latestCats ? [...latestCats] : [];
+
+    // In-memory maps for hierarchy tracking
+    const parentMap = new Map<string, any>(); // lowerName -> cat
+    const subMap = new Map<string, any>(); // `${parentId}:::${lowerName}` -> cat
+    const catMap = new Map<string, any>(); // `${subId}:::${lowerName}` -> cat
+
+    catList.forEach(c => {
+      const lower = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id === null || c.parent_id === undefined) {
+        parentMap.set(lower, c);
+      }
+    });
+
+    catList.forEach(c => {
+      const lower = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id !== null && c.parent_id !== undefined) {
+        subMap.set(`${c.parent_id}:::${lower}`, c);
+      }
+    });
+
+    catList.forEach(c => {
+      const lower = String(c.name || '').trim().toLowerCase();
+      if (c.parent_id !== null && c.parent_id !== undefined) {
+        catMap.set(`${c.parent_id}:::${lower}`, c);
+      }
+    });
+
+    // 2. Fetch latest brands
+    const { data: latestBrands } = await supabase.from('inventory_brands').select('*');
+    const brandMap = new Map<string, any>();
+    (latestBrands || []).forEach(b => {
+      brandMap.set(String(b.name || '').trim().toLowerCase(), b);
+    });
+
+    // 3. Fetch latest prints
+    const printMap = new Map<string, any>();
+    try {
+      const { data: latestPrints } = await supabase.from('inventory_prints').select('*');
+      (latestPrints || []).forEach(p => {
+        const lower = String(p.name || '').trim().toLowerCase();
+        if (p.category_id) {
+          printMap.set(`${p.category_id}:::${lower}`, p);
+        }
+        printMap.set(lower, p);
+      });
+    } catch (e) { }
+
+    // Process every row's master data hierarchy
+    for (const r of rowsToProcess) {
+      const cleanParent = (r.parentCat || '').trim();
+      const cleanSub = (r.subCategory || '').trim();
+      const cleanCat = (r.category || '').trim();
+      const cleanBrand = (r.brand || '').trim();
+      const cleanPrint = (r.print || '').trim();
+
+      let parentId: number | string | null = null;
+      let subId: number | string | null = null;
+
+      // --- STEP 1: PARENT CATEGORY ---
+      if (cleanParent) {
+        const lowerParent = cleanParent.toLowerCase();
+        if (parentMap.has(lowerParent)) {
+          parentId = parentMap.get(lowerParent).id;
+        } else {
+          const payload: any = { name: cleanParent, parent_id: null };
+          if (tenantId) payload.tenant_id = tenantId;
+          const { data: newParent, error } = await supabase
+            .from('inventory_categories')
+            .insert([payload])
+            .select()
+            .single();
+
+          if (!error && newParent) {
+            parentId = newParent.id;
+            parentMap.set(lowerParent, newParent);
+            createdParents++;
+          }
+        }
+      }
+
+      // --- STEP 2: SUB CATEGORY (Linked to Parent) ---
+      if (cleanSub && parentId) {
+        const lowerSub = cleanSub.toLowerCase();
+        const subKey = `${parentId}:::${lowerSub}`;
+        if (subMap.has(subKey)) {
+          subId = subMap.get(subKey).id;
+        } else {
+          const payload: any = { name: cleanSub, parent_id: parentId };
+          if (tenantId) payload.tenant_id = tenantId;
+          const { data: newSub, error } = await supabase
+            .from('inventory_categories')
+            .insert([payload])
+            .select()
+            .single();
+
+          if (!error && newSub) {
+            subId = newSub.id;
+            subMap.set(subKey, newSub);
+            createdSubs++;
+          }
+        }
+      }
+
+      // --- STEP 3: CATEGORY / SIZE (Linked to Sub Category or Parent) ---
+      if (cleanCat && subId) {
+        const lowerCat = cleanCat.toLowerCase();
+        const catKey = `${subId}:::${lowerCat}`;
+        if (!catMap.has(catKey)) {
+          const payload: any = { name: cleanCat, parent_id: subId };
+          if (tenantId) payload.tenant_id = tenantId;
+          const { data: newCat, error } = await supabase
+            .from('inventory_categories')
+            .insert([payload])
+            .select()
+            .single();
+
+          if (!error && newCat) {
+            catMap.set(catKey, newCat);
+            createdCats++;
+          }
+        }
+      } else if (cleanCat && parentId && !subId) {
+        const lowerCat = cleanCat.toLowerCase();
+        const catKey = `${parentId}:::${lowerCat}`;
+        if (!catMap.has(catKey)) {
+          const payload: any = { name: cleanCat, parent_id: parentId };
+          if (tenantId) payload.tenant_id = tenantId;
+          const { data: newCat, error } = await supabase
+            .from('inventory_categories')
+            .insert([payload])
+            .select()
+            .single();
+
+          if (!error && newCat) {
+            catMap.set(catKey, newCat);
+            createdCats++;
+          }
+        }
+      }
+
+      // --- STEP 4: BRAND ---
+      if (cleanBrand) {
+        const lowerBrand = cleanBrand.toLowerCase();
+        if (!brandMap.has(lowerBrand)) {
+          const { data: newBrand, error } = await supabase
+            .from('inventory_brands')
+            .insert([{ name: cleanBrand }])
+            .select()
+            .single();
+
+          if (!error && newBrand) {
+            brandMap.set(lowerBrand, newBrand);
+            createdBrands++;
+          }
+        }
+      }
+
+      // --- STEP 5: PRINT (Linked to Parent Category if available) ---
+      if (cleanPrint) {
+        const lowerPrint = cleanPrint.toLowerCase();
+        const printKey = parentId ? `${parentId}:::${lowerPrint}` : lowerPrint;
+        if (!printMap.has(printKey) && !printMap.has(lowerPrint)) {
+          try {
+            const { data: newPrint, error } = await supabase
+              .from('inventory_prints')
+              .insert([{ name: cleanPrint, category_id: parentId || null }])
+              .select()
+              .single();
+
+            if (!error && newPrint) {
+              printMap.set(printKey, newPrint);
+              printMap.set(lowerPrint, newPrint);
+              createdPrints++;
+            }
+          } catch (e) { }
+        }
+      }
+    }
+
+    // Refresh existing states in component
+    try {
+      let finalCatQuery = supabase.from('inventory_categories').select('*');
+      if (tenantId) finalCatQuery = finalCatQuery.eq('tenant_id', tenantId);
+      const { data: refreshedCats } = await finalCatQuery;
+      if (refreshedCats) setExistingCategories(refreshedCats);
+
+      const { data: refreshedBrands } = await supabase.from('inventory_brands').select('*');
+      if (refreshedBrands) setExistingBrands(refreshedBrands);
+
+      const { data: refreshedPrints } = await supabase.from('inventory_prints').select('*');
+      if (refreshedPrints) setExistingPrints(refreshedPrints);
+    } catch (e) { }
+
+    return {
+      createdParents,
+      createdSubs,
+      createdCats,
+      createdBrands,
+      createdPrints,
+      totalCreated: createdParents + createdSubs + createdCats + createdBrands + createdPrints,
+    };
+  };
+
+  // Helper to execute upload for specific rows
+  const executeRowsUpload = async (rowsToProcess: ProcessedRow[], mode: 'TILES' | 'OTHER') => {
+    const rowsToInsert = rowsToProcess.filter(r => r.status === 'ready' && r.selected);
     const rowsToUpdate =
       uploadMode === 'UPDATE_EXISTING'
-        ? processedRows.filter(r => r.status === 'duplicate_in_db' && r.selected && r.matchedDbProduct?.id)
+        ? rowsToProcess.filter(r => r.status === 'duplicate_in_db' && r.selected && r.matchedDbProduct?.id)
         : [];
 
-    if (rowsToInsert.length === 0 && rowsToUpdate.length === 0) {
-      toast.error('No products selected for upload.');
+    let inserted = 0;
+    let updated = 0;
+
+    // 1. INSERT CHUNK
+    if (rowsToInsert.length > 0) {
+      const payloads = rowsToInsert.map(r => {
+        if (mode === 'TILES') {
+          const w = r.tileWidth || 0;
+          const h = r.tileHeight || 0;
+          const pcs = r.piecesPerBox || 1;
+          const sqMPerPiece = (w > 0 && h > 0) ? (w / 100) * (h / 100) : 0;
+          const sqMPerBox = sqMPerPiece * pcs;
+          const sizeStr = (w > 0 && h > 0) ? `${w}×${h} cm` : (r.category || '');
+
+          return {
+            product_name: r.productName,
+            item_sr_no: r.code || sizeStr,
+            bin: r.print || r.brand || '',
+            brand: r.brand || '',
+            category: r.category || '',
+            sub_category: r.subCategory || '',
+            sub_sub_category: r.parentCat || '',
+            uom: r.uom || 'BOX',
+            purchase_price: r.purchasePrice,
+            retail_price: r.retailPrice,
+            mrp: r.retailPrice,
+            min_stock_alert: r.minimumStock,
+            pieces_per_box: pcs,
+            pcs_per_box: pcs,
+            pieces_per_packing: pcs,
+            profit: Math.max(0, r.retailPrice - r.purchasePrice),
+            item_type: 'goods',
+            scenario_name: 'Tile Metric',
+            product_description: `[TILE PRODUCT] Size: ${sizeStr} | Box: ${pcs} pcs (${sqMPerBox.toFixed(4)} sq.m / box) | Finish/Print: ${r.print || ''} | Brand: ${r.brand || ''}`,
+          };
+        } else {
+          return {
+            product_name: r.productName,
+            item_sr_no: r.code || '',
+            bin: r.brand || '',
+            brand: r.brand || '',
+            purchase_price: r.purchasePrice,
+            retail_price: r.retailPrice,
+            mrp: r.retailPrice,
+            uom: r.uom || 'PCS',
+            min_stock_alert: r.minimumStock,
+            category: r.category || '',
+            sub_category: r.subCategory || '',
+            sub_sub_category: r.parentCat || '',
+            pieces_per_box: 1,
+            pcs_per_box: 1,
+            pieces_per_packing: 1,
+            item_type: 'goods',
+            profit: Math.max(0, r.retailPrice - r.purchasePrice),
+          };
+        }
+      });
+
+      const chunkSize = 250;
+      for (let i = 0; i < payloads.length; i += chunkSize) {
+        const chunk = payloads.slice(i, i + chunkSize);
+        const { error } = await supabase.from('products').insert(chunk);
+        if (error) throw error;
+        inserted += chunk.length;
+      }
+    }
+
+    // 2. UPDATE CHUNK
+    if (rowsToUpdate.length > 0) {
+      for (let i = 0; i < rowsToUpdate.length; i++) {
+        const r = rowsToUpdate[i];
+        const dbId = r.matchedDbProduct!.id;
+
+        const updatePayload: any = {};
+        if (r.purchasePrice > 0) updatePayload.purchase_price = r.purchasePrice;
+        if (r.retailPrice > 0) {
+          updatePayload.retail_price = r.retailPrice;
+          updatePayload.mrp = r.retailPrice;
+        }
+        if (r.category) updatePayload.category = r.category;
+        if (r.subCategory) updatePayload.sub_category = r.subCategory;
+        if (r.parentCat) updatePayload.sub_sub_category = r.parentCat;
+        if (r.brand) {
+          updatePayload.brand = r.brand;
+          updatePayload.bin = r.print || r.brand;
+        }
+        if (r.minimumStock > 0) updatePayload.min_stock_alert = r.minimumStock;
+        if (mode === 'TILES' && r.piecesPerBox) {
+          updatePayload.pieces_per_box = r.piecesPerBox;
+          updatePayload.pcs_per_box = r.piecesPerBox;
+          updatePayload.pieces_per_packing = r.piecesPerBox;
+        }
+
+        if (Object.keys(updatePayload).length > 0) {
+          const { error: upError } = await supabase.from('products').update(updatePayload).eq('id', dbId);
+          if (!upError) updated++;
+        }
+      }
+    }
+
+    return { inserted, updated };
+  };
+
+  // Upload active tab
+  const handleExecuteUpload = async () => {
+    const rowsToUpload = processedRows.filter(
+      r => (r.status === 'ready' && r.selected) || (uploadMode === 'UPDATE_EXISTING' && r.status === 'duplicate_in_db' && r.selected)
+    );
+
+    if (rowsToUpload.length === 0) {
+      toast.error('No products selected for upload in this tab.');
       return;
     }
 
     setLoading(true);
-    let insertedCount = 0;
-    let updatedCount = 0;
-    let errorMsg = '';
+    setUploadProgress({ current: 0, total: rowsToUpload.length, stage: `Starting upload...` });
 
     try {
-      // 1. INSERT NEW PRODUCTS IN CHUNKS
-      if (rowsToInsert.length > 0) {
-        setUploadProgress({ current: 0, total: rowsToInsert.length, stage: 'Inserting new products...' });
-
-        const payloads = rowsToInsert.map(r => ({
-          product_name: r.productName,
-          item_sr_no: r.code || '',
-          bin: r.brand || '',
-          brand: r.brand || '',
-          purchase_price: r.purchasePrice,
-          retail_price: r.retailPrice,
-          mrp: r.retailPrice,
-          uom: r.uom || 'PCS',
-          min_stock_alert: r.minimumStock,
-          category: r.category || '',
-          sub_category: r.subCategory || '',
-          sub_sub_category: r.parentCat || '',
-          pieces_per_box: 1,
-          pcs_per_box: 1,
-          pieces_per_packing: 1,
-          item_type: 'goods',
-          profit: Math.max(0, r.retailPrice - r.purchasePrice),
-        }));
-
-        const chunkSize = 250;
-        for (let i = 0; i < payloads.length; i += chunkSize) {
-          const chunk = payloads.slice(i, i + chunkSize);
-          const { error } = await supabase.from('products').insert(chunk);
-          if (error) throw error;
-          insertedCount += chunk.length;
-          setUploadProgress({ current: insertedCount, total: rowsToInsert.length, stage: 'Inserting new products...' });
+      let mastersCreated = 0;
+      if (autoCreateMasters) {
+        setUploadProgress({ current: 0, total: rowsToUpload.length, stage: 'Auto-syncing missing categories, brands & prints...' });
+        const syncRes = await syncMasterHierarchy(rowsToUpload);
+        mastersCreated = syncRes.totalCreated;
+        if (mastersCreated > 0) {
+          toast.success(
+            `Master Data: Created ${syncRes.createdParents} Parents, ${syncRes.createdSubs} Subs, ${syncRes.createdCats} Sizes, ${syncRes.createdBrands} Brands, ${syncRes.createdPrints} Prints in database!`
+          );
         }
       }
 
-      // 2. UPDATE EXISTING PRODUCTS IF MODE ENABLED
-      if (rowsToUpdate.length > 0) {
-        setUploadProgress({ current: 0, total: rowsToUpdate.length, stage: 'Updating existing catalog products...' });
-
-        for (let i = 0; i < rowsToUpdate.length; i++) {
-          const r = rowsToUpdate[i];
-          const dbId = r.matchedDbProduct!.id;
-
-          const updatePayload: any = {};
-          if (r.purchasePrice > 0) updatePayload.purchase_price = r.purchasePrice;
-          if (r.retailPrice > 0) {
-            updatePayload.retail_price = r.retailPrice;
-            updatePayload.mrp = r.retailPrice;
-          }
-          if (r.category) updatePayload.category = r.category;
-          if (r.subCategory) updatePayload.sub_category = r.subCategory;
-          if (r.brand) {
-            updatePayload.bin = r.brand;
-            updatePayload.brand = r.brand;
-          }
-          if (r.minimumStock > 0) updatePayload.min_stock_alert = r.minimumStock;
-
-          if (Object.keys(updatePayload).length > 0) {
-            const { error: upError } = await supabase.from('products').update(updatePayload).eq('id', dbId);
-            if (!upError) updatedCount++;
-          }
-          if ((i + 1) % 25 === 0 || i === rowsToUpdate.length - 1) {
-            setUploadProgress({ current: i + 1, total: rowsToUpdate.length, stage: 'Updating existing catalog products...' });
-          }
-        }
-      }
-
-      // 3. RECORD AUDIT LOG FOR DEV CONSOLE
-      const skippedCount = processedRows.length - (insertedCount + updatedCount);
-      try {
-        await supabase.from('audit_logs').insert({
-          action_type: 'INSERT',
-          table_name: 'products',
-          performed_by: userName || userEmail || 'Super Admin',
-          details: {
-            event: 'Bulk Product Upload',
-            file_name: fileName,
-            total_rows_in_file: processedRows.length,
-            new_products_added: insertedCount,
-            existing_products_updated: updatedCount,
-            skipped_duplicates: skippedCount,
-            upload_strategy: uploadMode === 'SKIP_DUPLICATES' ? 'Skip Duplicates (New Only)' : 'New & Update Existing',
-            sample_imported: rowsToInsert.slice(0, 5).map(r => `${r.productName} (${r.code || 'No Code'})`),
-          },
-        });
-      } catch (auditErr) {
-        console.warn('Audit log write error:', auditErr);
-      }
+      setUploadProgress({ current: 0, total: rowsToUpload.length, stage: `Uploading ${activeTab === 'TILES' ? 'tile' : 'general'} products...` });
+      const { inserted, updated } = await executeRowsUpload(processedRows, activeTab);
+      const skipped = processedRows.length - (inserted + updated);
 
       setUploadResult({
-        newCount: insertedCount,
-        updatedCount,
-        skippedCount,
+        newCount: inserted,
+        updatedCount: updated,
+        skippedCount: skipped,
         totalRows: processedRows.length,
+        mastersCount: mastersCreated,
       });
 
-      toast.success(`Success! Added ${insertedCount} new products.`);
+      toast.success(
+        `Successfully uploaded: ${inserted} added, ${updated} updated, ${skipped} skipped.`
+      );
     } catch (err: any) {
-      errorMsg = err.message;
-      toast.error('Upload interrupted: ' + errorMsg);
+      toast.error('Upload halted: ' + err.message);
+    } finally {
+      setLoading(false);
+      setUploadProgress(null);
+    }
+  };
+
+  // Upload both tabs at once
+  const handleExecuteUploadBoth = async () => {
+    const totalSelected =
+      otherRows.filter(r => (r.status === 'ready' && r.selected) || (uploadMode === 'UPDATE_EXISTING' && r.status === 'duplicate_in_db' && r.selected)).length +
+      tileRows.filter(r => (r.status === 'ready' && r.selected) || (uploadMode === 'UPDATE_EXISTING' && r.status === 'duplicate_in_db' && r.selected)).length;
+
+    if (totalSelected === 0) {
+      toast.error('No products selected for upload across either tab.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let mastersCreated = 0;
+      if (autoCreateMasters) {
+        const allRowsToUpload = [
+          ...otherRows.filter(r => (r.status === 'ready' && r.selected) || (uploadMode === 'UPDATE_EXISTING' && r.status === 'duplicate_in_db' && r.selected)),
+          ...tileRows.filter(r => (r.status === 'ready' && r.selected) || (uploadMode === 'UPDATE_EXISTING' && r.status === 'duplicate_in_db' && r.selected)),
+        ];
+        setUploadProgress({ current: 0, total: allRowsToUpload.length, stage: 'Auto-syncing master categories, brands & prints for both tabs...' });
+        const syncRes = await syncMasterHierarchy(allRowsToUpload);
+        mastersCreated = syncRes.totalCreated;
+        if (mastersCreated > 0) {
+          toast.success(
+            `Master Data: Created ${syncRes.createdParents} Parents, ${syncRes.createdSubs} Subs, ${syncRes.createdCats} Sizes, ${syncRes.createdBrands} Brands, ${syncRes.createdPrints} Prints in database!`
+          );
+        }
+      }
+
+      setUploadProgress({ current: 0, total: totalSelected, stage: 'Uploading all products from both tabs...' });
+      const otherRes = await executeRowsUpload(otherRows, 'OTHER');
+      const tileRes = await executeRowsUpload(tileRows, 'TILES');
+
+      const totalInserted = otherRes.inserted + tileRes.inserted;
+      const totalUpdated = otherRes.updated + tileRes.updated;
+      const totalSkipped = (otherRows.length + tileRows.length) - (totalInserted + totalUpdated);
+
+      setUploadResult({
+        newCount: totalInserted,
+        updatedCount: totalUpdated,
+        skippedCount: totalSkipped,
+        totalRows: otherRows.length + tileRows.length,
+        mastersCount: mastersCreated,
+      });
+
+      toast.success(
+        `Successfully uploaded both tabs: ${totalInserted} added, ${totalUpdated} updated, ${totalSkipped} skipped.`
+      );
+    } catch (err: any) {
+      toast.error('Upload halted: ' + err.message);
     } finally {
       setLoading(false);
       setUploadProgress(null);
@@ -548,7 +1339,8 @@ const BulkProductUpload = () => {
   };
 
   const handleReset = () => {
-    setProcessedRows([]);
+    setOtherRows([]);
+    setTileRows([]);
     setFileName(null);
     setUploadResult(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -564,11 +1356,11 @@ const BulkProductUpload = () => {
             Bulk Product Upload with Smart Duplicate Protection
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Imports Excel/CSV files while detecting duplicates within your file and against current catalog items.
+            Imports Excel/CSV files with auto-detection of tiles vs standard products and full duplicate protection.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {processedRows.length > 0 && (
+          {hasFileLoaded && (
             <button
               onClick={handleReset}
               className="px-3.5 py-2 text-xs font-bold rounded-xl border border-stroke dark:border-strokedark hover:bg-slate-100 dark:hover:bg-meta-4 text-slate-700 dark:text-slate-300 transition flex items-center gap-1.5 cursor-pointer"
@@ -585,8 +1377,53 @@ const BulkProductUpload = () => {
         </div>
       </div>
 
+      {/* TOP TABS: OTHER PRODUCTS vs TILE PRODUCTS */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-stroke dark:border-strokedark pb-2">
+        <button
+          type="button"
+          onClick={() => handleTabChange('OTHER')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${activeTab === 'OTHER'
+            ? 'bg-emerald-600 text-white shadow-md'
+            : 'bg-white dark:bg-boxdark border border-stroke dark:border-strokedark text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+        >
+          <MdLayers className="text-base" />
+          <span>Upload Other Products</span>
+          {otherRows.length > 0 && (
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === 'OTHER' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+              }`}>
+              {otherRows.length} items
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('TILES')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${activeTab === 'TILES'
+            ? 'bg-emerald-600 text-white shadow-md'
+            : 'bg-white dark:bg-boxdark border border-stroke dark:border-strokedark text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+        >
+          <MdSquareFoot className="text-base" />
+          <span>Upload Tile Products</span>
+          {tileRows.length > 0 && (
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === 'TILES' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+              }`}>
+              {tileRows.length} items
+            </span>
+          )}
+        </button>
+
+        {isMixedFile && (
+          <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60 ml-auto flex items-center gap-1.5">
+            <span>💡</span> Both categories separated: <strong>{otherRows.length} Other</strong> & <strong>{tileRows.length} Tiles</strong>
+          </span>
+        )}
+      </div>
+
       {/* STEP 1: FILE PICKER / DROPZONE (Shown prominently if no file selected) */}
-      {processedRows.length === 0 && (
+      {!hasFileLoaded && (
         <div className="bg-white dark:bg-boxdark rounded-3xl shadow-sm border border-slate-200 dark:border-strokedark p-8 text-center space-y-5">
           <div className="w-16 h-16 rounded-3xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl mx-auto border border-emerald-200 dark:border-emerald-800">
             <MdUploadFile />
@@ -594,26 +1431,79 @@ const BulkProductUpload = () => {
 
           <div className="max-w-md mx-auto space-y-1">
             <h3 className="text-base font-bold text-black dark:text-white">
-              Upload Your Product Excel or CSV Sheet
+              {activeTab === 'TILES'
+                ? 'Upload Tile Products Excel or CSV Sheet'
+                : 'Upload General Products Excel or CSV Sheet'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              The system will automatically cross-check every product code and description to prevent duplicate inventory.
+              Smart auto-routing: If you upload tiles under Other Products (or non-tiles under Tiles), the system will automatically redirect and separate them across both tabs!
             </p>
           </div>
 
-          <div className="max-w-xl mx-auto bg-slate-50 dark:bg-meta-4/20 p-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 space-y-3">
-            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Supported Columns in Excel:
-            </div>
-            <div className="flex flex-wrap justify-center gap-1.5 text-[11px]">
-              {['CODE', 'DESCRIPTION', 'CATEGORY', 'SUB CATEGORY', 'BRAND / BIN', 'PURCHASE PRICE', 'SALES PRICE', 'UOM', 'MINIMUM'].map(col => (
-                <span key={col} className="bg-white dark:bg-boxdark border border-stroke dark:border-strokedark px-2.5 py-1 rounded-lg font-mono font-semibold text-slate-700 dark:text-slate-300">
-                  {col}
-                </span>
-              ))}
+          {/* TEMPLATE INFO BOX */}
+          <div className="max-w-2xl mx-auto bg-slate-50 dark:bg-meta-4/20 p-5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Supported Columns in {activeTab === 'TILES' ? 'Tile' : 'Standard'} Excel:
+              </span>
+              <button
+                type="button"
+                onClick={activeTab === 'TILES' ? handleDownloadTileTemplate : handleDownloadOtherTemplate}
+                className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <MdFileDownload className="text-sm" /> Download Sample Template
+              </button>
             </div>
 
-            <div className="pt-2">
+            <div className="flex flex-wrap justify-center gap-1.5 text-[11px]">
+              {activeTab === 'TILES' ? (
+                [
+                  'Code',
+                  'Description',
+                  'Brand',
+                  'Parent Category',
+                  'Sub Category',
+                  'Category',
+                  'Print',
+                  'UOM',
+                  'Pieces Per Box',
+                  'width',
+                  'height',
+                  'Purchase Price (Per Box)',
+                  'Sale Price (Per Box)',
+                  'Min',
+                ].map((col) => (
+                  <span
+                    key={col}
+                    className="bg-white dark:bg-boxdark border border-stroke dark:border-strokedark px-2.5 py-1 rounded-lg font-mono font-semibold text-slate-700 dark:text-slate-300"
+                  >
+                    {col}
+                  </span>
+                ))
+              ) : (
+                ['CODE', 'DESCRIPTION', 'PARENT CATEGORY', 'SUB CATEGORY', 'CATEGORY', 'BRAND', 'PURCHASE PRICE', 'SALES PRICE', 'UOM', 'MINIMUM'].map((col) => (
+                  <span
+                    key={col}
+                    className="bg-white dark:bg-boxdark border border-stroke dark:border-strokedark px-2.5 py-1 rounded-lg font-mono font-semibold text-slate-700 dark:text-slate-300"
+                  >
+                    {col}
+                  </span>
+                ))
+              )}
+            </div>
+
+            <div className="text-[11px] text-teal-700 dark:text-teal-300 bg-teal-50/80 dark:bg-teal-950/40 p-2.5 rounded-xl border border-teal-200 dark:border-teal-800/50 text-left space-y-1">
+              <div className="font-bold flex items-center gap-1">
+                <span>⚡</span> Intelligent Auto-Routing & Mixed Lists:
+              </div>
+              <ul className="list-disc list-inside space-y-0.5 text-[10px] text-slate-600 dark:text-slate-300 pl-1">
+                <li>If you mistakenly upload a <strong>Tile file</strong> in the Other Products tab, it will automatically redirect to the <strong>Tile Products</strong> tab.</li>
+                <li>If a file contains <strong>both tiles and other products</strong> (e.g. 5 others & 5 tiles), it automatically places each in its respective tab!</li>
+                <li>2-Layer Duplicate Protection: Duplicate is triggered only if <strong>both Code AND Description match</strong>.</li>
+              </ul>
+            </div>
+
+            <div className="pt-2 flex items-center justify-center gap-3">
               <label className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-md">
                 <MdCloudUpload className="text-base" /> Browse Excel File (.xlsx, .csv)
                 <input
@@ -624,26 +1514,81 @@ const BulkProductUpload = () => {
                   className="hidden"
                 />
               </label>
+
+              <button
+                type="button"
+                onClick={activeTab === 'TILES' ? handleDownloadTileTemplate : handleDownloadOtherTemplate}
+                className="inline-flex items-center gap-1.5 px-4 py-3 bg-white dark:bg-boxdark hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-stroke dark:border-strokedark text-xs font-bold rounded-xl transition cursor-pointer shadow-2xs"
+              >
+                <MdFileDownload className="text-base text-emerald-600" /> Download Template
+              </button>
             </div>
           </div>
 
           {analyzing && (
             <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-800 max-w-sm mx-auto flex items-center justify-center gap-3 text-xs text-emerald-800 dark:text-emerald-300 font-semibold">
               <Spinner />
-              <span>Analyzing file and checking for catalog duplicates...</span>
+              <span>Analyzing file and routing categories...</span>
             </div>
           )}
         </div>
       )}
 
       {/* STEP 2: DUPLICATE ANALYSIS & UPLOAD CONTROLS (Shown once file is parsed) */}
-      {processedRows.length > 0 && (
+      {hasFileLoaded && (
         <div className="space-y-5">
-          {/* FILE INFO & QUICK STATS */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {/* Total In File */}
+          {/* MASTER HIERARCHY AUTO-PROVISIONING BANNER */}
+          {pendingMasters.total > 0 && (
+            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-2xs">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-emerald-900 dark:text-emerald-200">
+                  <span className="text-base">✨</span>
+                  <span>New Master Hierarchy Detected in File ({pendingMasters.total} items):</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-700 dark:text-slate-300">
+                  {pendingMasters.parents.length > 0 && (
+                    <span className="bg-white dark:bg-boxdark px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 font-semibold text-emerald-800 dark:text-emerald-300">
+                      📁 {pendingMasters.parents.length} Parent Categories ({pendingMasters.parents.slice(0, 3).join(', ')}{pendingMasters.parents.length > 3 ? '...' : ''})
+                    </span>
+                  )}
+                  {pendingMasters.subs.length > 0 && (
+                    <span className="bg-white dark:bg-boxdark px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 font-semibold text-emerald-800 dark:text-emerald-300">
+                      📂 {pendingMasters.subs.length} Sub Categories
+                    </span>
+                  )}
+                  {pendingMasters.brands.length > 0 && (
+                    <span className="bg-white dark:bg-boxdark px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 font-semibold text-emerald-800 dark:text-emerald-300">
+                      🏢 {pendingMasters.brands.length} Brands ({pendingMasters.brands.slice(0, 3).join(', ')}{pendingMasters.brands.length > 3 ? '...' : ''})
+                    </span>
+                  )}
+                  {pendingMasters.prints.length > 0 && (
+                    <span className="bg-white dark:bg-boxdark px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 font-semibold text-emerald-800 dark:text-emerald-300">
+                      🎨 {pendingMasters.prints.length} Prints ({pendingMasters.prints.slice(0, 3).join(', ')}{pendingMasters.prints.length > 3 ? '...' : ''})
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-boxdark px-3.5 py-2 rounded-xl border border-emerald-300 dark:border-emerald-700 font-bold text-emerald-800 dark:text-emerald-200 text-xs shadow-2xs hover:bg-emerald-50 dark:hover:bg-meta-4 transition">
+                  <input
+                    type="checkbox"
+                    checked={autoCreateMasters}
+                    onChange={(e) => setAutoCreateMasters(e.target.checked)}
+                    className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
+                  />
+                  <span>Auto-create on upload</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* FILE INFO & QUICK STATS FOR CURRENT TAB */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {/* Total In Current Tab */}
             <div className="bg-white dark:bg-boxdark p-4 rounded-2xl border border-stroke dark:border-strokedark shadow-2xs">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total In File</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                {activeTab === 'TILES' ? 'Tiles In Tab' : 'Others In Tab'}
+              </span>
               <div className="text-2xl font-black text-black dark:text-white mt-1">
                 {metrics.total.toLocaleString()}
               </div>
@@ -655,11 +1600,10 @@ const BulkProductUpload = () => {
             {/* Ready to Upload (Green) */}
             <div
               onClick={() => { setActiveFilterTab('READY'); setCurrentPage(1); }}
-              className={`p-4 rounded-2xl border transition cursor-pointer shadow-2xs ${
-                activeFilterTab === 'READY'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500'
-                  : 'bg-white dark:bg-boxdark border-stroke dark:border-strokedark hover:border-emerald-400'
-              }`}
+              className={`p-4 rounded-2xl border transition cursor-pointer shadow-2xs ${activeFilterTab === 'READY'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500'
+                : 'bg-white dark:bg-boxdark border-stroke dark:border-strokedark hover:border-emerald-400'
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider">
@@ -678,11 +1622,10 @@ const BulkProductUpload = () => {
             {/* Duplicates in File (Yellow/Amber) */}
             <div
               onClick={() => { setActiveFilterTab('FILE_DUP'); setCurrentPage(1); }}
-              className={`p-4 rounded-2xl border transition cursor-pointer shadow-2xs ${
-                activeFilterTab === 'FILE_DUP'
-                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-500'
-                  : 'bg-white dark:bg-boxdark border-stroke dark:border-strokedark hover:border-amber-400'
-              }`}
+              className={`p-4 rounded-2xl border transition cursor-pointer shadow-2xs ${activeFilterTab === 'FILE_DUP'
+                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-500'
+                : 'bg-white dark:bg-boxdark border-stroke dark:border-strokedark hover:border-amber-400'
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold uppercase tracking-wider">
@@ -694,22 +1637,21 @@ const BulkProductUpload = () => {
                 {metrics.fileDup.toLocaleString()}
               </div>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                Repeated rows in sheet
+                Repeated Code + Description
               </span>
             </div>
 
-            {/* Already in System (Blue) */}
+            {/* In Database (Blue) */}
             <div
               onClick={() => { setActiveFilterTab('DB_DUP'); setCurrentPage(1); }}
-              className={`p-4 rounded-2xl border transition cursor-pointer shadow-2xs ${
-                activeFilterTab === 'DB_DUP'
-                  ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-500'
-                  : 'bg-white dark:bg-boxdark border-stroke dark:border-strokedark hover:border-blue-400'
-              }`}
+              className={`p-4 rounded-2xl border transition cursor-pointer shadow-2xs ${activeFilterTab === 'DB_DUP'
+                ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-500'
+                : 'bg-white dark:bg-boxdark border-stroke dark:border-strokedark hover:border-blue-400'
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-blue-700 dark:text-blue-400 font-bold uppercase tracking-wider">
-                  Duplicates in Software
+                  Already in Catalog
                 </span>
                 <span className="text-base">🔵</span>
               </div>
@@ -717,384 +1659,452 @@ const BulkProductUpload = () => {
                 {metrics.dbDup.toLocaleString()}
               </div>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
-                Matches existing catalog
+                Matches existing DB ID
+              </span>
+            </div>
+
+            {/* Rejected / Invalid (Rose/Red) */}
+            <div
+              onClick={() => { setActiveFilterTab('INVALID'); setCurrentPage(1); }}
+              className={`p-4 rounded-2xl border transition cursor-pointer shadow-2xs ${activeFilterTab === 'INVALID'
+                ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500'
+                : 'bg-white dark:bg-boxdark border-stroke dark:border-strokedark hover:border-rose-400'
+                }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold uppercase tracking-wider">
+                  Rejected / Invalid
+                </span>
+                <span className="text-base">⛔</span>
+              </div>
+              <div className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+                {metrics.invalid.toLocaleString()}
+              </div>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                Missing required data
               </span>
             </div>
           </div>
 
-          {/* UPLOAD ACTION CARD */}
-          <div className="bg-white dark:bg-boxdark p-5 rounded-2xl border border-stroke dark:border-strokedark shadow-xs space-y-4">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              {/* Duplicate Strategy Option */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <MdTune className="text-emerald-600" /> Duplicate Handling Strategy:
-                </label>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUploadMode('SKIP_DUPLICATES');
-                      setProcessedRows(prev =>
-                        prev.map(r => ({ ...r, selected: r.status === 'ready' }))
-                      );
-                    }}
-                    className={`px-3.5 py-2 rounded-xl border font-bold flex items-center gap-2 transition cursor-pointer ${
-                      uploadMode === 'SKIP_DUPLICATES'
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                        : 'bg-gray-50 dark:bg-meta-4/20 text-gray-700 dark:text-gray-300 border-stroke dark:border-strokedark hover:border-emerald-500'
+          {/* ACTION TOOLBAR & CONTROLS */}
+          <div className="bg-white dark:bg-boxdark p-4 rounded-2xl border border-stroke dark:border-strokedark shadow-sm space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              {/* FILTER PILLS */}
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => { setActiveFilterTab('ALL'); setCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${activeFilterTab === 'ALL'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-black'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                     }`}
-                  >
-                    <MdCheckCircle className="text-sm" />
-                    <span>Skip Duplicates & Upload New Only</span>
-                    <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-mono">
-                      Safest
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUploadMode('UPDATE_EXISTING');
-                      setProcessedRows(prev =>
-                        prev.map(r => ({ ...r, selected: r.status === 'ready' || r.status === 'duplicate_in_db' }))
-                      );
-                    }}
-                    className={`px-3.5 py-2 rounded-xl border font-bold flex items-center gap-2 transition cursor-pointer ${
-                      uploadMode === 'UPDATE_EXISTING'
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                        : 'bg-gray-50 dark:bg-meta-4/20 text-gray-700 dark:text-gray-300 border-stroke dark:border-strokedark hover:border-blue-500'
+                >
+                  All Rows ({metrics.total})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveFilterTab('READY'); setCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${activeFilterTab === 'READY'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100'
                     }`}
-                  >
-                    <MdSync className="text-sm" />
-                    <span>Upload New & Update Existing in Database</span>
-                  </button>
-                </div>
+                >
+                  🟢 Ready to Add ({metrics.ready})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveFilterTab('FILE_DUP'); setCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${activeFilterTab === 'FILE_DUP'
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100'
+                    }`}
+                >
+                  🟡 File Duplicates ({metrics.fileDup})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveFilterTab('DB_DUP'); setCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${activeFilterTab === 'DB_DUP'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100'
+                    }`}
+                >
+                  🔵 Already in DB ({metrics.dbDup})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveFilterTab('INVALID'); setCurrentPage(1); }}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${activeFilterTab === 'INVALID'
+                    ? 'bg-rose-600 text-white'
+                    : 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 hover:bg-rose-100'
+                    }`}
+                >
+                  ⛔ Rejected ({metrics.invalid})
+                </button>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center flex-wrap gap-2 shrink-0">
+              {/* SEARCH BOX */}
+              <div className="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  placeholder="Filter by Code, Name, Brand..."
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                  className="w-full text-xs rounded-xl border border-stroke dark:border-strokedark py-2 pl-8 pr-3 bg-transparent outline-none focus:border-emerald-600 text-black dark:text-white"
+                />
+                <MdSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <MdClose className="text-xs" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* SELECTION ACTIONS & DUPLICATE CLEANUP BAR */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stroke dark:border-strokedark text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-slate-500 dark:text-slate-400">
+                  Selected: <strong className="text-black dark:text-white">{metrics.selectedCount}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={selectAllFiltered}
+                  className="px-2.5 py-1 rounded-lg border border-stroke dark:border-strokedark hover:bg-slate-100 dark:hover:bg-meta-4 font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer"
+                >
+                  Select All Filtered
+                </button>
+                <button
+                  type="button"
+                  onClick={deselectAllFiltered}
+                  className="px-2.5 py-1 rounded-lg border border-stroke dark:border-strokedark hover:bg-slate-100 dark:hover:bg-meta-4 font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer"
+                >
+                  Deselect All
+                </button>
+
+                {metrics.invalid > 0 && (
+                  <button
+                    type="button"
+                    onClick={removeInvalidRows}
+                    className="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 hover:bg-rose-100 font-bold transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <MdBlock className="text-xs" /> Remove All Rejected ({metrics.invalid})
+                  </button>
+                )}
+
                 {(metrics.fileDup > 0 || metrics.dbDup > 0) && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => handleExportFiltered('DUPLICATES')}
-                      className="px-3 py-2 text-xs font-bold rounded-xl border border-stroke dark:border-strokedark bg-white dark:bg-boxdark hover:bg-slate-50 dark:hover:bg-meta-4 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
-                      title="Export duplicate rows to Excel"
-                    >
-                      <MdFileDownload className="text-sm text-amber-600" /> Export Duplicates
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={removeAllDuplicates}
-                      className="px-3 py-2 text-xs font-bold rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 transition flex items-center gap-1.5 cursor-pointer"
-                      title="Remove all duplicate rows from this upload list"
-                    >
-                      <MdDeleteOutline className="text-sm" /> Remove All Duplicates ({metrics.fileDup + metrics.dbDup})
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={removeAllDuplicates}
+                    className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40 hover:bg-amber-100 font-bold transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <MdDeleteOutline className="text-xs" /> Remove All Duplicates
+                  </button>
                 )}
-
-                <button
-                  type="button"
-                  onClick={handleExecuteUpload}
-                  disabled={loading || metrics.selectedCount === 0}
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer"
-                >
-                  {loading ? (
-                    <>
-                      <Spinner /> {uploadProgress?.stage || 'Uploading...'} ({uploadProgress?.current} / {uploadProgress?.total})
-                    </>
-                  ) : uploadMode === 'SKIP_DUPLICATES' ? (
-                    <>
-                      <MdCloudUpload className="text-base" /> Confirm & Upload {metrics.ready} New Products
-                    </>
-                  ) : (
-                    <>
-                      <MdSync className="text-base" /> Upload {metrics.ready} New & Update {metrics.dbDup} Existing
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Explanatory Note */}
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-meta-4/20 p-2.5 rounded-xl border border-stroke dark:border-strokedark flex items-center gap-2">
-              <MdInfo className="text-emerald-600 text-sm shrink-0" />
-              <span>
-                {uploadMode === 'SKIP_DUPLICATES'
-                  ? `Only the ${metrics.ready} brand-new unique items will be added to your database catalog. All ${metrics.fileDup + metrics.dbDup} repeating rows are automatically protected and skipped.`
-                  : `The ${metrics.ready} new items will be created, and the ${metrics.dbDup} existing products will be refreshed with latest prices & categories without creating duplicate catalog records.`}
-              </span>
-            </div>
-          </div>
-
-          {/* TABLE PREVIEW & FILTER TOOLBAR */}
-          <div className="bg-white dark:bg-boxdark rounded-2xl border border-stroke dark:border-strokedark shadow-xs overflow-hidden">
-            {/* Filter Tabs & Search Bar */}
-            <div className="p-4 border-b border-stroke dark:border-strokedark flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-              {/* Category Tabs */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                {[
-                  { id: 'ALL', label: 'All Rows', count: metrics.total },
-                  { id: 'READY', label: 'Ready to Add', count: metrics.ready, badge: '🟢' },
-                  { id: 'FILE_DUP', label: 'Duplicates in File', count: metrics.fileDup, badge: '🟡' },
-                  { id: 'DB_DUP', label: 'Duplicates in Software', count: metrics.dbDup, badge: '🔵' },
-                  metrics.invalid > 0
-                    ? { id: 'INVALID', label: 'Missing Info', count: metrics.invalid, badge: '🔴' }
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .map((tab: any) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveFilterTab(tab.id);
-                        setCurrentPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
-                        activeFilterTab === tab.id
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-gray-100 dark:bg-meta-4/30 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-meta-4'
-                      }`}
-                    >
-                      {tab.badge && <span>{tab.badge}</span>}
-                      <span>{tab.label}</span>
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                        activeFilterTab === tab.id ? 'bg-white/20 text-white' : 'bg-white dark:bg-boxdark text-gray-500'
-                      }`}>
-                        {tab.count}
-                      </span>
-                    </button>
-                  ))}
               </div>
 
-              {/* Search & Bulk Select */}
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="relative">
-                  <MdSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    placeholder="Search Code or Name..."
-                    className="pl-8 pr-7 py-1.5 text-xs rounded-xl border border-stroke dark:border-strokedark bg-transparent text-black dark:text-white outline-none focus:border-emerald-500 w-48 sm:w-56"
-                  />
-                  {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black dark:hover:text-white"
-                    >
-                      <MdClose className="text-xs" />
-                    </button>
-                  )}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Catalog Master Status Legend */}
+                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-meta-4/30 px-3 py-1.5 rounded-xl border border-stroke dark:border-strokedark">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">Catalog Master:</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Already Exists
+                  </span>
+                  <span className="text-slate-300 dark:text-slate-600">|</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Will Create
+                  </span>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => toggleSelectAllFiltered(true)}
-                  className="px-2.5 py-1.5 rounded-lg border border-stroke dark:border-strokedark hover:bg-slate-50 dark:hover:bg-meta-4 text-[11px] font-bold transition cursor-pointer"
+                  onClick={() => handleExportFiltered('DUPLICATES')}
+                  className="px-3 py-1.5 rounded-xl border border-stroke dark:border-strokedark hover:bg-slate-100 dark:hover:bg-meta-4 font-bold text-slate-700 dark:text-slate-300 transition flex items-center gap-1 cursor-pointer"
                 >
-                  Select All
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggleSelectAllFiltered(false)}
-                  className="px-2.5 py-1.5 rounded-lg border border-stroke dark:border-strokedark hover:bg-slate-50 dark:hover:bg-meta-4 text-[11px] font-bold text-slate-500 transition cursor-pointer"
-                >
-                  Deselect
+                  <MdFileDownload className="text-sm text-amber-600" /> Export Duplicates
                 </button>
 
-                {activeFilterTab === 'DB_DUP' && metrics.dbDup > 0 && (
+                {metrics.invalid > 0 && (
                   <button
                     type="button"
-                    onClick={removeDbDuplicates}
-                    className="px-2.5 py-1.5 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-100 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                    onClick={() => handleExportFiltered('REJECTED')}
+                    className="px-3 py-1.5 rounded-xl border border-stroke dark:border-strokedark hover:bg-slate-100 dark:hover:bg-meta-4 font-bold text-slate-700 dark:text-slate-300 transition flex items-center gap-1 cursor-pointer"
                   >
-                    <MdDeleteOutline /> Remove Software Duplicates ({metrics.dbDup})
-                  </button>
-                )}
-
-                {activeFilterTab === 'FILE_DUP' && metrics.fileDup > 0 && (
-                  <button
-                    type="button"
-                    onClick={removeFileDuplicates}
-                    className="px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
-                  >
-                    <MdDeleteOutline /> Remove File Duplicates ({metrics.fileDup})
+                    <MdFileDownload className="text-sm text-rose-600" /> Export Rejected
                   </button>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* PREVIEW TABLE */}
-            <div className="overflow-x-auto max-h-[60vh] scrollbar-thin">
-              <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
-                <thead className="sticky top-0 bg-slate-100 dark:bg-meta-4 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 shadow-2xs z-10">
-                  <tr>
-                    <th className="py-3 px-3 text-center w-10">
+          {/* MAIN PREVIEW TABLE */}
+          <div className="bg-white dark:bg-boxdark rounded-2xl border border-stroke dark:border-strokedark shadow-sm overflow-hidden">
+            <div className="max-w-full overflow-x-auto">
+              <table className="w-full table-auto border-collapse text-left text-xs">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-meta-4/40 text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-stroke dark:border-strokedark">
+                    <th className="p-3 w-10 text-center">
                       <input
                         type="checkbox"
-                        checked={paginatedRows.length > 0 && paginatedRows.every(r => r.selected)}
-                        onChange={(e) => {
-                          const check = e.target.checked;
-                          const ids = new Set(paginatedRows.map(r => r.id));
-                          setProcessedRows(prev =>
-                            prev.map(r => (ids.has(r.id) ? { ...r, selected: check } : r))
-                          );
-                        }}
-                        className="rounded cursor-pointer"
+                        checked={filteredRows.length > 0 && filteredRows.every(r => r.selected)}
+                        onChange={(e) => (e.target.checked ? selectAllFiltered() : deselectAllFiltered())}
+                        className="cursor-pointer"
                       />
                     </th>
-                    <th className="py-3 px-2 w-12 text-center">Row #</th>
-                    <th className="py-3 px-3">Duplicate Status</th>
-                    <th className="py-3 px-3">Product Code / SKU</th>
-                    <th className="py-3 px-4">Product Description / Name</th>
-                    <th className="py-3 px-3">Parent Category</th>
-                    <th className="py-3 px-3">Sub Category</th>
-                    <th className="py-3 px-3">Category</th>
-                    <th className="py-3 px-3">Brand / Bin</th>
-                    <th className="py-3 px-3 text-right">Purchase Price</th>
-                    <th className="py-3 px-3 text-right">Sales Price</th>
-                    <th className="py-3 px-3">UOM</th>
-                    <th className="py-3 px-3 text-center">Action</th>
+                    <th className="p-3 w-14">Row #</th>
+                    <th className="p-3">Status & Reason</th>
+                    <th className="p-3">Code / SKU</th>
+                    <th className="p-3">Description / Name</th>
+                    <th className="p-3">Brand</th>
+                    <th className="p-3">Parent / Sub / Category</th>
+                    {activeTab === 'TILES' && (
+                      <>
+                        <th className="p-3">Finish / Print</th>
+                        <th className="p-3">Tile Size & Area</th>
+                        <th className="p-3">Box Coverage</th>
+                        <th className="p-3">Rate / sq.m</th>
+                      </>
+                    )}
+                    <th className="p-3">Purchase Price</th>
+                    <th className="p-3">Sale Price</th>
+                    <th className="p-3 w-14">UOM</th>
+                    <th className="p-3 w-14">Min</th>
+                    <th className="p-3 w-12 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stroke dark:divide-strokedark">
                   {paginatedRows.length === 0 ? (
                     <tr>
-                      <td colSpan={13} className="py-8 text-center text-slate-400 text-xs">
-                        No rows found matching current filter or search criteria.
+                      <td colSpan={activeTab === 'TILES' ? 15 : 11} className="p-10 text-center text-slate-400">
+                        No rows found matching current filters.
                       </td>
                     </tr>
                   ) : (
-                    paginatedRows.map((row) => {
-                      const isReady = row.status === 'ready';
-                      const isFileDup = row.status === 'duplicate_in_file';
-                      const isDbDup = row.status === 'duplicate_in_db';
-                      const isInvalid = row.status === 'invalid';
+                    paginatedRows.map((r) => {
+                      const isReady = r.status === 'ready';
+                      const isFileDup = r.status === 'duplicate_in_file';
+                      const isDbDup = r.status === 'duplicate_in_db';
+                      const isInvalid = r.status === 'invalid';
 
                       return (
                         <tr
-                          key={row.id}
-                          className={`transition ${
-                            row.selected ? 'bg-white dark:bg-boxdark' : 'opacity-60 bg-gray-50/50 dark:bg-meta-4/5'
-                          } ${
-                            isFileDup ? 'hover:bg-amber-50/40 dark:hover:bg-amber-950/20' : isDbDup ? 'hover:bg-blue-50/40 dark:hover:bg-blue-950/20' : 'hover:bg-slate-50 dark:hover:bg-meta-4/20'
-                          }`}
+                          key={r.id}
+                          className={`hover:bg-slate-50/70 dark:hover:bg-meta-4/20 transition duration-75 ${!r.selected ? 'opacity-60 bg-slate-50/30' : ''
+                            }`}
                         >
                           {/* Checkbox */}
-                          <td className="py-2.5 px-3 text-center">
+                          <td className="p-3 text-center">
                             <input
                               type="checkbox"
-                              checked={row.selected}
-                              onChange={() => toggleRowSelection(row.id)}
-                              className="rounded cursor-pointer"
+                              checked={r.selected}
+                              disabled={isInvalid}
+                              onChange={() => toggleRowSelect(r.id)}
+                              className="cursor-pointer"
                             />
                           </td>
 
-                          {/* Row Index */}
-                          <td className="py-2.5 px-2 text-center font-mono text-[11px] text-slate-400 font-semibold">
-                            #{row.rowIndex}
-                          </td>
+                          {/* Row # */}
+                          <td className="p-3 font-mono font-bold text-slate-500">#{r.rowIndex}</td>
 
-                          {/* Duplicate Status Badge & Note */}
-                          <td className="py-2.5 px-3 max-w-xs">
+                          {/* Status Badge & Reason */}
+                          <td className="p-3 min-w-[200px]">
                             {isReady && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                🟢 Ready to Add
-                              </span>
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                  🟢 Ready to Add
+                                </span>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400">{r.statusReason}</p>
+                              </div>
                             )}
+
                             {isFileDup && (
-                              <div>
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
                                   🟡 Duplicate in File
                                 </span>
-                                <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium truncate max-w-[220px]" title={row.statusReason}>
-                                  {row.statusReason}
-                                </div>
+                                <p className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
+                                  {r.statusReason}
+                                </p>
                               </div>
                             )}
+
                             {isDbDup && (
-                              <div>
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
-                                  🔵 In Database (ID #{row.matchedDbProduct?.id})
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+                                  🔵 In Database (ID #{r.matchedDbProduct?.id})
                                 </span>
-                                <div className="text-[10px] text-blue-600 dark:text-blue-400 font-medium truncate max-w-[220px]" title={row.statusReason}>
-                                  {row.statusReason}
-                                </div>
+                                <p className="text-[10px] text-blue-700 dark:text-blue-400 font-medium">
+                                  {r.statusReason}
+                                </p>
                               </div>
                             )}
+
                             {isInvalid && (
-                              <div>
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border border-red-300 dark:border-red-800">
-                                  🔴 Missing Info
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
+                                  ⛔ Rejected / Invalid
                                 </span>
-                                <div className="text-[10px] text-red-500 font-medium">{row.statusReason}</div>
+                                <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold">
+                                  {r.statusReason}
+                                </p>
                               </div>
                             )}
                           </td>
 
                           {/* Code */}
-                          <td className="py-2.5 px-3 font-mono font-bold text-black dark:text-white">
-                            <span className={isFileDup || isDbDup ? 'bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.5 rounded' : ''}>
-                              {row.code || '—'}
-                            </span>
+                          <td className="p-3 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                            {r.code || <span className="text-slate-400 italic font-normal">Auto</span>}
                           </td>
 
-                          {/* Description */}
-                          <td className="py-2.5 px-4 font-semibold text-black dark:text-white max-w-sm truncate" title={row.productName}>
-                            {row.productName || <span className="text-red-400 italic">No name provided</span>}
-                          </td>
-
-                          {/* Parent Category */}
-                          <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-[130px] truncate" title={row.parentCat}>
-                            {row.parentCat || '—'}
-                          </td>
-
-                          {/* Sub Category */}
-                          <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-[130px] truncate" title={row.subCategory}>
-                            {row.subCategory || '—'}
-                          </td>
-
-                          {/* Category */}
-                          <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-[130px] truncate" title={row.category}>
-                            {row.category || '—'}
+                          {/* Product Name */}
+                          <td className="p-3 font-bold text-slate-900 dark:text-white min-w-[180px]">
+                            {r.productName}
                           </td>
 
                           {/* Brand */}
-                          <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300">
-                            {row.brand || '—'}
+                          <td className="p-3 text-slate-700 dark:text-slate-300 whitespace-nowrap font-medium">
+                            {r.brand ? (
+                              <div className="flex items-center gap-1.5">
+                                <span>{r.brand}</span>
+                                <MasterBadge exists={masterLookup.isBrandExists(r.brand)} />
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">-</span>
+                            )}
                           </td>
+
+                          {/* Category hierarchy */}
+                          <td className="p-3 text-[11px] text-slate-600 dark:text-slate-300 min-w-[230px]">
+                            <div className="space-y-1">
+                              {/* Parent Category */}
+                              <div className="flex items-center flex-wrap gap-1">
+                                <span className="font-bold text-slate-800 dark:text-slate-200">
+                                  {r.parentCat || <span className="text-slate-400 italic font-normal text-[10px]">No Parent</span>}
+                                </span>
+                                {r.parentCat && (
+                                  <MasterBadge exists={masterLookup.isParentExists(r.parentCat)} />
+                                )}
+                              </div>
+
+                              {/* Sub Category */}
+                              {r.subCategory && (
+                                <div className="flex items-center flex-wrap gap-1 text-[10px] text-slate-500 dark:text-slate-400 pl-2 border-l-2 border-slate-200 dark:border-slate-700">
+                                  <span>›</span>
+                                  <span className="font-semibold text-slate-700 dark:text-slate-300">{r.subCategory}</span>
+                                  <MasterBadge exists={masterLookup.isSubExists(r.parentCat, r.subCategory)} />
+                                </div>
+                              )}
+
+                              {/* Category / Size */}
+                              {r.category && (
+                                <div className="flex items-center flex-wrap gap-1 text-[10px] text-slate-500 dark:text-slate-400 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
+                                  <span>›</span>
+                                  <span className="font-semibold text-slate-700 dark:text-slate-300">{r.category}</span>
+                                  <MasterBadge exists={masterLookup.isCatExists(r.parentCat, r.subCategory, r.category)} />
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Tile Columns */}
+                          {activeTab === 'TILES' && (
+                            <>
+                              {/* Print / Finish */}
+                              <td className="p-3 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                                {r.print ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{r.print}</span>
+                                    <MasterBadge exists={masterLookup.isPrintExists(r.print)} />
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400">-</span>
+                                )}
+                              </td>
+
+                              {/* Tile Size & Area Per Piece */}
+                              <td className="p-3 whitespace-nowrap">
+                                {r.tileWidth && r.tileHeight ? (
+                                  <div>
+                                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                                      {r.tileWidth} × {r.tileHeight} cm
+                                    </span>
+                                    <span className="block text-[10px] text-teal-700 dark:text-teal-400 font-mono font-semibold">
+                                      {r.sqMPerPiece ? `${r.sqMPerPiece.toFixed(4)} sq.m/pc` : '-'}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400">-</span>
+                                )}
+                              </td>
+
+                              {/* Box Coverage */}
+                              <td className="p-3 whitespace-nowrap">
+                                {r.sqMPerBox ? (
+                                  <div className="bg-teal-50 dark:bg-teal-950/40 px-2 py-1 rounded-lg border border-teal-200 dark:border-teal-800/60 inline-block">
+                                    <strong className="text-teal-800 dark:text-teal-300 font-mono font-black text-xs block">
+                                      {r.sqMPerBox.toFixed(4)} sq.m
+                                    </strong>
+                                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-mono">
+                                      {r.piecesPerBox} pcs / box
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400">-</span>
+                                )}
+                              </td>
+
+                              {/* Rates per sq.m */}
+                              <td className="p-3 whitespace-nowrap text-[11px] font-mono">
+                                {r.salePerSqM ? (
+                                  <div>
+                                    <span className="text-emerald-700 dark:text-emerald-400 font-bold block">
+                                      Sale: Rs. {r.salePerSqM.toFixed(2)}/sq.m
+                                    </span>
+                                    {r.purchasePerSqM ? (
+                                      <span className="text-slate-500 block text-[10px]">
+                                        Buy: Rs. {r.purchasePerSqM.toFixed(2)}/sq.m
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400">-</span>
+                                )}
+                              </td>
+                            </>
+                          )}
 
                           {/* Purchase Price */}
-                          <td className="py-2.5 px-3 text-right font-mono text-slate-700 dark:text-slate-300">
-                            Rs. {(Number(row.purchasePrice) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          <td className="p-3 font-mono font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                            Rs. {r.purchasePrice.toLocaleString()}
                           </td>
 
-                          {/* Sales Price */}
-                          <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                            Rs. {(Number(row.retailPrice) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {/* Sale Price */}
+                          <td className="p-3 font-mono font-bold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                            Rs. {r.retailPrice.toLocaleString()}
                           </td>
 
                           {/* UOM */}
-                          <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-slate-400">
-                            {row.uom || 'PCS'}
+                          <td className="p-3 font-bold text-slate-700 dark:text-slate-300 uppercase whitespace-nowrap">
+                            {r.uom}
+                          </td>
+
+                          {/* Min */}
+                          <td className="p-3 font-mono text-slate-500 whitespace-nowrap">
+                            {r.minimumStock || '-'}
                           </td>
 
                           {/* Action */}
-                          <td className="py-2.5 px-3 text-center">
+                          <td className="p-3 text-center">
                             <button
                               type="button"
-                              onClick={() => removeRow(row.id)}
-                              className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
-                              title="Remove row from this upload"
+                              onClick={() => removeRow(r.id)}
+                              className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                              title="Remove Row"
                             >
-                              <MdDeleteOutline className="text-sm" />
+                              <MdClose className="text-sm" />
                             </button>
                           </td>
                         </tr>
@@ -1106,33 +2116,129 @@ const BulkProductUpload = () => {
             </div>
 
             {/* PAGINATION BAR */}
-            {totalPages > 1 && (
-              <div className="p-3 border-t border-stroke dark:border-strokedark flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span>
-                  Showing {Math.min(filteredRows.length, (currentPage - 1) * pageSize + 1)} -{' '}
-                  {Math.min(filteredRows.length, currentPage * pageSize)} of {filteredRows.length} rows
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-stroke dark:border-strokedark text-xs text-slate-500 gap-3">
+              <span>
+                Showing {paginatedRows.length} of {filteredRows.length} filtered items (Current tab: {processedRows.length})
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                  className="px-2.5 py-1 rounded border border-stroke dark:border-strokedark disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-meta-4 transition"
+                >
+                  Prev
+                </button>
+                <span className="font-bold text-black dark:text-white px-2">
+                  Page {currentPage} of {totalPages}
                 </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    disabled={currentPage <= 1}
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    className="px-2.5 py-1 rounded border border-stroke dark:border-strokedark disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-meta-4 transition"
-                  >
-                    Prev
-                  </button>
-                  <span className="px-2 font-mono font-bold text-black dark:text-white">
-                    {currentPage} / {totalPages}
-                  </span>
-                  <button
-                    disabled={currentPage >= totalPages}
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    className="px-2.5 py-1 rounded border border-stroke dark:border-strokedark disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-meta-4 transition"
-                  >
-                    Next
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage >= totalPages}
+                  className="px-2.5 py-1 rounded border border-stroke dark:border-strokedark disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-meta-4 transition"
+                >
+                  Next
+                </button>
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* STEP 3: UPLOAD CONFIGURATION & CONFIRMATION DOCK */}
+          <div className="bg-white dark:bg-boxdark p-5 rounded-3xl border border-stroke dark:border-strokedark shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-black dark:text-white flex items-center gap-2">
+                <MdTune className="text-emerald-600 text-base" /> Duplicate Handling Strategy:
+              </h4>
+              <div className="flex flex-wrap items-center gap-4 text-xs">
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="uploadMode"
+                    value="SKIP_DUPLICATES"
+                    checked={uploadMode === 'SKIP_DUPLICATES'}
+                    onChange={() => setUploadMode('SKIP_DUPLICATES')}
+                    className="cursor-pointer"
+                  />
+                  <span>Skip existing catalog duplicates (Insert clean only)</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="uploadMode"
+                    value="UPDATE_EXISTING"
+                    checked={uploadMode === 'UPDATE_EXISTING'}
+                    onChange={() => setUploadMode('UPDATE_EXISTING')}
+                    className="cursor-pointer"
+                  />
+                  <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                    Update existing catalog items if matched in database
+                  </span>
+                </label>
+              </div>
+
+              {/* Master Hierarchy Provisioning Toggle */}
+              <div className="pt-2 border-t border-slate-100 dark:border-strokedark/60 space-y-0.5">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={autoCreateMasters}
+                    onChange={(e) => setAutoCreateMasters(e.target.checked)}
+                    className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
+                  />
+                  <span className="flex items-center gap-1.5">
+                    <MdCategory className="text-emerald-600 text-sm" />
+                    <span>Auto-create missing Categories, Subcategories, Brands & Prints in master lists</span>
+                  </span>
+                </label>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 pl-5">
+                  Builds the 3-level tree (Parent Category → Sub Category → Category/Size) and registers Brands & Prints so dropdowns stay fully synchronized.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-4 py-2.5 text-xs font-bold rounded-xl border border-stroke dark:border-strokedark hover:bg-slate-100 dark:hover:bg-meta-4 text-slate-700 dark:text-slate-300 transition cursor-pointer"
+              >
+                Cancel & Clear
+              </button>
+
+              {/* Upload current tab */}
+              <button
+                type="button"
+                disabled={loading || metrics.selectedCount === 0}
+                onClick={handleExecuteUpload}
+                className="px-6 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Spinner />
+                    <span>Processing {uploadProgress?.current || 0}/{uploadProgress?.total || metrics.selectedCount}...</span>
+                  </>
+                ) : (
+                  <>
+                    <MdCloudUpload className="text-base" />
+                    <span>Upload {metrics.selectedCount} {activeTab === 'TILES' ? 'Tile' : 'Other'} Products</span>
+                  </>
+                )}
+              </button>
+
+              {/* Upload both tabs if mixed file */}
+              {isMixedFile && (
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={handleExecuteUploadBoth}
+                  className="px-5 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 active:scale-95 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
+                >
+                  <MdCloudUpload className="text-base text-emerald-400" />
+                  <span>Upload Both Tabs ({otherRows.length + tileRows.length} Total)</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1154,7 +2260,7 @@ const BulkProductUpload = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-meta-4/20 p-3 rounded-2xl border border-stroke dark:border-strokedark text-xs">
+            <div className="grid grid-cols-4 gap-2 bg-slate-50 dark:bg-meta-4/20 p-3 rounded-2xl border border-stroke dark:border-strokedark text-xs">
               <div className="p-2">
                 <span className="text-[10px] text-slate-400 uppercase font-bold block">New Added</span>
                 <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
@@ -1171,6 +2277,12 @@ const BulkProductUpload = () => {
                 <span className="text-[10px] text-slate-400 uppercase font-bold block">Skipped</span>
                 <span className="text-lg font-bold text-amber-600 dark:text-amber-400 block mt-0.5">
                   {uploadResult.skippedCount}
+                </span>
+              </div>
+              <div className="p-2">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Masters</span>
+                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5" title="New Categories, Brands & Prints created">
+                  {uploadResult.mastersCount || 0}
                 </span>
               </div>
             </div>

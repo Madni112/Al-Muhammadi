@@ -10,6 +10,7 @@ import { MdInventory } from 'react-icons/md';
 const OpeningStockList = () => {
   const { userName, userEmail } = useAuth();
   const [stocks, setStocks] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage] = useState(10);
@@ -23,18 +24,96 @@ const OpeningStockList = () => {
   const fetchStocks = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('opening_stocks')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [stocksRes, prodRes] = await Promise.all([
+        supabase.from('opening_stocks').select('*').order('created_at', { ascending: false }),
+        supabase.from('products').select('id, product_name, item_sr_no, pieces_per_box, pcs_per_box, pieces_per_packing, product_description, category'),
+      ]);
 
-      if (error) throw error;
-      setStocks(data || []);
+      if (stocksRes.error) throw stocksRes.error;
+      setStocks(stocksRes.data || []);
+      if (prodRes.data) setProducts(prodRes.data);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getProductPiecesPerBox = (productName?: string, skuCode?: string) => {
+    const norm = (s: string) => (s || '').trim().toLowerCase();
+    const nameNorm = norm(productName || '');
+    const skuNorm = norm(skuCode || '');
+
+    const p = products.find((prod: any) => {
+      if (skuNorm && norm(prod.item_sr_no) === skuNorm) return true;
+      if (nameNorm && norm(prod.product_name) === nameNorm) return true;
+      return false;
+    });
+
+    if (p) {
+      const raw = Number(p.pieces_per_box ?? p.pcs_per_box ?? p.pieces_per_packing ?? 0);
+      if (raw >= 1) return raw;
+      const match = String(p.product_description || '').match(/Box:\s*(\d+)\s*pcs/i);
+      if (match && Number(match[1]) > 0) return Number(match[1]);
+    }
+
+    const text = `${productName || ''} ${p?.product_description || ''}`;
+    const slashMatch = text.match(/\b\d+(?:\.\d+)?\/(\d+)\b/);
+    if (slashMatch && Number(slashMatch[1]) > 0) return Number(slashMatch[1]);
+
+    return 8;
+  };
+
+  const formatItemQty = (r: any) => {
+    const qty = Number(r.qty ?? r.quantity) || 0;
+    if (qty % 1 === 0 || Math.abs(qty - Math.round(qty)) < 0.0001) {
+      return {
+        boxes: Math.round(qty),
+        loose: 0,
+        hasLoose: false,
+        rawQty: qty,
+      };
+    }
+    const pcsPerBox = getProductPiecesPerBox(r.itemName || r.product_name, r.skuCode || r.item_code || r.itemCode);
+    const boxes = Math.floor(qty);
+    const loose = Math.round((qty - boxes) * pcsPerBox);
+    return {
+      boxes,
+      loose,
+      hasLoose: loose > 0,
+      pcsPerBox,
+      rawQty: qty,
+    };
+  };
+
+  const formatBatchQty = (group: any[]) => {
+    let totalBoxes = 0;
+    let totalLoose = 0;
+    let fallbackPcsPerBox = 8;
+    let hasAnyLoose = false;
+
+    (group || []).forEach((r: any) => {
+      const info = formatItemQty(r);
+      totalBoxes += info.boxes;
+      totalLoose += info.loose;
+      if (info.hasLoose) {
+        hasAnyLoose = true;
+        if (info.pcsPerBox) fallbackPcsPerBox = info.pcsPerBox;
+      }
+    });
+
+    if (fallbackPcsPerBox > 0 && totalLoose >= fallbackPcsPerBox) {
+      const extraBoxes = Math.floor(totalLoose / fallbackPcsPerBox);
+      totalBoxes += extraBoxes;
+      totalLoose = totalLoose % fallbackPcsPerBox;
+    }
+
+    return {
+      boxes: totalBoxes,
+      loose: totalLoose,
+      hasLoose: totalLoose > 0,
+      rawTotal: (group || []).reduce((sum: number, r: any) => sum + (Number(r.qty ?? r.quantity) || 0), 0),
+    };
   };
 
   // One entry per Stock No — every line created together shares the same Stock No
@@ -210,8 +289,30 @@ const OpeningStockList = () => {
                       </button>
                     </td>
 
-                    <td className="py-5 px-4 text-center font-black text-black dark:text-white">
-                      {totalQty.toLocaleString()}
+                    <td className="py-5 px-4 text-center">
+                      {(() => {
+                        const { boxes, loose, hasLoose, rawTotal } = formatBatchQty(group);
+                        if (!hasLoose) {
+                          return (
+                            <span className="font-black text-black dark:text-white">
+                              {boxes.toLocaleString()}
+                            </span>
+                          );
+                        }
+                        return (
+                          <div
+                            className="flex flex-col items-center justify-center leading-tight"
+                            title={`${boxes} boxes + ${loose} pcs (${rawTotal.toLocaleString(undefined, { maximumFractionDigits: 3 })})`}
+                          >
+                            <span className="font-black text-black dark:text-white">
+                              {boxes.toLocaleString()}
+                            </span>
+                            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                              ({loose} {loose === 1 ? 'pc' : 'pcs'})
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-5 px-4 text-center">
@@ -302,7 +403,31 @@ const OpeningStockList = () => {
                           <p className="font-semibold text-slate-800 dark:text-white">{r.itemName || r.product_name}</p>
                           {(r.skuCode || r.item_code) && <p className="text-[10px] font-mono text-primary font-bold">{r.skuCode || r.item_code}</p>}
                         </td>
-                        <td className="py-2.5 px-3 text-center font-bold text-black dark:text-white">{qty.toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-center">
+                          {(() => {
+                            const { boxes, loose, hasLoose, rawQty } = formatItemQty(r);
+                            if (!hasLoose) {
+                              return (
+                                <span className="font-bold text-black dark:text-white">
+                                  {boxes.toLocaleString()}
+                                </span>
+                              );
+                            }
+                            return (
+                              <div
+                                className="flex flex-col items-center justify-center leading-tight"
+                                title={`${boxes} boxes + ${loose} pcs (${rawQty.toLocaleString(undefined, { maximumFractionDigits: 3 })})`}
+                              >
+                                <span className="font-bold text-black dark:text-white">
+                                  {boxes.toLocaleString()}
+                                </span>
+                                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                  ({loose} {loose === 1 ? 'pc' : 'pcs'})
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </td>
                         <td className="py-2.5 px-3 text-right font-mono text-slate-600 dark:text-slate-300">Rs. {cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">Rs. {amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="py-2.5 pl-3 text-center font-mono text-xs text-danger">{r.expiryDate || r.expiry_date || '—'}</td>
@@ -317,7 +442,21 @@ const OpeningStockList = () => {
                   Total {viewBatch.length} Item{viewBatch.length > 1 ? 's' : ''}
                 </span>
                 <span className="text-slate-700 dark:text-slate-200">
-                  Total Qty: <span className="text-black dark:text-white">{viewBatch.reduce((sum, r) => sum + (Number(r.qty ?? r.quantity) || 0), 0).toLocaleString()}</span>
+                  Total Qty:{' '}
+                  {(() => {
+                    const { boxes, loose, hasLoose, rawTotal } = formatBatchQty(viewBatch);
+                    if (!hasLoose) {
+                      return <span className="text-black dark:text-white font-black">{boxes.toLocaleString()}</span>;
+                    }
+                    return (
+                      <span className="font-bold text-black dark:text-white" title={`${rawTotal.toLocaleString(undefined, { maximumFractionDigits: 3 })} total`}>
+                        {boxes.toLocaleString()}{' '}
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                          ({loose} {loose === 1 ? 'pc' : 'pcs'})
+                        </span>
+                      </span>
+                    );
+                  })()}
                   <span className="mx-2 text-slate-300 dark:text-strokedark">|</span>
                   Total Valuation: <span className="text-emerald-600 dark:text-emerald-400 font-mono">Rs. {viewBatch.reduce((sum, r) => sum + (Number(r.amount ?? r.total_amount ?? 0) || (Number(r.qty ?? r.quantity) || 0) * (Number(r.purchase_price ?? r.rate ?? r.rp) || 0)), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </span>
