@@ -137,13 +137,29 @@ const OpeningStockList = () => {
     setCurrentPage(1);
   }, [entriesPerPage]);
 
-  const subtractProductStock = async (nameKey: string, qty: number) => {
-    if (!nameKey || qty <= 0) return;
-    const { data: prod } = await supabase
-      .from('products')
-      .select('id, current_stock')
-      .ilike('product_name', nameKey)
-      .maybeSingle();
+  const subtractProductStock = async (code: string | undefined, nameKey: string, qty: number) => {
+    if (qty <= 0) return;
+    const cleanCode = String(code || '').trim();
+    const cleanName = String(nameKey || '').trim();
+
+    let prod: any = null;
+    if (cleanCode) {
+      const { data } = await supabase
+        .from('products')
+        .select('id, current_stock')
+        .eq('item_sr_no', cleanCode)
+        .maybeSingle();
+      if (data) prod = data;
+    }
+
+    if (!prod && cleanName) {
+      const { data } = await supabase
+        .from('products')
+        .select('id, current_stock')
+        .ilike('product_name', cleanName)
+        .maybeSingle();
+      if (data) prod = data;
+    }
 
     if (prod) {
       await supabase
@@ -163,14 +179,24 @@ const OpeningStockList = () => {
     }
 
     try {
-      // Reverse products.current_stock (aggregated per product)
-      const qtyMap: Record<string, number> = {};
+      // Reverse products.current_stock (aggregated per product code / name)
+      const qtyMap = new Map<string, { code: string; name: string; qty: number }>();
       group.forEach((r: any) => {
-        const key = String(r.itemName || r.product_name || '').trim().toLowerCase();
-        if (key) qtyMap[key] = (qtyMap[key] || 0) + (Number(r.qty ?? r.quantity) || 0);
+        const code = String(r.skuCode || r.item_code || r.itemCode || '').trim();
+        const name = String(r.itemName || r.product_name || '').trim();
+        const key = code ? `code:${code.toLowerCase()}` : `name:${name.toLowerCase()}`;
+        if (!key) return;
+
+        const currentQty = Number(r.qty ?? r.quantity) || 0;
+        if (qtyMap.has(key)) {
+          qtyMap.get(key)!.qty += currentQty;
+        } else {
+          qtyMap.set(key, { code, name, qty: currentQty });
+        }
       });
-      for (const [nameKey, qty] of Object.entries(qtyMap)) {
-        await subtractProductStock(nameKey, qty);
+
+      for (const item of qtyMap.values()) {
+        await subtractProductStock(item.code, item.name, item.qty);
       }
 
       const ids = group.map((r: any) => r.id).filter(Boolean);

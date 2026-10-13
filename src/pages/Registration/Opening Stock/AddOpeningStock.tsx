@@ -98,6 +98,7 @@ const AddOpeningStock = () => {
     };
 
     const emptyItemRow = () => ({
+        productId: null as number | string | null,
         itemCode: '',
         itemName: '',
         qty: 1,
@@ -137,28 +138,68 @@ const AddOpeningStock = () => {
         ).min(1, 'Add at least one product row')
     });
 
-    // Add (positive) or remove (negative) stock on products.current_stock for a product name
-    const updateProductStock = async (nameKey: string, delta: number) => {
-        if (!nameKey || delta === 0) return;
-        const { data: prod } = await supabase
-            .from('products')
-            .select('id, current_stock')
-            .ilike('product_name', nameKey)
-            .maybeSingle();
+    interface ProductStockDelta {
+        productId?: number | string | null;
+        itemCode?: string;
+        itemName: string;
+        qty: number;
+    }
 
-        if (prod) {
-            const next = Math.max(0, (Number(prod.current_stock) || 0) + delta);
-            await supabase.from('products').update({ current_stock: next }).eq('id', prod.id);
+    // Add (positive) or remove (negative) stock on products.current_stock
+    // Prioritizes matching by Code (item_sr_no) or Product ID so identical descriptions don't conflict
+    const updateProductStock = async (item: ProductStockDelta) => {
+        if (!item || item.qty === 0) return;
+
+        let targetProd: any = null;
+
+        // 1. Match by Product ID if available
+        if (item.productId) {
+            const { data: pById } = await supabase
+                .from('products')
+                .select('id, current_stock')
+                .eq('id', item.productId)
+                .maybeSingle();
+            targetProd = pById;
+        }
+
+        // 2. Match by exact Code (item_sr_no)
+        if (!targetProd && item.itemCode && item.itemCode.trim()) {
+            const { data: pByCode } = await supabase
+                .from('products')
+                .select('id, current_stock')
+                .ilike('item_sr_no', item.itemCode.trim())
+                .maybeSingle();
+            targetProd = pByCode;
+        }
+
+        // 3. Fallback: match by product_name
+        if (!targetProd && item.itemName && item.itemName.trim()) {
+            const { data: pByName } = await supabase
+                .from('products')
+                .select('id, current_stock')
+                .ilike('product_name', item.itemName.trim())
+                .maybeSingle();
+            targetProd = pByName;
+        }
+
+        if (targetProd) {
+            const next = Math.max(0, (Number(targetProd.current_stock) || 0) + item.qty);
+            await supabase.from('products').update({ current_stock: next }).eq('id', targetProd.id);
         }
     };
 
-    // Guard: throw a friendly error message when any product repeats across rows
+    // Guard: throw a friendly error message when any product repeats across rows (matched by Code or Name)
     const assertNoDuplicateRows = (rows: any[]): string | null => {
         const seen: Record<string, number> = {};
         for (let i = 0; i < rows.length; i++) {
-            const key = String(rows[i].itemName || '').trim().toLowerCase();
+            const code = String(rows[i].itemCode || rows[i].skuCode || rows[i].item_code || '').trim().toLowerCase();
+            const name = String(rows[i].itemName || '').trim().toLowerCase();
+            const key = code ? `code:${code}` : `name:${name}`;
+            if (!key || key === 'name:') continue;
+
             if (seen[key] !== undefined) {
-                return `Cannot save — "${rows[i].itemName}" is added in both row ${seen[key] + 1} and row ${i + 1}. Please remove the duplicate line.`;
+                const label = code ? `Product Code "${rows[i].itemCode || rows[i].skuCode}"` : `"${rows[i].itemName}"`;
+                return `Cannot save — ${label} is added in both row ${seen[key] + 1} and row ${i + 1}. Please remove the duplicate line.`;
             }
             seen[key] = i;
         }
@@ -170,10 +211,11 @@ const AddOpeningStock = () => {
             const unitCost = Number(r.purchasePrice) || 0;
             const quantity = Number(r.qty) || 0;
             const totalValuation = quantity * unitCost;
+            const code = r.itemCode || r.skuCode || '';
             return {
                 stockNo: stockNoValue,
-                skuCode: r.itemCode || '',
-                item_code: r.itemCode || '',
+                skuCode: code,
+                item_code: code,
                 itemName: r.itemName,
                 product_name: r.itemName,
                 batchNumber: header.batchNumber,
@@ -189,14 +231,25 @@ const AddOpeningStock = () => {
             };
         });
 
-    // Aggregate per-product quantity across rows for current_stock updates
-    const aggregateByProduct = (rows: any[]): Record<string, number> => {
-        const map: Record<string, number> = {};
+    // Aggregate per-product quantity across rows for current_stock updates (grouped by Code/ID)
+    const aggregateByProduct = (rows: any[]): ProductStockDelta[] => {
+        const map = new Map<string, ProductStockDelta>();
         rows.forEach((r: any) => {
-            const key = String(r.itemName || '').trim().toLowerCase();
-            if (key) map[key] = (map[key] || 0) + (Number(r.qty) || 0);
+            const code = String(r.itemCode || r.skuCode || r.item_code || '').trim();
+            const id = r.productId || null;
+            const name = String(r.itemName || r.product_name || '').trim();
+            const qty = Number(r.qty ?? r.quantity) || 0;
+
+            const key = id ? `id:${id}` : (code ? `code:${code.toLowerCase()}` : `name:${name.toLowerCase()}`);
+            if (!key) return;
+
+            if (map.has(key)) {
+                map.get(key)!.qty += qty;
+            } else {
+                map.set(key, { productId: id, itemCode: code, itemName: name, qty });
+            }
         });
-        return map;
+        return Array.from(map.values());
     };
 
     const handleMultiSubmit = async (values: any) => {
@@ -220,9 +273,9 @@ const AddOpeningStock = () => {
             const { error: stockError } = await supabase.from('opening_stocks').insert(payloads);
             if (stockError) throw stockError;
 
-            // Increase products.current_stock once per distinct product (aggregated qty)
-            for (const [nameKey, totalQty] of Object.entries(aggregateByProduct(rows))) {
-                await updateProductStock(nameKey, totalQty);
+            // Increase products.current_stock once per distinct product by Code/ID
+            for (const item of aggregateByProduct(rows)) {
+                await updateProductStock(item);
             }
 
             // Record in audit_logs
@@ -264,8 +317,8 @@ const AddOpeningStock = () => {
             batchNumber: first.batchNumber || first.batch_number || '',
             items: stockBatch.map((r: any) => {
                 const pMatch = products.find((p: any) =>
-                    p.product_name === (r.itemName || r.product_name) ||
-                    (p.item_sr_no && p.item_sr_no === (r.skuCode || r.item_code))
+                    (p.item_sr_no && p.item_sr_no === (r.skuCode || r.item_code)) ||
+                    p.product_name === (r.itemName || r.product_name)
                 );
                 const isTile = isTileProduct(pMatch || r);
                 const pcsPerBox = getProductPiecesPerBox(pMatch || r);
@@ -274,7 +327,8 @@ const AddOpeningStock = () => {
                 const lPcs = Math.round((totalQty - bQty) * pcsPerBox);
 
                 return {
-                    itemCode: r.skuCode || r.item_code || r.itemCode || '',
+                    productId: pMatch?.id || r.productId || r.product_id,
+                    itemCode: r.skuCode || r.item_code || r.itemCode || (pMatch?.item_sr_no || ''),
                     itemName: r.itemName || r.product_name || '',
                     qty: totalQty,
                     purchasePrice: Number(r.purchase_price ?? r.rate ?? r.rp ?? r.purchasePrice) || 0,
@@ -305,8 +359,8 @@ const AddOpeningStock = () => {
             }
 
             // 1. Revert stock added by the old batch
-            for (const [nameKey, qty] of Object.entries(aggregateByProduct(stockBatch))) {
-                await updateProductStock(nameKey, -qty);
+            for (const item of aggregateByProduct(stockBatch)) {
+                await updateProductStock({ ...item, qty: -item.qty });
             }
 
             // 2. Remove old lines
@@ -322,8 +376,8 @@ const AddOpeningStock = () => {
             if (insError) throw insError;
 
             // 4. Re-apply stock for the new lines
-            for (const [nameKey, qty] of Object.entries(aggregateByProduct(rows))) {
-                await updateProductStock(nameKey, qty);
+            for (const item of aggregateByProduct(rows)) {
+                await updateProductStock(item);
             }
 
             // Record batch update in audit_logs
@@ -370,10 +424,12 @@ const AddOpeningStock = () => {
                     0
                 );
 
-                // Duplicate product detection across rows (case-insensitive, trimmed)
+                // Duplicate product detection across rows (keyed by Code first, fallback to Name)
                 const productCounts: Record<string, number> = {};
                 (values.items || []).forEach((r: any) => {
-                    const k = String(r.itemName || '').trim().toLowerCase();
+                    const code = String(r.itemCode || r.skuCode || r.item_code || '').trim().toLowerCase();
+                    const name = String(r.itemName || '').trim().toLowerCase();
+                    const k = code ? `code:${code}` : (name ? `name:${name}` : '');
                     if (k) productCounts[k] = (productCounts[k] || 0) + 1;
                 });
                 const duplicateProductKeys = new Set(
@@ -391,6 +447,7 @@ const AddOpeningStock = () => {
 
                     updated[index] = {
                         ...updated[index],
+                        productId: p.id,
                         itemName: p.product_name,
                         itemCode: p.item_sr_no || `SKU-${p.id}`,
                         purchasePrice: Number(p.purchase_price) || 0,
@@ -484,13 +541,19 @@ const AddOpeningStock = () => {
                                                     const lineError = (errors as any)?.items?.[index];
                                                     const lineTouched = (touched as any)?.items?.[index];
 
-                                                    const rowProductKey = String(item.itemName || '').trim().toLowerCase();
+                                                    const rowCode = String(item.itemCode || item.skuCode || item.item_code || '').trim().toLowerCase();
+                                                    const rowName = String(item.itemName || '').trim().toLowerCase();
+                                                    const rowProductKey = rowCode ? `code:${rowCode}` : (rowName ? `name:${rowName}` : '');
                                                     const isDuplicateRow = !!rowProductKey && duplicateProductKeys.has(rowProductKey);
                                                     const firstDupRowIndex = isDuplicateRow
                                                         ? (values.items || []).findIndex(
-                                                            (r: any, j: number) =>
-                                                                j !== index &&
-                                                                String(r.itemName || '').trim().toLowerCase() === rowProductKey
+                                                            (r: any, j: number) => {
+                                                                if (j === index) return false;
+                                                                const c = String(r.itemCode || r.skuCode || r.item_code || '').trim().toLowerCase();
+                                                                const n = String(r.itemName || '').trim().toLowerCase();
+                                                                const k = c ? `code:${c}` : (n ? `name:${n}` : '');
+                                                                return k === rowProductKey;
+                                                            }
                                                         )
                                                         : -1;
                                                     const productInputRed = Boolean(lineError?.itemName) || isDuplicateRow;
@@ -859,18 +922,11 @@ const AddOpeningStock = () => {
                     if (stockError) throw stockError;
 
                     if (qtyDifference !== 0) {
-                        const { data: currentProduct } = await supabase
-                            .from('products')
-                            .select('current_stock')
-                            .ilike('product_name', values.itemName)
-                            .maybeSingle();
-
-                        if (currentProduct) {
-                            await supabase
-                                .from('products')
-                                .update({ current_stock: (Number(currentProduct.current_stock) || 0) + qtyDifference })
-                                .eq('product_name', values.itemName);
-                        }
+                        await updateProductStock({
+                            itemCode: values.skuCode,
+                            itemName: values.itemName,
+                            qty: qtyDifference
+                        });
                     }
 
                     toast.success('Opening stock updated successfully!');
