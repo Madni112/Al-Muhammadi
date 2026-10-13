@@ -464,10 +464,25 @@ export const fetchFinancialMetrics = async (): Promise<FinancialSummary> => {
     // Compute comprehensive stock valuation across all products
     (productsList || []).forEach((p: any) => {
       const pName = String(p.product_name || p.name || '').trim().toLowerCase();
-      const unitPrice = priceMap[pName] || Number(p.retail_price || p.sale_price || 0);
+      const pCode = String(p.item_sr_no || p.item_code || p.sku || '').trim().toLowerCase();
+      const unitPrice = Number(p.purchase_price || p.purchasePrice || p.cost_price || p.retail_price || p.sale_price || 0);
+
+      const isMatch = (item: any) => {
+        const itemCode = String(item.item_code || item.item_sr_no || item.skuCode || item.sku || item.code || '').trim().toLowerCase();
+        if (pCode && itemCode) {
+          return pCode === itemCode;
+        }
+        const iName = String(item.product_name || item.itemName || item.item_name || item.item_details || item.pDescription || '').trim().toLowerCase();
+        return iName === pName;
+      };
 
       // 1. Initial Opening Stock from opening_stocks table
-      const prodOs = (openStocksList || []).filter((o: any) => String(o.product_name || o.item_name || o.itemName || '').trim().toLowerCase() === pName);
+      const prodOs = (openStocksList || []).filter((o: any) => {
+        const oCode = String(o.item_code || o.skuCode || o.itemCode || '').trim().toLowerCase();
+        const oName = String(o.product_name || o.item_name || o.itemName || '').trim().toLowerCase();
+        if (pCode && oCode) return pCode === oCode;
+        return oName === pName;
+      });
       const osQty = prodOs.reduce((acc: number, o: any) => acc + Number(o.quantity || o.qty || 0), 0);
 
       // 2. Purchases Prior vs This Month
@@ -477,8 +492,7 @@ export const fetchFinancialMetrics = async (): Promise<FinancialSummary> => {
         const pDate = String(pur.created_at || pur.purchase_date || '').split('T')[0];
         const items = Array.isArray(pur.items) ? pur.items : (typeof pur.items === 'string' ? JSON.parse(pur.items || '[]') : []);
         items.forEach((it: any) => {
-          const itName = String(it.product_name || it.itemName || it.itemDetails || '').trim().toLowerCase();
-          if (itName === pName) {
+          if (isMatch(it)) {
             const q = Number(it.quantity || it.qty || 0);
             if (pDate && pDate < startOfCurrentMonthStr) {
               priorPurchases += q;
@@ -496,8 +510,7 @@ export const fetchFinancialMetrics = async (): Promise<FinancialSummary> => {
         const iDate = String(inv.created_at || inv.sale_date || inv.invoice_date || '').split('T')[0];
         const items = Array.isArray(inv.items) ? inv.items : (typeof inv.items === 'string' ? JSON.parse(inv.items || '[]') : []);
         items.forEach((it: any) => {
-          const itName = String(it.product_name || it.itemName || it.pDescription || '').trim().toLowerCase();
-          if (itName === pName) {
+          if (isMatch(it)) {
             const q = Number(it.qty || it.quantity || 0);
             if (iDate && iDate < startOfCurrentMonthStr) {
               priorSales += q;
@@ -515,8 +528,7 @@ export const fetchFinancialMetrics = async (): Promise<FinancialSummary> => {
         const rDate = String(sr.created_at || sr.return_date || '').split('T')[0];
         const items = Array.isArray(sr.items) ? sr.items : (typeof sr.items === 'string' ? JSON.parse(sr.items || '[]') : []);
         items.forEach((it: any) => {
-          const itName = String(it.product_name || it.item_name || it.itemName || '').trim().toLowerCase();
-          if (itName === pName) {
+          if (isMatch(it)) {
             const q = Number(it.quantity || it.qty || 0);
             if (rDate && rDate < startOfCurrentMonthStr) {
               priorSalesReturns += q;
@@ -534,8 +546,7 @@ export const fetchFinancialMetrics = async (): Promise<FinancialSummary> => {
         const prDate = String(pr.created_at || pr.return_date || '').split('T')[0];
         const items = Array.isArray(pr.items) ? pr.items : (typeof pr.items === 'string' ? JSON.parse(pr.items || '[]') : []);
         items.forEach((it: any) => {
-          const itName = String(it.product_name || it.item_name || it.itemName || '').trim().toLowerCase();
-          if (itName === pName) {
+          if (isMatch(it)) {
             const q = Number(it.quantity || it.qty || 0);
             if (prDate && prDate < startOfCurrentMonthStr) {
               priorPurchaseReturns += q;

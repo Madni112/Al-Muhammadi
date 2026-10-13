@@ -1519,7 +1519,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialView = 'executive' }) => {
                         ✓ 100% Synced with Live Stock Registry
                       </span>
                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">
-                        Evaluated at Selling Price
+                        Evaluated at Purchase Cost
                       </span>
                     </div>
                   </div>
